@@ -9,6 +9,13 @@ const state = {
   chart: null
 };
 
+// Define API base path. When running in Firebase hosting the backend lives
+// on the Cloud Functions domain, otherwise use relative paths for local dev.
+const API_BASE =
+  window.location.hostname === 'localhost'
+    ? ''
+    : 'https://us-central1-app-organia.cloudfunctions.net';
+
 function openModal(el) {
   el.classList.remove('hidden');
   el.classList.add('flex');
@@ -27,8 +34,8 @@ function updateConnection() {
 async function fetchData() {
   try {
     const [ordens, tarefas] = await Promise.all([
-      fetch('/api/ordens').then(r => r.json()).catch(() => []),
-      fetch('/api/tarefas').then(r => r.json()).catch(() => [])
+      fetch(`${API_BASE}/api/ordens`).then(r => r.json()).catch(() => []),
+      fetch(`${API_BASE}/api/tarefas`).then(r => r.json()).catch(() => [])
     ]);
     state.orders = Array.isArray(ordens) ? ordens : [];
     state.tasks = Array.isArray(tarefas) ? tarefas : [];
@@ -106,7 +113,7 @@ function renderChart() {
 async function loadAgenda() {
   const mes = `${state.currentMonth.getFullYear()}-${String(state.currentMonth.getMonth() + 1).padStart(2, '0')}`;
   try {
-    const res = await fetch(`/api/agenda?mes=${mes}`);
+    const res = await fetch(`${API_BASE}/api/agenda?mes=${mes}`);
     state.agenda = await res.json();
   } catch {
     state.agenda = {};
@@ -190,7 +197,7 @@ async function submitNewTask(e) {
     prazo: document.getElementById('newTaskDeadline').value,
     prioridade: document.getElementById('newTaskPriority').value
   };
-  await fetch('/api/tarefas', {
+  await fetch(`${API_BASE}/api/tarefas`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -205,7 +212,7 @@ async function submitCompleteTask(e) {
   const form = new FormData();
   form.append('observacoes', document.getElementById('completeTaskObs').value);
   Array.from(document.getElementById('completeTaskPhotos').files).slice(0, 3).forEach(f => form.append('fotos', f));
-  await fetch(`/api/tarefas/${state.currentTask.id}/concluir`, {
+  await fetch(`${API_BASE}/api/tarefas/${state.currentTask.id}/concluir`, {
     method: 'PATCH',
     body: form
   });
