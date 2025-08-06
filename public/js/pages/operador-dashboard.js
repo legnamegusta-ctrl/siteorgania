@@ -1,3 +1,10 @@
+function initOperadorDashboard(userId, userRole) {
+  updateConnection();
+  bindUI();
+  fetchData();
+}
+
+export { initOperadorDashboard };
 const state = {
   tasks: [],
   orders: [],
