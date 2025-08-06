@@ -25,6 +25,10 @@ import { initAgenda } from '../pages/agenda.js';
 // NOVO: Importa a função de inicialização do dashboard do operador
 import { initOperadorDashboard } from '../pages/operador-dashboard.js';
 import { initActivityDetails } from '../pages/activity-details.js';
+import { initOperadorOrdens } from '../pages/operador-ordens.js';
+import { initOperadorTarefas } from '../pages/operador-tarefas.js';
+import { initOperadorAgenda } from '../pages/operador-agenda.js';
+import { initOperadorPerfil } from '../pages/operador-perfil.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -112,6 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // NOVO: Inicializa o dashboard do operador
             else if (document.getElementById('operador-dashboard-marker')) {
                 initOperadorDashboard(user.uid, userRole);
+                } else if (document.getElementById('operador-ordens-marker')) {
+                initOperadorOrdens(user.uid, userRole);
+            } else if (document.getElementById('operador-tarefas-marker')) {
+                initOperadorTarefas(user.uid, userRole);
+            } else if (document.getElementById('operador-agenda-marker')) {
+                initOperadorAgenda(user.uid, userRole);
+            } else if (document.getElementById('operador-perfil-marker')) {
+                initOperadorPerfil(user.uid, userRole);
             }
         } catch (error) {
             console.error("Erro na inicialização da página:", error);

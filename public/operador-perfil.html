@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Operador</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-screen flex bg-gray-100">
+  <div id="operador-perfil-marker" class="hidden"></div>
+  <!-- Sidebar desktop -->
+  <nav id="sidebar" class="hidden md:block w-64 bg-white border-r">
+    <div class="p-4 text-xl font-bold text-green-700">Orgânia</div>
+    <ul class="px-4 space-y-2">
+      <li><a href="operador-dashboard.html" class="block py-2 px-2 rounded hover:bg-green-100">Dashboard</a></li>
+      <li><a href="operador-ordens.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
+      <li><a href="operador-tarefas.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
+      <li><a href="operador-agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
+      <li><a href="operador-perfil.html" class="block py-2 px-2 rounded bg-green-100">Perfil</a></li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar mobile -->
+  <div id="mobileSidebar" class="fixed inset-0 z-40 hidden md:hidden">
+    <div id="closeMobileMenu" class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <nav class="relative w-64 h-full bg-white p-4">
+      <button id="closeSidebarBtn" class="mb-4"><i class="fas fa-times"></i></button>
+      <ul class="space-y-2">
+        <li><a href="operador-dashboard.html" class="block py-2 px-2 rounded hover:bg-green-100">Dashboard</a></li>
+        <li><a href="operador-ordens.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
+        <li><a href="operador-tarefas.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
+        <li><a href="operador-agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
+        <li><a href="operador-perfil.html" class="block py-2 px-2 rounded bg-green-100">Perfil</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white border-b">
+      <div class="flex items-center justify-between px-4 py-2">
+        <div class="flex items-center">
+          <button id="openSidebarBtn" class="md:hidden mr-2" aria-label="Abrir menu">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="text-lg font-bold text-green-700">Perfil</h1>
+        </div>
+        <button onclick="logout()" class="text-red-600 font-semibold">Sair</button>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4">
+      <section class="bg-white rounded-lg shadow-lg p-4 max-w-md">
+        <h2 class="text-lg font-bold mb-4">Informações do Usuário</h2>
+        <p><span class="font-semibold">Nome:</span> <span id="profileName"></span></p>
+        <p><span class="font-semibold">Email:</span> <span id="profileEmail"></span></p>
+        <p><span class="font-semibold">Papel:</span> <span id="profileRole"></span></p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>

@@ -11,16 +11,16 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="h-screen flex bg-gray-100">
+  <div id="operador-dashboard-marker" class="hidden"></div>
   <!-- Sidebar desktop -->
   <nav id="sidebar" class="hidden md:block w-64 bg-white border-r">
     <div class="p-4 text-xl font-bold text-green-700">Orgânia</div>
     <ul class="px-4 space-y-2">
       <li><a href="operador-dashboard.html" class="block py-2 px-2 rounded hover:bg-green-100">Dashboard</a></li>
-      <li><a href="ordens-producao.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
-      <li><a href="task-viewer.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
-      <li><a href="agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
-      <li><a href="dashboard-cliente.html" class="block py-2 px-2 rounded hover:bg-green-100">Perfil</a></li>
-    </ul>
+ <li><a href="operador-ordens.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
+      <li><a href="operador-tarefas.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
+      <li><a href="operador-agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
+      <li><a href="operador-perfil.html" class="block py-2 px-2 rounded hover:bg-green-100">Perfil</a></li>    </ul>
   </nav>
 
   <!-- Sidebar mobile -->
@@ -30,11 +30,10 @@
       <button id="closeSidebarBtn" class="mb-4"><i class="fas fa-times"></i></button>
       <ul class="space-y-2">
         <li><a href="operador-dashboard.html" class="block py-2 px-2 rounded hover:bg-green-100">Dashboard</a></li>
-        <li><a href="ordens-producao.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
-        <li><a href="task-viewer.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
-        <li><a href="agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
-        <li><a href="dashboard-cliente.html" class="block py-2 px-2 rounded hover:bg-green-100">Perfil</a></li>
-      </ul>
+<li><a href="operador-ordens.html" class="block py-2 px-2 rounded hover:bg-green-100">Ordens</a></li>
+        <li><a href="operador-tarefas.html" class="block py-2 px-2 rounded hover:bg-green-100">Tarefas</a></li>
+        <li><a href="operador-agenda.html" class="block py-2 px-2 rounded hover:bg-green-100">Agenda</a></li>
+        <li><a href="operador-perfil.html" class="block py-2 px-2 rounded hover:bg-green-100">Perfil</a></li>      </ul>
     </nav>
   </div>
 
@@ -50,12 +49,11 @@
           <h1 class="text-lg font-bold text-green-700">Dashboard do Operador</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <input id="searchInput" type="text" placeholder="Buscar..." class="border rounded px-2 py-1" aria-label="Busca rápida">
-          <button id="logoutBtn" class="text-red-600 font-semibold">Sair</button>
+    <input id="searchInput" type="text" placeholder="Buscar..." class="border rounded px-2 py-1" aria-label="Busca rápida">
+            <button onclick="logout()" class="text-red-600 font-semibold">Sair</button>
+          </div>
         </div>
-      </div>
-    </header>
-
+      </header>
     <main class="flex-1 overflow-y-auto p-4">
       <!-- Cards -->
       <section id="statusCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -196,6 +194,6 @@
     </div>
   </div>
 
-  <script type="module" src="js/pages/operador-dashboard.js"></script>
+  <script type="module" src="js/services/auth.js"></script>
 </body>
 </html>

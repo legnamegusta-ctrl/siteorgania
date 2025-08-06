@@ -309,10 +309,3 @@ function bindUI() {
   window.addEventListener('online',  updateConnection);
   window.addEventListener('offline', updateConnection);
 }
-
-// Inicia tudo ao carregar o HTML
-document.addEventListener('DOMContentLoaded', () => {
-  updateConnection();
-  bindUI();
-  fetchData();
-});
