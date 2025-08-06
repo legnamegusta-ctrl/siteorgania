@@ -7,7 +7,7 @@ import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../s
 export function initPlotDetails(userId, userRole) {
     const params = new URLSearchParams(window.location.search);
     const clientId = params.get('clientId');
-    the const propertyId = params.get('propertyId');
+    const propertyId = params.get('propertyId');
     const plotId = params.get('plotId');
     const cultureId = params.get('cultureId');
     const from = params.get('from') || 'agronomo';
