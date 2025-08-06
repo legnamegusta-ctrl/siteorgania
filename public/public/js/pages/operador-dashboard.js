@@ -28,6 +28,9 @@ export function initOperadorDashboard(userId, userRole) {
     const taskTitleInput = document.getElementById('taskTitle');
     const taskDescriptionInput = document.getElementById('taskDescription');
     const taskDueDateInput = document.getElementById('taskDueDate');
+        const taskTypeSelect = document.getElementById('taskType');
+    const taskFertilizerInput = document.getElementById('taskFertilizer');
+    const fertilizerField = document.getElementById('fertilizerField');
     const taskPropertySelect = document.getElementById('taskPropertySelect');
     const taskPlotSelect = document.getElementById('taskPlotSelect');
     const scheduleTaskSubmitBtn = document.getElementById('scheduleTaskSubmitBtn');
@@ -43,6 +46,7 @@ export function initOperadorDashboard(userId, userRole) {
     const modalTaskPropertyName = document.getElementById('modalTaskPropertyName');
     const modalTaskPlotName = document.getElementById('modalTaskPlotName');
     const modalTaskType = document.getElementById('modalTaskType');
+     const modalTaskFertilizer = document.getElementById('modalTaskFertilizer');
     const modalTaskDueDate = document.getElementById('modalTaskDueDate');
     const modalTaskDescription = document.getElementById('modalTaskDescription');
     const modalTaskStatus = document.getElementById('modalTaskStatus');
@@ -333,6 +337,8 @@ export function initOperadorDashboard(userId, userRole) {
                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
                         <div><span class="font-semibold">Propriedade:</span> ${propertyName}</div>
                         <div><span class="font-semibold">Talhão:</span> ${plotName}</div>
+                        <div><span class="font-semibold">Tipo:</span> ${task.type || 'Geral'}</div>
+                        <div><span class="font-semibold">Adubo:</span> ${task.fertilizer || 'N/A'}</div>
                         <div><span class="font-semibold">Vencimento:</span> ${formattedDate} ${isOverdue ? '<span class="text-red-500">(Atrasada)</span>' : ''}</div>
                         <div><span class="font-semibold">Prioridade:</span> <span class="${priorityColorClass}">${priority}</span></div>
                     </div>
@@ -431,11 +437,17 @@ export function initOperadorDashboard(userId, userRole) {
         const title = taskTitleInput ? taskTitleInput.value.trim() : '';
         const description = taskDescriptionInput ? taskDescriptionInput.value.trim() : '';
         const dueDate = taskDueDateInput ? taskDueDateInput.value : '';
+         const taskType = taskTypeSelect ? taskTypeSelect.value : 'Geral';
+        const fertilizer = taskFertilizerInput ? taskFertilizerInput.value.trim() : '';
         const propertyId = taskPropertySelect ? taskPropertySelect.value : '';
         const plotId = taskPlotSelect ? taskPlotSelect.value : '';
 
         if (!title || !dueDate || !propertyId || !plotId) {
             showToast("Título, data de vencimento, propriedade e talhão são obrigatórios para agendar uma tarefa.", "error");
+            return;
+        }
+         if (taskType === 'Adubação' && !fertilizer) {
+            showToast("Informe o adubo para tarefas de adubação.", "error");
             return;
         }
         if (!farmClientId) {
@@ -461,9 +473,12 @@ export function initOperadorDashboard(userId, userRole) {
                 assignedToId: userId,
                 assignedToName: assignedByName,
                 createdAt: serverTimestamp(),
-                category: 'Geral',
+                 type: taskType,
                 priority: 'Normal'
             };
+            if (taskType === 'Adubação') {
+                newTask.fertilizer = fertilizer;
+            }
 
             await addDoc(collection(db, `clients/${farmClientId}/tasks`), newTask);
             
@@ -475,6 +490,9 @@ export function initOperadorDashboard(userId, userRole) {
             if (taskPropertySelect) taskPropertySelect.value = '';
             if (taskPlotSelect) taskPlotSelect.value = '';
             if (taskPlotSelect) taskPlotSelect.disabled = true;
+             if (taskTypeSelect) taskTypeSelect.value = 'Geral';
+            if (taskFertilizerInput) taskFertilizerInput.value = '';
+            if (fertilizerField) fertilizerField.classList.add('hidden');
             closeModal(scheduleTaskModal);
 
             await fetchAndDisplayTasks(farmClientId);
@@ -532,8 +550,12 @@ export function initOperadorDashboard(userId, userRole) {
         }
 
         if (openScheduleTaskModalBtn && !openScheduleTaskModalBtn._hasClickListener) {
-            openScheduleTaskModalBtn.addEventListener('click', () => openModal(scheduleTaskModal));
-            openScheduleTaskModalBtn._hasClickListener = true;
+ openScheduleTaskModalBtn.addEventListener('click', () => {
+                if (taskTypeSelect) taskTypeSelect.value = 'Geral';
+                if (taskFertilizerInput) taskFertilizerInput.value = '';
+                if (fertilizerField) fertilizerField.classList.add('hidden');
+                openModal(scheduleTaskModal);
+            });            openScheduleTaskModalBtn._hasClickListener = true;
         }
         if (closeScheduleTaskModalBtn && !closeScheduleTaskModalBtn._hasClickListener) {
             closeScheduleTaskModalBtn.addEventListener('click', () => closeModal(scheduleTaskModal));
@@ -550,7 +572,17 @@ export function initOperadorDashboard(userId, userRole) {
             showToast("Esta tarefa já está em andamento ou concluída.", "info");
             return;
         }
-
+if (taskTypeSelect && !taskTypeSelect._hasChangeListener) {
+            taskTypeSelect.addEventListener('change', () => {
+                if (taskTypeSelect.value === 'Adubação') {
+                    if (fertilizerField) fertilizerField.classList.remove('hidden');
+                } else {
+                    if (fertilizerField) fertilizerField.classList.add('hidden');
+                    if (taskFertilizerInput) taskFertilizerInput.value = '';
+                }
+            });
+            taskTypeSelect._hasChangeListener = true;
+        }
         if (confirm(`Deseja marcar a tarefa "${task.title}" como "Em Andamento"?`)) {
             showSpinner(operatorTasksList);
             try {
@@ -585,6 +617,7 @@ export function initOperadorDashboard(userId, userRole) {
         if (modalTaskPlotName) modalTaskPlotName.textContent = task.plotId ? (fullPlotNamesMap.get(task.plotId) || 'Desconhecido') : 'N/A';
         
         if (modalTaskType) modalTaskType.textContent = task.type || 'Geral';
+      if (modalTaskFertilizer) modalTaskFertilizer.textContent = task.fertilizer || 'N/A';
         if (modalTaskDueDate) modalTaskDueDate.textContent = new Date(task.dueDate + 'T12:00:00').toLocaleDateString('pt-BR');
         if (modalTaskDescription) modalTaskDescription.textContent = task.description || 'Nenhuma descrição.';
         if (modalTaskStatus) modalTaskStatus.textContent = task.isCompleted ? 'Concluída' : (task.status || 'Pendente');
