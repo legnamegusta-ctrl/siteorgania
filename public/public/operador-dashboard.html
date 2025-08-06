@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgânia - Painel do Operador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100">
+
+    <div id="operador-dashboard-marker" class="hidden"></div>
+
+    <header class="bg-white shadow-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Painel do Operador</h1>
+                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 sm:px-0">
+            <div class="bg-white p-6 rounded-lg shadow w-full mb-8">
+                <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-1">Bem-vindo(a), Operador(a)!</h2>
+                <p id="summaryMessage" class="text-gray-600">Suas tarefas aguardam a sua ação.</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
+                <button id="openScheduleTaskModalBtn" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition duration-300">
+                    <i class="fas fa-calendar-plus mr-2"></i> Agendar Nova Tarefa
+                </button>
+                <button id="openQuickActivityModalBtn" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition duration-300">
+                    <i class="fas fa-plus-circle mr-2"></i> Registrar Atividade Rápida
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Filtrar Minhas Tarefas</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="filterStatusOperador" class="block text-sm font-medium text-gray-700">Status da Tarefa</label>
+                        <select id="filterStatusOperador" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                            <option value="pending">Pendentes</option>
+                            <option value="completed">Concluídas</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterPropertyOperador" class="block text-sm font-medium text-gray-700">Propriedade</label>
+                        <select id="filterPropertyOperador" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                            <option value="">Todas as Propriedades</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="filterPlotOperador" class="block text-sm font-medium text-gray-700">Talhão</label>
+                        <select id="filterPlotOperador" class="mt-1 w-full p-2 border border-gray-300 rounded-md" disabled>
+                            <option value="">Todos os Talhões</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="operatorTasksList" class="w-full bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Minhas Tarefas</h3>
+                <div class="space-y-4">
+                    <p class="text-gray-500 text-center py-4">Carregando tarefas...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="operatorTaskModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6">
+            <h3 id="operatorTaskModalTitle" class="text-lg font-bold text-gray-800 mb-4">Detalhes da Tarefa</h3>
+            <div class="space-y-3 text-gray-700 text-base">
+                <p><strong>Título:</strong> <span id="modalTaskTitleDisplay"></span></p>
+                <p><strong>Cliente:</strong> <span id="modalTaskClientName"></span></p>
+                <p><strong>Propriedade:</strong> <span id="modalTaskPropertyName"></span></p>
+                <p><strong>Talhão:</strong> <span id="modalTaskPlotName"></span></p>
+                <p><strong>Tipo:</strong> <span id="modalTaskType"></span></p>
+                <p><strong>Data de Vencimento:</strong> <span id="modalTaskDueDate"></span></p>
+                <p><strong>Descrição:</strong> <span id="modalTaskDescription"></span></p>
+                <p><strong>Status:</strong> <span id="modalTaskStatus"></span></p>
+            </div>
+            <div class="mt-6 flex justify-end gap-4">
+                <button type="button" id="closeOperatorTaskModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Fechar</button>
+                <button type="button" id="completeOperatorTaskBtn" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 hidden">Marcar como Concluída</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="quickActivityModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto p-6 relative">
+            <button id="closeQuickActivityModalBtn" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Registrar Atividade Rápida</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="activityPropertySelect" class="block text-sm font-medium text-gray-700 mb-1">Propriedade:</label>
+                    <select id="activityPropertySelect" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        
+                    </select>
+                </div>
+                <div>
+                    <label for="activityPlotSelect" class="block text-sm font-medium text-gray-700 mb-1">Talhão:</label>
+                    <select id="activityPlotSelect" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" disabled>
+                        
+                    </select>
+                </div>
+                <div>
+                    <label for="activityDescription" class="block text-sm font-medium text-gray-700 mb-1">Descrição da Atividade:</label>
+                    <textarea id="activityDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="Descreva a atividade realizada..."></textarea>
+                </div>
+                <div>
+                    <label for="activityPhotoInput" class="block text-sm font-medium text-gray-700 mb-1">Links das Fotos (um por linha):</label>
+                    <textarea id="activityPhotoInput" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" placeholder="https://linkdafoto1.jpg&#10;https://linkdafoto2.jpg"></textarea>
+                </div>
+                <button id="registerActivityBtn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 transition duration-300">
+                    Registrar Atividade
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scheduleTaskModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto p-6 relative">
+            <button id="closeScheduleTaskModalBtn" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Agendar Nova Tarefa</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label for="taskTitle" class="block text-sm font-medium text-gray-700 mb-1">Título da Tarefa:</label>
+                    <input type="text" id="taskTitle" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Ex: Adubação foliar, Inspeção de pragas...">
+                </div>
+                <div>
+                    <label for="taskDescription" class="block text-sm font-medium text-gray-700 mb-1">Descrição (Opcional):</label>
+                    <textarea id="taskDescription" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Detalhes adicionais sobre a tarefa..."></textarea>
+                </div>
+                <div>
+                    <label for="taskDueDate" class="block text-sm font-medium text-gray-700 mb-1">Data de Vencimento:</label>
+                    <input type="date" id="taskDueDate" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="taskPropertySelect" class="block text-sm font-medium text-gray-700 mb-1">Propriedade:</label>
+                    <select id="taskPropertySelect" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        
+                    </select>
+                </div>
+                <div>
+                    <label for="taskPlotSelect" class="block text-sm font-medium text-gray-700 mb-1">Talhão:</label>
+                    <select id="taskPlotSelect" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" disabled>
+                        
+                    </select>
+                </div>
+                <button id="scheduleTaskSubmitBtn" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-md hover:bg-purple-700 transition duration-300">
+                    Agendar Tarefa
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center mt-8 text-gray-500 text-sm p-4">
+        <p>&copy; 2025 Orgânia Fertilizantes. A tecnologia para o campo não para.</p>
+    </footer>
+
+    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>

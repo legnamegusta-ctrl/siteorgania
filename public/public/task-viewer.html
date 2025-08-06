@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgânia - Visualizador de Tarefas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100">
+    <div id="task-viewer-marker" class="hidden"></div>
+
+    <header class="bg-white shadow-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-4">
+                    <a href="dashboard-admin.html" class="text-gray-500 hover:text-gray-800" title="Voltar ao Painel Administrativo">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Visualizador de Tarefas</h1>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Filtros</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label for="filterAgronomist" class="block text-sm font-medium text-gray-700">Agrônomo</label>
+                    <select id="filterAgronomist" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                        <option value="">Todos</option>
+                        </select>
+                </div>
+                <div>
+                    <label for="filterClient" class="block text-sm font-medium text-gray-700">Cliente</label>
+                    <select id="filterClient" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                        <option value="">Todos</option>
+                        </select>
+                </div>
+                <div>
+                    <label for="filterStatus" class="block text-sm font-medium text-gray-700">Status da Tarefa</label>
+                    <select id="filterStatus" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                        <option value="pending">Pendentes</option>
+                        <option value="all">Todas</option>
+                        <option value="completed">Concluídas</option>
+                    </select>
+                </div>
+                <div>
+                    <button id="clearFiltersBtn" class="w-full px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700">Limpar Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-lg shadow">
+            <div id="tasksResultList" class="p-6 space-y-3">
+                 <div class="spinner-container">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+<script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+<script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+<script src="/__/firebase/init.js"></script>
+    <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<div id="client-list-marker" class="hidden"></div>
+
+<div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Meus Clientes</h2>
+
+    <div class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <input type="text" id="clientSearch" placeholder="Buscar cliente por nome..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        
+        <div class="flex gap-2">
+            <select id="clientFilter" class="p-3 border border-gray-300 rounded-lg bg-white">
+                <option value="all">Todos</option>
+                <option value="active">Ativos</option>
+                <option value="favorite">Favoritos</option>
+                <option value="archived">Arquivados</option>
+            </select>
+            <button id="syncClientsBtn" class="px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Sincronizar</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="clientListContainer" class="space-y-4">
+        <p id="loadingClientsMessage" class="text-center text-gray-500">Carregando clientes...</p>
+    </div>
+</div>

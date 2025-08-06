@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "beta": "app-organia",
+    "live": "organia-fertilizantes"
+  },
+  "targets": {},
+  "etags": {}
+}

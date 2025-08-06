@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgânia - Relatório de Evolução</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/1.4.0/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        .metric-group-title {
+            font-weight: 700;
+            color: var(--brand-green);
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--brand-green);
+            margin-top: 1rem;
+        }
+        .metric-item-label {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .metric-item-label:hover { background-color: #f9fafb; }
+        .metric-item-label input[type="checkbox"] {
+            margin-right: 0.75rem;
+            height: 1.1rem;
+            width: 1.1rem;
+            accent-color: var(--brand-green);
+        }
+    </style>
+<link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100">
+    
+    <div id="plot-report-marker" class="hidden"></div>
+
+    <header class="bg-white shadow-lg sticky top-0 z-20"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                 <div class="flex items-center gap-4">
+                    <button id="backToPlotDetailsBtn" class="text-gray-500 hover:text-gray-800" title="Voltar ao painel da cultura">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Relatório de Evolução</h1>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-20"> <div class="px-4 sm:px-0 mb-6">
+            <h2 id="reportPlotNameHeader" class="text-3xl font-bold text-gray-800">Carregando Relatório...</h2>
+            <p id="reportInfo" class="text-md text-gray-500 mt-1"></p>
+        </div>
+
+        <div id="report-container" class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside class="md:col-span-1 bg-white p-4 rounded-xl shadow-lg h-fit border border-gray-200">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">Comparar Componentes</h3>
+                <div id="metric-selector-container">
+                    <p class="text-sm text-gray-400">Sem dados para comparar.</p>
+                </div>
+            </aside>
+
+            <section class="md:col-span-3 bg-white p-6 rounded-xl shadow-lg min-h-[400px] border border-gray-200">
+                <div id="chart-display-area" class="h-full">
+                    <div id="loadingReportMessage" class="flex items-center justify-center h-full text-center text-gray-500">
+                        <p>Selecione um ou mais componentes à esquerda para visualizar o gráfico de evolução.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="text-center mt-8 text-gray-500 text-sm p-4">
+        <p>&copy; 2025 Orgânia Fertilizantes.</p>
+    </footer>
+
+    <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-30">
+        <div class="grid grid-cols-5 h-16 max-w-md mx-auto"> 
+            <a href="dashboard-agronomo.html" id="navHomeBtnPlotReport" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            <a href="client-list.html" id="navClientsBtnPlotReport" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-users text-xl"></i>
+                <span class="text-xs mt-1">Clientes</span>
+            </a>
+            <a href="#" id="navVisitBtnPlotReport" class="flex flex-col items-center justify-center -mt-6"> <div class="w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-xl">
+                    <i class="fas fa-map-marker-alt"></i> </div>
+                <span class="text-xs mt-1 text-blue-600 font-semibold">Visita</span>
+            </a>
+            <a href="#" data-view="agenda" id="navAgendaBtnPlotReport" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-calendar-alt text-xl"></i>
+                <span class="text-xs mt-1">Agenda</span>
+            </a>
+            <a href="#" id="navProfileBtnPlotReport" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-user-circle text-xl"></i>
+                <span class="text-xs mt-1">Perfil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>

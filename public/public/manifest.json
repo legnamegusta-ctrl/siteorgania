@@ -1,0 +1,26 @@
+{
+  "name": "Orgânia Fertilizantes",
+  "short_name": "Orgânia",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3a7d44",
+  "description": "Plataforma de gestão agrícola da Orgânia Fertilizantes.",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

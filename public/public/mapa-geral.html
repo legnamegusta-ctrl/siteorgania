@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgânia - Mapa Geral de Propriedades</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        /* Garante que o mapa ocupe o espaço corretamente */
+        #mapaGeral { height: calc(100vh - 128px); }
+    </style>
+<link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100">
+    
+    <div id="mapa-geral-marker" class="hidden"></div>
+
+    <header class="bg-white shadow-md sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-4">
+                    <a href="dashboard-admin.html" class="text-gray-500 hover:text-gray-800" title="Voltar ao Painel Administrativo">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Mapa Geral de Propriedades</h1>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow w-full">
+             <div id="mapaGeral" class="w-full h-full rounded-lg">
+                <div class="spinner-container">
+                    <div class="loading-spinner"></div>
+                </div>
+             </div>
+        </div>
+    </main>
+
+    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>

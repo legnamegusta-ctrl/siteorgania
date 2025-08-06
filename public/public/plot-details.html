@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orgânia Fertilizantes - Painel da Cultura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        .timeline-item::before { content: ''; position: absolute; top: 1rem; left: -1.6rem; width: 0.875rem; height: 0.875rem; background-color: var(--brand-green); border-radius: 9999px; border: 3px solid white; }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; }
+        .details-grid-item { padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.25rem; background-color: #f7fafc; }
+        .details-grid-item strong { font-weight: 600; color: #4a5568; display: block; margin-bottom: 0.25rem; }
+        .value-red { color: red; }
+        .value-green { color: green; }
+        .photo-thumbnail { display: block; max-width: 150px; height: auto; margin-top: 0.75rem; cursor: pointer; border-radius: 0.375rem; }
+        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .gallery-image { width: 100%; height: 150px; object-fit: cover; display: block; cursor: pointer; transition: transform 0.2s ease-in-out; }
+        .gallery-image:hover { transform: scale(1.05); }
+        .lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
+        .lightbox img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        .lightbox .close-btn { position: absolute; top: 2rem; right: 2rem; color: white; font-size: 2.5rem; cursor: pointer; }
+    </style>
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="bg-gray-100">
+
+    <div id="plot-details-marker" class="hidden"></div>
+
+    <header class="bg-white shadow-lg sticky top-0 z-20"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                 <div class="flex items-center gap-4">
+                    <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar para a propriedade"><i class="fas fa-arrow-left"></i></a>
+                    <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Painel da Cultura</h1>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-20"> <div class="px-4 sm:px-0 mb-6">
+            <h2 id="plotNameHeader" class="text-3xl font-bold text-gray-800">Carregando...</h2>
+            <p id="cultureInfo" class="text-lg text-gray-600"></p>
+            <p id="propertyClientInfo" class="text-sm text-gray-500 mt-1"></p>
+            <p id="plantsCountInfo" class="text-sm text-gray-500 mt-1"></p>
+             <div class="mt-4">
+                <a id="viewReportBtn" class="px-5 py-2 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 text-sm shadow cursor-pointer" style="display:none;"><i class="fas fa-chart-line mr-2"></i>Relatório de Evolução</a>
+            </div>
+        </div>
+
+        <div class="px-4 sm:px-0 w-full flex flex-col sm:flex-row gap-4 mb-8">
+            <button id="showAddAnalysisModalBtn" class="flex-1 py-3 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105" style="background-color: var(--brand-green); display: none;"><i class="fas fa-vial mr-2"></i>Adicionar Análise de Solo</button>
+            <button id="showAddManagementModalBtn" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105" style="display: none;"><i class="fas fa-calendar-alt mr-2"></i>Adicionar Manejo/Evento</button>
+        </div>
+
+        <div class="px-4 sm:px-0">
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Linha do Tempo da Cultura</h3>
+                <div id="cultureTimeline" class="relative pl-8 border-l-2 border-gray-200 space-y-8"></div>
+            </div>
+
+            <div id="photoGallerySection" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-8" style="display:none;">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Galeria de Fotos do Talhão</h3>
+                <div id="photoGallery" class="photo-gallery"></div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="analysisModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-40">
+        <form class="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b"><h3 id="analysisModalTitle" class="text-lg font-bold text-gray-800">Adicionar Nova Análise de Solo</h3></div>
+            <div class="p-6 overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="input-group col-span-full"><label for="analysisDate" class="block text-sm font-medium text-gray-700">Data da Análise</label><input type="date" id="analysisDate" required class="mt-1 w-full p-2 border border-gray-300 rounded-md max-w-xs"></div>
+                    <h4 class="col-span-full font-semibold text-lg border-b pb-2 mt-4 mb-2" style="color: var(--brand-green);">Reação do Solo e Propriedades</h4>
+                    <div class="input-group"><label for="ph_cacl2" class="block text-sm font-medium text-gray-700">pH (CaCl₂ 0,01M)</label><input type="number" id="ph_cacl2" step="0.01" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="ph_h2o" class="block text-sm font-medium text-gray-700">pH (H₂O)</label><input type="number" id="ph_h2o" step="0.01" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="h_al" class="block text-sm font-medium text-gray-700">Tampão SMP (H+Al)</label><input type="number" id="h_al" step="0.01" placeholder="cmolc/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="al_trocavel" class="block text-sm font-medium text-gray-700">Al-(Acidez Trocável)</label><input type="number" id="al_trocavel" step="0.01" placeholder="cmolc/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="carbono_organico" class="block text-sm font-medium text-gray-700">Carbono Orgânico</label><input type="number" id="carbono_organico" step="0.1" placeholder="g/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="materia_organica" class="block text-sm font-medium text-gray-700">Matéria Orgânica</label><input type="number" id="materia_organica" step="0.01" placeholder="%" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="fosforo_rem" class="block text-sm font-medium text-gray-700">Fósforo Remanescente</label><input type="number" id="fosforo_rem" step="0.1" placeholder="mg/L" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="fosforo_ncp" class="block text-sm font-medium text-gray-700">Fósforo Nível Crítico (NCP)</label><input type="number" id="fosforo_ncp" step="0.1" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="fosforo_pri" class="block text-sm font-medium text-gray-700">Fósforo Relativo PRI(%)</label><input type="number" id="fosforo_pri" step="0.1" placeholder="%" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <h4 class="col-span-full font-semibold text-lg border-b pb-2 mt-4 mb-2" style="color: var(--brand-green);">Macro e Micronutrientes</h4>
+                    <div class="input-group"><label for="calcio" class="block text-sm font-medium text-gray-700">Cálcio (Ca)</label><input type="number" id="calcio" step="0.01" placeholder="cmolc/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="magnesio" class="block text-sm font-medium text-gray-700">Magnésio (Mg)</label><input type="number" id="magnesio" step="0.01" placeholder="cmolc/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="potassio_cmolc" class="block text-sm font-medium text-gray-700">Potássio Mehlich (K)</label><input type="number" id="potassio_cmolc" step="0.01" placeholder="cmolc/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="fosforo_mehlich" class="block text-sm font-medium text-gray-700">Fósforo Mehlich (P)</label><input type="number" id="fosforo_mehlich" step="0.1" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="enxofre" class="block text-sm font-medium text-gray-700">Enxofre (S)</label><input type="number" id="enxofre" step="0.1" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="boro" class="block text-sm font-medium text-gray-700">Boro (B)</label><input type="number" id="boro" step="0.01" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="cobre" class="block text-sm font-medium text-gray-700">Cobre (Cu)</label><input type="number" id="cobre" step="0.01" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="ferro" class="block text-sm font-medium text-gray-700">Ferro (Fe)</label><input type="number" id="ferro" step="0.1" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="zinco" class="block text-sm font-medium text-gray-700">Zinco (Zn)</label><input type="number" id="zinco" step="0.01" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <div class="input-group"><label for="manganes" class="block text-sm font-medium text-gray-700">Manganês (Mn)</label><input type="number" id="manganes" step="0.1" placeholder="mg/dm³" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                    <h4 class="col-span-full font-semibold text-lg border-b pb-2 mt-4 mb-2" style="color: var(--brand-green);">Interpretação e Recomendação</h4>
+                    <div class="input-group col-span-full"><label for="agronomistInterpretation" class="block text-sm font-medium text-gray-700">Notas do Agrônomo</label><textarea id="agronomistInterpretation" rows="4" placeholder="Com base nos resultados, recomenda-se..." class="mt-1 w-full p-2 border border-gray-300 rounded-md"></textarea></div>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 border-t flex justify-end gap-4"><button type="button" id="closeAnalysisModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button><button type="button" id="saveAnalysisBtn" class="px-6 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar</button></div>
+        </form>
+    </div>
+
+    <div id="viewAnalysisModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-30">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b"><h3 class="text-lg font-bold text-gray-800">Detalhes da Análise de Solo</h3></div>
+            <div id="viewAnalysisContent" class="p-6 overflow-y-auto"></div>
+            <div class="p-4 bg-gray-50 border-t flex justify-end gap-4">
+                <button type="button" id="closeViewAnalysisModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Fechar</button>
+                <button type="button" id="editAnalysisBtn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">Editar Análise</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="managementModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-30">
+        <form id="managementForm" class="bg-white rounded-lg shadow-2xl w-full max-w-lg">
+            <div class="p-6 border-b"><h3 class="text-lg font-bold text-gray-800">Registrar Novo Manejo ou Evento</h3></div>
+            <div class="p-6 space-y-4">
+                <div><label for="managementDate" class="block text-sm font-medium text-gray-700">Data</label><input type="date" id="managementDate" required class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                <div><label for="managementType" class="block text-sm font-medium text-gray-700">Tipo</label><select id="managementType" class="mt-1 w-full p-2 border border-gray-300 rounded-md"><option value="manejo">Manejo</option><option value="poda">Poda</option><option value="esqueletamento">Esqueletamento</option><option value="aplicação">Aplicação</option><option value="inicio_colheita">Início de Colheita</option><option value="fim_colheita">Fim de Colheita</option><option value="foto_talhao">Foto do Talhão</option><option value="recomendação">Recomendação</option><option value="outro">Outro</option></select></div>
+                <div id="descriptionFieldContainer"><label for="managementDescription" class="block text-sm font-medium text-gray-700">Descrição</label><textarea id="managementDescription" rows="3" placeholder="Ex: Aplicação de calcário 2t/ha" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></textarea></div>
+                <div id="productionFieldContainer" class="hidden"><label for="managementProduction" class="block text-sm font-medium text-gray-700">Produção (Opcional)</label><input type="text" id="managementProduction" placeholder="Ex: 110 sacas/ha" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+                <div id="imageLinkContainer" class="hidden">
+                    <label for="plotImageUrl" class="block text-sm font-medium text-gray-700">Link da Imagem (Imgur)</label>
+                    <input type="url" id="plotImageUrl" placeholder="Cole aqui o link direto da imagem" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                    <p class="mt-1 text-xs text-gray-500">Dica: Para melhor performance, use links de miniaturas (thumbnails) do Imgur.</p>
+                </div>
+                <div><label for="managementCost" class="block text-sm font-medium text-gray-700">Custo</label><input type="number" id="managementCost" step="0.01" placeholder="R$ 0,00" class="mt-1 w-full p-2 border border-gray-300 rounded-md"></div>
+            </div>
+             <div class="p-4 bg-gray-50 border-t flex justify-end gap-4"><button type="button" id="closeManagementModalBtn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button><button type="button" id="addManagementBtn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">Salvar Evento</button></div>
+        </form>
+    </div>
+    
+    <div id="imageLightboxModal" class="lightbox hidden">
+        <span id="closeLightboxBtn" class="close-btn">&times;</span>
+        <img id="lightboxImage" src="" alt="Visualização da imagem">
+    </div>
+    <div id="viewVisitDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-bold text-gray-800">Detalhes da Visita</h3>
+            </div>
+            <div id="visitDetailsContent" class="p-6 overflow-y-auto space-y-4">
+            </div>
+            <div class="p-4 bg-gray-50 border-t flex justify-end">
+                <button type="button" id="closeViewVisitDetailsModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-30">
+        <div class="grid grid-cols-5 h-16 max-w-md mx-auto"> 
+            <a href="dashboard-agronomo.html" id="navHomeBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            <a href="client-list.html" id="navClientsBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-users text-xl"></i>
+                <span class="text-xs mt-1">Clientes</span>
+            </a>
+            <a href="#" id="navVisitBtnPlotDetails" class="flex flex-col items-center justify-center -mt-6"> <div class="w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-xl">
+                    <i class="fas fa-map-marker-alt"></i> </div>
+                <span class="text-xs mt-1 text-blue-600 font-semibold">Visita</span>
+            </a>
+            <a href="#" data-view="agenda" id="navAgendaBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-calendar-alt text-xl"></i>
+                <span class="text-xs mt-1">Agenda</span>
+            </a>
+            <a href="#" id="navProfileBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
+                <i class="fas fa-user-circle text-xl"></i>
+                <span class="text-xs mt-1">Perfil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script type="module" src="js/services/auth.js"></script>
+</body>
+</html>
