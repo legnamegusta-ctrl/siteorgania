@@ -10,12 +10,13 @@ export function initClienteDashboard(userId, userRole) {
     const propertySelect = document.getElementById('propertySelect');
     const kpiCards = document.getElementById('kpiCards');
     const totalAreaStat = document.getElementById('totalAreaStat');
-    const activitiesMonthStat = document.getElementById('activitiesMonthStat');
-    const productivityStat = document.getElementById('productivityStat');
     const activePlotsStat = document.getElementById('activePlotsStat');
-     const pendingTasksStat = document.getElementById('pendingTasksStat');
+  const completedTasksStat = document.getElementById('completedTasksStat');
+    const pendingTasksStat = document.getElementById('pendingTasksStat');
+    const overdueTasksStat = document.getElementById('overdueTasksStat');
     const farmActivities = document.getElementById('farmActivities');
     const activitiesList = document.getElementById('activitiesList');
+    const statusFilter = document.getElementById('statusFilter');
     const activityDetailsModal = document.getElementById('activityDetailsModal');
     const imageLightboxModal = document.getElementById('imageLightboxModal');
     const lightboxImage = document.getElementById('lightboxImage');
@@ -28,6 +29,7 @@ export function initClienteDashboard(userId, userRole) {
     let currentClientId = null;
     let allUsersCache = {};
     let allActivitiesCache = {};
+     let allActivities = [];
 
     const loadClientDashboard = async () => {
         if (activitiesList) showSpinner(activitiesList);
@@ -155,15 +157,15 @@ export function initClienteDashboard(userId, userRole) {
         showSpinner(kpiCards);
         if (totalAreaStat) totalAreaStat.textContent = '...';
         if (activePlotsStat) activePlotsStat.textContent = '...';
-        if (activitiesMonthStat) activitiesMonthStat.textContent = '...';
-        if (productivityStat) productivityStat.textContent = '...';
+       if (completedTasksStat) completedTasksStat.textContent = '...';
         if (pendingTasksStat) pendingTasksStat.textContent = '...';
+         if (overdueTasksStat) overdueTasksStat.textContent = '...';
         if (!clientId || !propertyId || !propertyData) {
             if (totalAreaStat) totalAreaStat.textContent = '0 ha';
             if (activePlotsStat) activePlotsStat.textContent = '0';
-            if (activitiesMonthStat) activitiesMonthStat.textContent = '0';
-            if (productivityStat) productivityStat.textContent = 'N/A';
-             if (pendingTasksStat) pendingTasksStat.textContent = '0';
+             if (completedTasksStat) completedTasksStat.textContent = '0';
+            if (pendingTasksStat) pendingTasksStat.textContent = '0';
+            if (overdueTasksStat) overdueTasksStat.textContent = '0';
             hideSpinner(kpiCards);
             return;
         }
@@ -177,54 +179,34 @@ export function initClienteDashboard(userId, userRole) {
             });
             if (totalAreaStat) totalAreaStat.textContent = `${totalArea.toFixed(2)} ha`;
             if (activePlotsStat) activePlotsStat.textContent = activePlotsCount;
-            const today = new Date();
-            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-            let activitiesInMonthCount = 0;
-            for (const plotDocSnap of plotsSnapshot.docs) {
-                const plotId = plotDocSnap.id;
-                const culturesQuery = query(collection(db, `clients/${clientId}/properties/${propertyId}/plots/${plotId}/culturas`), where('status', '==', 'ativo'));
-                const culturesSnapshot = await getDocs(culturesQuery);
-                for (const cultureDocSnap of culturesSnapshot.docs) {
-                     const cultureId = cultureDocSnap.id;
-                    const culturePath = `clients/${clientId}/properties/${propertyId}/plots/${plotId}/culturas/${cultureId}`;
-                    const managementsQuery = query(collection(db, `${culturePath}/managements`),
-                        where('date', '>=', startOfMonth.toISOString().split('T')[0]),
-                        where('date', '<=', endOfMonth.toISOString().split('T')[0])
-                    );
-                    const managementsSnapshot = await getDocs(managementsQuery);
-                    activitiesInMonthCount += managementsSnapshot.size;
-                    const analysesQuery = query(collection(db, `${culturePath}/analyses`),
-                        where('date', '>=', startOfMonth.toISOString().split('T')[0]),
-                        where('date', '<=', endOfMonth.toISOString().split('T')[0])
-                    );
-                    const analysesSnapshot = await getDocs(analysesQuery);
-                    activitiesInMonthCount += analysesSnapshot.size;
+             const tasksQuery = query(collection(db, `clients/${clientId}/tasks`),
+                                      where('propertyId', '==', propertyId));
+            const tasksSnapshot = await getDocs(tasksQuery);
+            let completedCount = 0;
+            let pendingCount = 0;
+            let overdueCount = 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+            tasksSnapshot.forEach(docSnap => {
+                const task = docSnap.data();
+                if (task.isCompleted) {
+                    completedCount++;
+                } else if (task.dueDate && task.dueDate < todayStr) {
+                    overdueCount++;
+                } else {
+                    pendingCount++;
                 }
-            }
-            const completedTasksQuery = query(collection(db, `clients/${clientId}/tasks`),
-                                            where('isCompleted', '==', true),
-                                            where('propertyId', '==', propertyId),
-                                            where('dueDate', '>=', startOfMonth.toISOString().split('T')[0]),
-                                            where('dueDate', '<=', endOfMonth.toISOString().split('T')[0])
-                                        );
-            const completedTasksSnapshot = await getDocs(completedTasksQuery);
-            activitiesInMonthCount += completedTasksSnapshot.size;
-            if (activitiesMonthStat) activitiesMonthStat.textContent = activitiesInMonthCount;
-             const pendingTasksQuery = query(collection(db, `clients/${clientId}/tasks`),
-                                            where('isCompleted', '==', false),
-                                            where('propertyId', '==', propertyId)
-                                        );
-            const pendingTasksSnapshot = await getDocs(pendingTasksQuery);
-            if (pendingTasksStat) pendingTasksStat.textContent = pendingTasksSnapshot.size;
-            if (productivityStat) productivityStat.textContent = 'N/A';
+            });
+            if (completedTasksStat) completedTasksStat.textContent = completedCount;
+            if (pendingTasksStat) pendingTasksStat.textContent = pendingCount;
+            if (overdueTasksStat) overdueTasksStat.textContent = overdueCount;
+
         } catch (error) {
             console.error("Erro ao atualizar KPIs:", error);
             if (totalAreaStat) totalAreaStat.textContent = 'Erro';
             if (activePlotsStat) activePlotsStat.textContent = 'Erro';
-            if (activitiesMonthStat) activitiesMonthStat.textContent = 'Erro';
-            if (productivityStat) productivityStat.textContent = 'Erro';
-              if (pendingTasksStat) pendingTasksStat.textContent = 'Erro';
+            if (completedTasksStat) completedTasksStat.textContent = 'Erro';
+            if (pendingTasksStat) pendingTasksStat.textContent = 'Erro';
+            if (overdueTasksStat) overdueTasksStat.textContent = 'Erro';
             showToast("Erro ao carregar os indicadores.", "error");
         } finally {
             hideSpinner(kpiCards);
@@ -235,7 +217,7 @@ export function initClienteDashboard(userId, userRole) {
         if (!activitiesList) return;
         activitiesList.innerHTML = '';
         showSpinner(activitiesList);
-        let allActivities = [];
+       allActivities = [];
         allActivitiesCache = {};
         console.log('Cliente Dashboard: Buscando e exibindo atividades para Propriedade:', propertyId);
         try {
@@ -313,26 +295,26 @@ export function initClienteDashboard(userId, userRole) {
                     });
                 }
             }
-            const completedTasksQuery = query(collection(db, `clients/${clientId}/tasks`),
-                                            where('isCompleted', '==', true),
-                                            where('propertyId', '==', propertyId),
-                                            orderBy('dueDate', 'desc')
-                                        );
-            const completedTasksSnapshot = await getDocs(completedTasksQuery);
-            if (completedTasksSnapshot.empty) {
-                console.log('Cliente Dashboard: Nenhuma tarefa concluída encontrada para o cliente na propriedade:', propertyId);
+  const tasksQuery = query(collection(db, `clients/${clientId}/tasks`),
+                                     where('propertyId', '==', propertyId),
+                                     orderBy('dueDate', 'desc'));
+            const tasksSnapshot = await getDocs(tasksQuery);
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (tasksSnapshot.empty) {
+                console.log('Cliente Dashboard: Nenhuma tarefa encontrada para o cliente na propriedade:', propertyId);
             }
-            completedTasksSnapshot.forEach(docSnap => {
+            tasksSnapshot.forEach(docSnap => {
                 const task = docSnap.data();
-                let responsibleName = allUsersCache[task.responsibleAgronomistId] || 'Desconhecido'; // Responsável da tarefa é o agrônomo
+                let responsibleName = allUsersCache[task.responsibleAgronomistId] || 'Desconhecido';
                 const plotNameForTask = task.plotId ? plotNamesMap.get(task.plotId) || 'Talhão Desconhecido' : 'N/A';
+                const status = task.isCompleted ? 'Concluída' : (task.dueDate && task.dueDate < todayStr ? 'Atrasada' : 'Pendente');
                 const activity = {
                     id: docSnap.id,
-                    type: `Tarefa: ${task.title}`, // Prefixo para identificar como tarefa
-                    status: 'Concluída',
+                    type: `Tarefa: ${task.title}`,
+                    status: status,
                     local: plotNameForTask,
                     date: task.dueDate,
-                    description: task.description || 'Tarefa concluída.',
+                    description: task.description || 'Tarefa registrada.',
                     imageUrls: task.imageUrls || [],
                     responsible: responsibleName,
                     dataSource: 'task',
@@ -340,8 +322,7 @@ export function initClienteDashboard(userId, userRole) {
                     propertyId: propertyId,
                     plotId: task.plotId,
                     cultureId: task.cultureId || null,
-                    originalTask: task // Salva a tarefa original para detalhes no modal
-                };
+                    originalTask: task                };
                 allActivities.push(activity);
                 allActivitiesCache[activity.id] = activity;
             });
@@ -352,47 +333,73 @@ export function initClienteDashboard(userId, userRole) {
                 activitiesList.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma movimentação encontrada para esta propriedade.</p>';
                 return;
             }
-            activitiesList.innerHTML = '';
-            allActivities.forEach(activity => {
-                const activityDate = new Date(activity.date + 'T12:00:00').toLocaleDateString('pt-BR');
-                const photoCount = activity.imageUrls ? activity.imageUrls.length : 0;
-                const photoHtml = photoCount > 0 ? `<span class="inline-flex items-center text-gray-600 text-sm ml-2"><i class="fas fa-camera mr-1"></i>${photoCount} fotos</span>` : '';
-                let statusColorClass = 'bg-gray-100 text-gray-800';
-                if (activity.status === 'Concluída') {
-                    statusColorClass = 'bg-green-100 text-green-800';
-                } else if (activity.status === 'Em Andamento') {
-                    statusColorClass = 'bg-blue-100 text-blue-800';
-                } else if (activity.status === 'Pendente') {
-                    statusColorClass = 'bg-orange-100 text-orange-800';
-                }
-                activitiesList.innerHTML += `
-                    <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                        <div class="flex-grow">
-                            <div class="flex items-center mb-2">
-                                <h4 class="text-lg font-bold text-gray-800 mr-3">${activity.type}</h4>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColorClass}">${activity.status}</span>
-                                ${photoHtml}
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
-                                <div><span class="font-semibold">Local:</span> ${activity.local}</div>
-                                <div><span class="font-semibold">Data:</span> ${activityDate}</div>
-                                <div class="col-span-full"><span class="font-semibold">Responsável:</span> ${activity.responsible}</div>
-                            </div>
-                            <p class="text-gray-700">${activity.description}</p>
-                        </div>
-                                    <a class="mt-4 sm:mt-0 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center"
-                           href="activity-details.html?clientId=${activity.clientId}&propertyId=${activity.propertyId}&plotId=${activity.plotId || ''}&cultureId=${activity.cultureId || ''}&dataSource=${activity.dataSource}&activityId=${activity.id}">
-                            <i class="fas fa-eye mr-2"></i>Ver Detalhes
-                       </a>
-                    </div>
-                `;
-            });
-            
+            applyStatusFilter();
+
         } catch (error) {
             console.error("Erro ao carregar e exibir movimentações:", error);
             hideSpinner(activitiesList);
             activitiesList.innerHTML = '<p class="text-red-500 text-center py-4">Erro ao carregar movimentações na lavoura.</p>';
         }
+    }
+
+      function renderActivities(list) {
+        if (!activitiesList) return;
+        activitiesList.innerHTML = '';
+        if (list.length === 0) {
+            activitiesList.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma movimentação encontrada para o filtro selecionado.</p>';
+            return;
+        }
+        list.forEach(activity => {
+            const activityDate = activity.date ? new Date(activity.date + 'T12:00:00').toLocaleDateString('pt-BR') : 'N/A';
+            const photoCount = activity.imageUrls ? activity.imageUrls.length : 0;
+            const photoHtml = photoCount > 0 ? `<span class="inline-flex items-center text-gray-600 text-sm ml-2"><i class="fas fa-camera mr-1"></i>${photoCount} fotos</span>` : '';
+            let statusColorClass = 'bg-gray-100 text-gray-800';
+            if (activity.status === 'Concluída') {
+                statusColorClass = 'bg-green-100 text-green-800';
+            } else if (activity.status === 'Atrasada') {
+                statusColorClass = 'bg-red-100 text-red-800';
+            } else if (activity.status === 'Pendente') {
+                statusColorClass = 'bg-yellow-100 text-yellow-800';
+            }
+            activitiesList.innerHTML += `
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-2">
+                            <h4 class="text-lg font-bold text-gray-800 mr-3">${activity.type}</h4>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColorClass}">${activity.status}</span>
+                            ${photoHtml}
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 mb-3">
+                            <div><span class="font-semibold">Local:</span> ${activity.local}</div>
+                            <div><span class="font-semibold">Data:</span> ${activityDate}</div>
+                            <div class="col-span-full"><span class="font-semibold">Responsável:</span> ${activity.responsible}</div>
+                        </div>
+                        <p class="text-gray-700">${activity.description}</p>
+                    </div>
+                    <a class="mt-4 sm:mt-0 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center"
+                       href="activity-details.html?clientId=${activity.clientId}&propertyId=${activity.propertyId}&plotId=${activity.plotId || ''}&cultureId=${activity.cultureId || ''}&dataSource=${activity.dataSource}&activityId=${activity.id}">
+                        <i class="fas fa-eye mr-2"></i>Ver Detalhes
+                   </a>
+                </div>
+            `;
+        });
+    }
+
+    function applyStatusFilter() {
+        if (!activitiesList) return;
+        const filter = statusFilter ? statusFilter.value : 'all';
+        const filtered = allActivities.filter(activity => {
+            if (filter === 'completed') return activity.status === 'Concluída';
+            if (filter === 'pending') return activity.status === 'Pendente';
+            if (filter === 'overdue') return activity.status === 'Atrasada';
+            return true;
+        });
+        renderActivities(filtered);
+    }
+
+    if (statusFilter && !statusFilter._hasListener) {
+        statusFilter.addEventListener('change', applyStatusFilter);
+        statusFilter._hasListener = true;
     }
 
     // NOVA FUNÇÃO: Preenche o modal de detalhes com o objeto de atividade já carregado

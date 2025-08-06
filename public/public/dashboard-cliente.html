@@ -37,32 +37,33 @@
                 </div>
             </div>
 
-<div id="kpiCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">                <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-                    <p class="text-sm font-medium text-gray-500">Área Total</p>
-                    <p id="totalAreaStat" class="text-2xl font-bold text-gray-800">...</p>
-                    <i class="fas fa-map-marker-alt text-xl text-green-500 mt-2"></i>
-                </div>
-                <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-                    <p class="text-sm font-medium text-gray-500">Talhões</p>
-                    <p id="activePlotsStat" class="text-2xl font-bold text-gray-800">...</p>
-                    <i class="fas fa-seedling text-xl text-blue-500 mt-2"></i>
-                </div>
-                <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-                    <p class="text-sm font-medium text-gray-500">Atividades Mês</p>
-                    <p id="activitiesMonthStat" class="text-2xl font-bold text-gray-800">...</p>
-                    <i class="fas fa-calendar-check text-xl text-orange-500 mt-2"></i>
-                </div>
-                <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-                    <p class="text-sm font-medium text-gray-500">Produtividade</p>
-                    <p id="productivityStat" class="text-2xl font-bold text-gray-800">...</p>
-                    <i class="fas fa-chart-line text-xl text-purple-500 mt-2"></i>
-                </div>
-            </div>
-<div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-                    <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
-                    <p id="pendingTasksStat" class="text-2xl font-bold text-gray-800">...</p>
-                    <i class="fas fa-tasks text-xl text-red-500 mt-2"></i>
-                </div>
+<div id="kpiCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
+        <p class="text-sm font-medium text-gray-500">Área Total</p>
+        <p id="totalAreaStat" class="text-2xl font-bold text-gray-800">...</p>
+        <i class="fas fa-map-marker-alt text-xl text-green-500 mt-2"></i>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
+        <p class="text-sm font-medium text-gray-500">Talhões</p>
+        <p id="activePlotsStat" class="text-2xl font-bold text-gray-800">...</p>
+        <i class="fas fa-seedling text-xl text-blue-500 mt-2"></i>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
+        <p class="text-sm font-medium text-gray-500">Tarefas Concluídas</p>
+        <p id="completedTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+        <i class="fas fa-check-circle text-xl text-green-600 mt-2"></i>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
+        <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
+        <p id="pendingTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+        <i class="fas fa-hourglass-half text-xl text-yellow-500 mt-2"></i>
+    </div>
+    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
+        <p class="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
+        <p id="overdueTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+        <i class="fas fa-exclamation-triangle text-xl text-red-500 mt-2"></i>
+    </div>
+</div>
             <div class="mb-6 border-b border-gray-200">
                 <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                     <button data-tab-target="recentActivities" class="tab-btn active-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Atividades Recentes</button>
@@ -76,6 +77,15 @@
                     <div id="farmActivities" class="w-full bg-white p-6 rounded-lg shadow-md border border-gray-200">
                         <h3 class="text-xl font-bold text-gray-800 mb-4">Movimentações na Lavoura</h3>
                         <p class="text-gray-600 text-sm mb-6">Acompanhe todas as atividades realizadas em sua propriedade</p>
+                          <div class="mb-4">
+                            <label for="statusFilter" class="block text-sm font-medium text-gray-700">Filtrar por status:</label>
+                            <select id="statusFilter" class="mt-1 block w-full sm:w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500">
+                                <option value="all">Todas</option>
+                                <option value="completed">Concluídas</option>
+                                <option value="pending">Pendentes</option>
+                                <option value="overdue">Atrasadas</option>
+                            </select>
+                        </div>
                         <div id="activitiesList" class="space-y-4">
                             <p class="text-gray-500 text-center py-4">Selecione uma propriedade para ver as movimentações.</p>
                         </div>
