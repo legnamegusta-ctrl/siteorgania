@@ -1,10 +1,19 @@
-function initOperadorDashboard(userId, userRole) {
+// js/pages/operador-dashboard.js
+
+// Helper para anexar events apenas se existir o elemento
+function on(id, event, handler) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(event, handler);
+}
+
+// Export da inicialização (quando você chama initOperadorDashboard de auth.js)
+export function initOperadorDashboard(userId, userRole) {
   updateConnection();
   bindUI();
   fetchData();
 }
 
-export { initOperadorDashboard };
+// Estado global da tela
 const state = {
   tasks: [],
   orders: [],
@@ -16,28 +25,32 @@ const state = {
   chart: null
 };
 
-// Define API base path. When running in Firebase hosting the backend lives
-// on the Cloud Functions domain, otherwise use relative paths for local dev.
-const API_BASE =
-  window.location.hostname === 'localhost'
-    ? ''
-    : 'https://us-central1-app-organia.cloudfunctions.net';
+// Base da API (vazia em localhost, ou domínio das Cloud Functions em produção)
+const API_BASE = window.location.hostname === 'localhost'
+  ? ''
+  : 'https://us-central1-app-organia.cloudfunctions.net';
 
+// Mostra modal
 function openModal(el) {
+  if (!el) return;
   el.classList.remove('hidden');
   el.classList.add('flex');
 }
 
+// Fecha modal
 function closeModal(el) {
+  if (!el) return;
   el.classList.add('hidden');
   el.classList.remove('flex');
 }
 
+// Atualiza indicador de conexão
 function updateConnection() {
   const el = document.getElementById('cardConexao');
   if (el) el.textContent = navigator.onLine ? 'Online' : 'Offline';
 }
 
+// Busca ordens, tarefas e agenda
 async function fetchData() {
   try {
     const [ordens, tarefas] = await Promise.all([
@@ -45,7 +58,7 @@ async function fetchData() {
       fetch(`${API_BASE}/api/tarefas`).then(r => r.json()).catch(() => [])
     ]);
     state.orders = Array.isArray(ordens) ? ordens : [];
-    state.tasks = Array.isArray(tarefas) ? tarefas : [];
+    state.tasks  = Array.isArray(tarefas) ? tarefas : [];
 
     updateCards();
     renderTable();
@@ -56,16 +69,18 @@ async function fetchData() {
   }
 }
 
+// Atualiza os cards de status
 function updateCards() {
-  const pendentes = state.orders.filter(o => o.status === 'pendente').length;
-  const agronomo = state.tasks.filter(t => t.origem === 'agronomo').length;
-  document.getElementById('cardPendentes').textContent = pendentes;
-  document.getElementById('cardTarefas').textContent = state.tasks.length;
-  document.getElementById('cardAgronomo').textContent = agronomo;
+  on('cardPendentes', 'dummy', () => {}); // só pra garantir existência
+  document.getElementById('cardPendentes')?.textContent = state.orders.filter(o => o.status === 'pendente').length;
+  document.getElementById('cardTarefas')?.textContent  = state.tasks.length;
+  document.getElementById('cardAgronomo')?.textContent = state.tasks.filter(t => t.origem === 'agronomo').length;
 }
 
+// Renderiza tabela de tarefas
 function renderTable() {
   const tbody = document.getElementById('tasksTableBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
   const start = (state.currentPage - 1) * state.pageSize;
   const items = state.tasks.slice(start, start + state.pageSize);
@@ -86,8 +101,11 @@ function renderTable() {
   });
 }
 
+// Renderiza gráfico de barras com Chart.js
 function renderChart() {
-  const ctx = document.getElementById('tasksChart').getContext('2d');
+  const ctxEl = document.getElementById('tasksChart');
+  if (!ctxEl) return;
+  const ctx = ctxEl.getContext('2d');
   const today = new Date();
   const days = [...Array(7)].map((_, i) => {
     const d = new Date(today);
@@ -110,15 +128,16 @@ function renderChart() {
       labels,
       datasets: [
         { label: 'Concluídas', data: completed, backgroundColor: '#16a34a' },
-        { label: 'Pendentes', data: pending, backgroundColor: '#dc2626' }
+        { label: 'Pendentes',  data: pending,   backgroundColor: '#dc2626' }
       ]
     },
     options: { responsive: true, maintainAspectRatio: false }
   });
 }
 
+// Busca agenda para o mês atual
 async function loadAgenda() {
-  const mes = `${state.currentMonth.getFullYear()}-${String(state.currentMonth.getMonth() + 1).padStart(2, '0')}`;
+  const mes = `${state.currentMonth.getFullYear()}-${String(state.currentMonth.getMonth()+1).padStart(2,'0')}`;
   try {
     const res = await fetch(`${API_BASE}/api/agenda?mes=${mes}`);
     state.agenda = await res.json();
@@ -128,52 +147,62 @@ async function loadAgenda() {
   renderCalendar();
 }
 
+// Desenha o calendário com contagem diária
 function renderCalendar() {
   const table = document.getElementById('calendarTable');
+  if (!table) return;
   table.innerHTML = '';
   const month = state.currentMonth.getMonth();
-  const year = state.currentMonth.getFullYear();
+  const year  = state.currentMonth.getFullYear();
   const first = new Date(year, month, 1);
   const firstWeekDay = first.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInMonth  = new Date(year, month+1, 0).getDate();
+
+  // Cabeçalho
   const header = document.createElement('tr');
-  ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].forEach(d => {
+  ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(d => {
     const th = document.createElement('th');
     th.className = 'p-1 text-xs';
     th.textContent = d;
     header.appendChild(th);
   });
   table.appendChild(header);
+
+  // Linhas de dias
   let row = document.createElement('tr');
-  for (let i = 0; i < firstWeekDay; i++) {
-    row.appendChild(document.createElement('td'));
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    if ((firstWeekDay + day - 1) % 7 === 0) {
+  for (let i=0;i<firstWeekDay;i++) row.appendChild(document.createElement('td'));
+  for (let day=1; day<=daysInMonth; day++) {
+    if ((firstWeekDay + day -1)%7 === 0) {
       table.appendChild(row);
       row = document.createElement('tr');
     }
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const count = state.agenda[dateStr] ? state.agenda[dateStr].length : 0;
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const count = state.agenda[dateStr]?.length || 0;
     const td = document.createElement('td');
     td.className = 'p-1 border cursor-pointer hover:bg-green-100';
     td.dataset.date = dateStr;
-    td.innerHTML = `<div class="text-xs">${day}</div>${count ? `<div class="text-xs text-green-600">${count}</div>` : ''}`;
+    td.innerHTML = `<div class="text-xs">${day}</div>${count?`<div class="text-xs text-green-600">${count}</div>`:''}`;
     row.appendChild(td);
   }
   table.appendChild(row);
-  document.getElementById('monthLabel').textContent = state.currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+  // Label do mês
+  document.getElementById('monthLabel')?.textContent =
+    state.currentMonth.toLocaleDateString('pt-BR',{ month:'long', year:'numeric' });
 }
 
+// Abre modal com tarefas do dia
 function openDailyAgenda(date) {
   const list = state.agenda[date] || [];
-  document.getElementById('dailyAgendaTitle').textContent = new Date(date).toLocaleDateString('pt-BR', { dateStyle: 'full' });
+  document.getElementById('dailyAgendaTitle')?.
+    textContent = new Date(date).toLocaleDateString('pt-BR',{dateStyle:'full'});
   const ul = document.getElementById('dailyAgendaList');
+  if (!ul) return;
   ul.innerHTML = '';
   list.forEach(t => {
     const li = document.createElement('li');
     li.className = 'flex justify-between';
-    li.innerHTML = `<span>${t.titulo || t.id}</span>
+    li.innerHTML = `<span>${t.titulo||t.id}</span>
       <span class="space-x-2">
         <button class="text-blue-600 hover:underline" data-view="${t.id}">Ver</button>
         <button class="text-green-600 hover:underline" data-complete="${t.id}">Concluir</button>
@@ -184,10 +213,13 @@ function openDailyAgenda(date) {
   openModal(document.getElementById('dailyAgendaModal'));
 }
 
+// Previsão de fotos no modal de conclusão
 function previewPhotos() {
   const preview = document.getElementById('photoPreview');
+  if (!preview) return;
   preview.innerHTML = '';
-  Array.from(document.getElementById('completeTaskPhotos').files).slice(0, 3).forEach(file => {
+  const files = document.getElementById('completeTaskPhotos')?.files || [];
+  Array.from(files).slice(0,3).forEach(file => {
     const img = document.createElement('img');
     img.src = URL.createObjectURL(file);
     img.className = 'h-16 w-16 object-cover rounded';
@@ -195,30 +227,33 @@ function previewPhotos() {
   });
 }
 
+// Envio de nova tarefa
 async function submitNewTask(e) {
   e.preventDefault();
   const body = {
-    talhao: document.getElementById('newTaskPlot').value,
-    tipo: document.getElementById('newTaskType').value,
-    responsavel: document.getElementById('newTaskResp').value,
-    prazo: document.getElementById('newTaskDeadline').value,
-    prioridade: document.getElementById('newTaskPriority').value
+    talhao:     document.getElementById('newTaskPlot')?.value,
+    tipo:       document.getElementById('newTaskType')?.value,
+    responsavel:document.getElementById('newTaskResp')?.value,
+    prazo:      document.getElementById('newTaskDeadline')?.value,
+    prioridade: document.getElementById('newTaskPriority')?.value
   };
   await fetch(`${API_BASE}/api/tarefas`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type':'application/json' },
     body: JSON.stringify(body)
   });
   closeModal(document.getElementById('newTaskModal'));
   fetchData();
 }
 
+// Envio de conclusão de tarefa
 async function submitCompleteTask(e) {
   e.preventDefault();
   if (!state.currentTask) return;
   const form = new FormData();
-  form.append('observacoes', document.getElementById('completeTaskObs').value);
-  Array.from(document.getElementById('completeTaskPhotos').files).slice(0, 3).forEach(f => form.append('fotos', f));
+  form.append('observacoes', document.getElementById('completeTaskObs')?.value || '');
+  const files = document.getElementById('completeTaskPhotos')?.files || [];
+  Array.from(files).slice(0,3).forEach(f => form.append('fotos', f));
   await fetch(`${API_BASE}/api/tarefas/${state.currentTask.id}/concluir`, {
     method: 'PATCH',
     body: form
@@ -227,68 +262,56 @@ async function submitCompleteTask(e) {
   fetchData();
 }
 
+// Liga todos os listeners de UI
 function bindUI() {
-  document.getElementById('openNewTaskBtn').addEventListener('click', () => openModal(document.getElementById('newTaskModal')));
-  document.getElementById('cancelNewTask').addEventListener('click', () => closeModal(document.getElementById('newTaskModal')));
-  document.getElementById('newTaskForm').addEventListener('submit', submitNewTask);
+  on('openNewTaskBtn',    'click', () => openModal(document.getElementById('newTaskModal')));
+  on('cancelNewTask',      'click', () => closeModal(document.getElementById('newTaskModal')));
+  on('newTaskForm',        'submit', submitNewTask);
 
-  document.getElementById('cancelCompleteTask').addEventListener('click', () => closeModal(document.getElementById('completeTaskModal')));
-  document.getElementById('completeTaskForm').addEventListener('submit', submitCompleteTask);
-  document.getElementById('completeTaskPhotos').addEventListener('change', previewPhotos);
+  on('cancelCompleteTask','click', () => closeModal(document.getElementById('completeTaskModal')));
+  on('completeTaskForm',  'submit', submitCompleteTask);
+  on('completeTaskPhotos','change', previewPhotos);
 
-  document.getElementById('closeDailyAgenda').addEventListener('click', () => closeModal(document.getElementById('dailyAgendaModal')));
-
-  document.getElementById('prevPageBtn').addEventListener('click', () => {
-    if (state.currentPage > 1) {
-      state.currentPage--;
-      renderTable();
-    }
+  on('closeDailyAgenda',  'click', () => closeModal(document.getElementById('dailyAgendaModal')));
+  on('prevPageBtn',       'click', () => {
+    if (state.currentPage>1) { state.currentPage--; renderTable(); }
   });
-  document.getElementById('nextPageBtn').addEventListener('click', () => {
-    const total = Math.ceil(state.tasks.length / state.pageSize);
-    if (state.currentPage < total) {
-      state.currentPage++;
-      renderTable();
-    }
+  on('nextPageBtn',       'click', () => {
+    const total = Math.ceil(state.tasks.length/state.pageSize);
+    if (state.currentPage<total) { state.currentPage++; renderTable(); }
   });
 
-  document.getElementById('tasksTableBody').addEventListener('click', e => {
-    if (e.target.dataset.complete) {
-      const id = e.target.dataset.complete;
-      state.currentTask = state.tasks.find(t => String(t.id) === String(id));
-      document.getElementById('completeTaskInfo').textContent = `${state.currentTask.id} - ${state.currentTask.talhao || ''}`;
+  // Delegação para ações na tabela
+  const tb = document.getElementById('tasksTableBody');
+  if (tb) tb.addEventListener('click', e => {
+    const id = e.target.dataset.complete;
+    if (id) {
+      state.currentTask = state.tasks.find(t => String(t.id)===String(id));
+      const info = document.getElementById('completeTaskInfo');
+      if (info) info.textContent = `${state.currentTask.id} - ${state.currentTask.talhao||''}`;
       openModal(document.getElementById('completeTaskModal'));
     }
   });
 
-  document.getElementById('calendarTable').addEventListener('click', e => {
+  // Cliques no calendário
+  const cal = document.getElementById('calendarTable');
+  if (cal) cal.addEventListener('click', e => {
     const cell = e.target.closest('td[data-date]');
     if (cell) openDailyAgenda(cell.dataset.date);
   });
 
-  document.getElementById('prevMonth').addEventListener('click', () => {
-    state.currentMonth.setMonth(state.currentMonth.getMonth() - 1);
-    loadAgenda();
-  });
-  document.getElementById('nextMonth').addEventListener('click', () => {
-    state.currentMonth.setMonth(state.currentMonth.getMonth() + 1);
-    loadAgenda();
-  });
+  on('prevMonth','click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth()-1); loadAgenda(); });
+  on('nextMonth','click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth()+1); loadAgenda(); });
 
-  document.getElementById('openSidebarBtn').addEventListener('click', () => {
-    openModal(document.getElementById('mobileSidebar'));
-  });
-  document.getElementById('closeMobileMenu').addEventListener('click', () => {
-    closeModal(document.getElementById('mobileSidebar'));
-  });
-  document.getElementById('closeSidebarBtn').addEventListener('click', () => {
-    closeModal(document.getElementById('mobileSidebar'));
-  });
+  on('openSidebarBtn','click', () => openModal(document.getElementById('mobileSidebar')));
+  on('closeMobileMenu','click', () => closeModal(document.getElementById('mobileSidebar')));
+  on('closeSidebarBtn','click', () => closeModal(document.getElementById('mobileSidebar')));
 
-  window.addEventListener('online', updateConnection);
+  window.addEventListener('online',  updateConnection);
   window.addEventListener('offline', updateConnection);
 }
 
+// Inicializa tudo ao carregar o HTML
 document.addEventListener('DOMContentLoaded', () => {
   updateConnection();
   bindUI();
