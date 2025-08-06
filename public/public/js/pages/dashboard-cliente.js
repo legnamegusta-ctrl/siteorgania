@@ -13,6 +13,7 @@ export function initClienteDashboard(userId, userRole) {
     const activitiesMonthStat = document.getElementById('activitiesMonthStat');
     const productivityStat = document.getElementById('productivityStat');
     const activePlotsStat = document.getElementById('activePlotsStat');
+     const pendingTasksStat = document.getElementById('pendingTasksStat');
     const farmActivities = document.getElementById('farmActivities');
     const activitiesList = document.getElementById('activitiesList');
     const activityDetailsModal = document.getElementById('activityDetailsModal');
@@ -156,11 +157,13 @@ export function initClienteDashboard(userId, userRole) {
         if (activePlotsStat) activePlotsStat.textContent = '...';
         if (activitiesMonthStat) activitiesMonthStat.textContent = '...';
         if (productivityStat) productivityStat.textContent = '...';
+        if (pendingTasksStat) pendingTasksStat.textContent = '...';
         if (!clientId || !propertyId || !propertyData) {
             if (totalAreaStat) totalAreaStat.textContent = '0 ha';
             if (activePlotsStat) activePlotsStat.textContent = '0';
             if (activitiesMonthStat) activitiesMonthStat.textContent = '0';
             if (productivityStat) productivityStat.textContent = 'N/A';
+             if (pendingTasksStat) pendingTasksStat.textContent = '0';
             hideSpinner(kpiCards);
             return;
         }
@@ -208,6 +211,12 @@ export function initClienteDashboard(userId, userRole) {
             const completedTasksSnapshot = await getDocs(completedTasksQuery);
             activitiesInMonthCount += completedTasksSnapshot.size;
             if (activitiesMonthStat) activitiesMonthStat.textContent = activitiesInMonthCount;
+             const pendingTasksQuery = query(collection(db, `clients/${clientId}/tasks`),
+                                            where('isCompleted', '==', false),
+                                            where('propertyId', '==', propertyId)
+                                        );
+            const pendingTasksSnapshot = await getDocs(pendingTasksQuery);
+            if (pendingTasksStat) pendingTasksStat.textContent = pendingTasksSnapshot.size;
             if (productivityStat) productivityStat.textContent = 'N/A';
         } catch (error) {
             console.error("Erro ao atualizar KPIs:", error);
@@ -215,6 +224,7 @@ export function initClienteDashboard(userId, userRole) {
             if (activePlotsStat) activePlotsStat.textContent = 'Erro';
             if (activitiesMonthStat) activitiesMonthStat.textContent = 'Erro';
             if (productivityStat) productivityStat.textContent = 'Erro';
+              if (pendingTasksStat) pendingTasksStat.textContent = 'Erro';
             showToast("Erro ao carregar os indicadores.", "error");
         } finally {
             hideSpinner(kpiCards);

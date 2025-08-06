@@ -15,11 +15,31 @@ export function showFormError(formElement, message) {
  */
 export function showSpinner(container) {
     if (!container) return;
-    container.innerHTML = `
-        <div class="spinner-container">
-            <div class="loading-spinner"></div>
-        </div>
-    `;
+    // Garante que o container possa posicionar o spinner sobre o conteúdo existente
+    if (!container.style.position) {
+        container.style.position = 'relative';
+    }
+
+    // Evita inserir múltiplos spinners no mesmo container
+    if (container.querySelector('.spinner-container')) return;
+
+    const spinnerWrapper = document.createElement('div');
+    spinnerWrapper.className = 'spinner-container';
+    spinnerWrapper.innerHTML = '<div class="loading-spinner"></div>';
+
+    // Posiciona o spinner centralizado sobre o container
+    spinnerWrapper.style.position = 'absolute';
+    spinnerWrapper.style.top = '0';
+    spinnerWrapper.style.left = '0';
+    spinnerWrapper.style.width = '100%';
+    spinnerWrapper.style.height = '100%';
+    spinnerWrapper.style.minHeight = '100px';
+    spinnerWrapper.style.display = 'flex';
+    spinnerWrapper.style.justifyContent = 'center';
+    spinnerWrapper.style.alignItems = 'center';
+    spinnerWrapper.style.background = 'rgba(255,255,255,0.8)';
+
+    container.appendChild(spinnerWrapper);
 }
 
 /**
