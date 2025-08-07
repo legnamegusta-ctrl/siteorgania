@@ -6,12 +6,13 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.
 
 // Seu objeto de configuração do Firebase (substitua com suas chaves reais!)
 const firebaseConfig = {
-  apiKey: "AIzaSyAQI_FXk-1xySGiZVhiLimKSDoOwBM73Mw",
-  authDomain: "app-organia.firebaseapp.com",
-  projectId: "app-organia",
-  storageBucket: "app-organia.firebasestorage.app",
-  messagingSenderId: "92173277950",
-  appId: "1:92173277950:web:43448042c19f29ec5363af"
+  apiKey: "AIzaSyCQcgMFBU_rcm7cDjuE9WjSaCNzgFxXVOQ",
+  authDomain: "organia-fertilizantes.firebaseapp.com",
+  databaseURL: "https://organia-fertilizantes-default-rtdb.firebaseio.com",
+  projectId: "organia-fertilizantes",
+  storageBucket: "organia-fertilizantes.firebasestorage.app",
+  messagingSenderId: "488614836789",
+  appId: "1:488614836789:web:7d55498e0f78c158ed8f7c"
 };
 
 // Inicializa o Firebase
