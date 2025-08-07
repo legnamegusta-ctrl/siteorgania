@@ -12,28 +12,28 @@
 <body class="flex h-screen bg-gray-100 text-gray-800">
 
   <!-- SIDEBAR -->
-  <nav class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 p-6">
+  <nav class="hidden md:flex flex-col w-64 bg-white border-r p-6">
     <h1 class="text-2xl font-bold text-green-700 mb-8">Orgânia</h1>
     <ul class="space-y-4">
       <li>
         <a href="operador-dashboard.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
           <i class="fas fa-tachometer-alt mr-3 text-green-600"></i>
-          <span class="font-medium">Dashboard</span>
+          <span>Dashboard</span>
         </a>
       </li>
       <li>
         <a href="operador-ordens.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
           <i class="fas fa-clipboard-list mr-3 text-green-600"></i>
-          <span class="font-medium">Ordens</span>
+          <span>Ordens</span>
         </a>
       </li>
       <li>
         <a href="operador-tarefas.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
           <i class="fas fa-tasks mr-3 text-green-600"></i>
-          <span class="font-medium">Tarefas</span>
+          <span>Tarefas</span>
         </a>
       </li>
     </ul>
@@ -41,6 +41,7 @@
 
   <!-- CONTEÚDO PRINCIPAL -->
   <div class="flex-1 flex flex-col overflow-auto p-6">
+
     <!-- HEADER -->
     <header class="flex justify-between items-center mb-6">
       <h2 class="text-3xl font-semibold">Dashboard do Operador</h2>
@@ -63,6 +64,23 @@
         <h3 class="text-sm font-medium text-gray-500 uppercase">Concluídas</h3>
         <p id="totalCompleted" class="mt-2 text-3xl font-bold text-green-600">0</p>
       </div>
+    </div>
+
+    <!-- CONTROLES: FILTRO + NOVA TAREFA -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
+      <div>
+        <label for="filterSelect" class="mr-2 font-medium">Filtrar:</label>
+        <select id="filterSelect" class="border rounded p-1">
+          <option value="todas">Todas</option>
+          <option value="pendentes">Pendentes</option>
+          <option value="concluidas">Concluídas</option>
+          <option value="atrasadas">Atrasadas</option>
+        </select>
+      </div>
+      <button id="createTaskBtn"
+              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+        <i class="fas fa-plus mr-2"></i>Nova Tarefa
+      </button>
     </div>
 
     <!-- GRÁFICO E TABELA -->
@@ -89,9 +107,7 @@
                 <th class="px-3 py-2">Status</th>
               </tr>
             </thead>
-            <tbody id="tasksTableBody">
-              <!-- preenchido dinamicamente -->
-            </tbody>
+            <tbody id="tasksTableBody"></tbody>
           </table>
         </div>
         <p id="emptyState" class="text-center text-gray-500 italic mt-4 hidden">
@@ -102,6 +118,31 @@
           <button id="nextPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Próxima</button>
         </div>
       </section>
+    </div>
+  </div>
+
+  <!-- MODAL SIMPLES PARA NOVA TAREFA -->
+  <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+      <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>
+      <form id="taskForm" class="space-y-4">
+        <div>
+          <label class="block mb-1">Descrição</label>
+          <input id="taskDesc" type="text" required class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label class="block mb-1">Talhão</label>
+          <input id="taskTalhao" type="text" required class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label class="block mb-1">Data (YYYY-MM-DD)</label>
+          <input id="taskDate" type="date" required class="w-full border rounded p-2" />
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" id="cancelTaskBtn" class="px-4 py-2">Cancelar</button>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+        </div>
+      </form>
     </div>
   </div>
 

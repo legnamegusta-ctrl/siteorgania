@@ -1,4 +1,3 @@
-// Base da sua Cloud Function “api”
 const API_BASE_URL = 'https://us-central1-app-organia.cloudfunctions.net/api';
 
 function on(id, event, handler) {
@@ -8,6 +7,7 @@ function on(id, event, handler) {
 
 const state = {
   items: [],
+  filter: 'todas',
   currentPage: 1,
   pageSize: 8,
   chart: null
@@ -20,8 +20,16 @@ export async function initOperadorDashboard(userId) {
 
 function bindUI() {
   on('logoutBtn', 'click', () => window.logout());
+  on('filterSelect', 'change', e => {
+    state.filter = e.target.value;
+    state.currentPage = 1;
+    renderAll();
+  });
   on('prevPageBtn', 'click', () => changePage(-1));
   on('nextPageBtn', 'click', () => changePage(1));
+  on('createTaskBtn', 'click', () => showModal(true));
+  on('cancelTaskBtn', 'click', () => showModal(false));
+  on('taskForm', 'submit', createTask);
 }
 
 async function fetchData(userId) {
@@ -37,35 +45,55 @@ async function fetchData(userId) {
     const taggedOrders = ordens .map(o => ({ ...o, origem: 'Ordem',  data: o.data    || o.dueDate }));
 
     state.items = [...taggedOrders, ...taggedTasks];
-    renderMetrics();
-    renderTasksChart();
-    renderTable();
+    renderAll();
   } catch (err) {
     console.error('Erro ao buscar dados:', err);
   }
 }
 
+function renderAll() {
+  renderMetrics();
+  renderTasksChart();
+  renderTable();
+}
+
 function renderMetrics() {
-  const total = state.items.length;
-  const pending = state.items.filter(i => (i.status||'pendente') === 'pendente').length;
-  const completed = state.items.filter(i => (i.status||'pendente') !== 'pendente').length;
+  const filtered = applyFilter(state.items);
+  const total = filtered.length;
+  const pending = filtered.filter(i => (i.status || 'pendente') === 'pendente').length;
+  const completed = filtered.filter(i => (i.status || 'pendente') !== 'pendente').length;
 
   document.getElementById('totalOrders').textContent    = total;
   document.getElementById('totalPending').textContent   = pending;
   document.getElementById('totalCompleted').textContent = completed;
 }
 
+function applyFilter(items) {
+  const now = new Date();
+  return items.filter(i => {
+    const status = (i.status || 'pendente').toLowerCase();
+    const date   = new Date(i.data);
+    const overdue = date < now && status !== 'concluída';
+
+    switch (state.filter) {
+      case 'pendentes':  return status === 'pendente';
+      case 'concluidas': return status === 'concluída';
+      case 'atrasadas':  return overdue;
+      default:           return true;
+    }
+  });
+}
+
 function renderTasksChart() {
-  const ctx = document.getElementById('tasksChart').getContext('2d');
-  const counts = state.items.reduce((acc, { status }) => {
+  const counts = applyFilter(state.items).reduce((acc, { status }) => {
     const st = (status || 'pendente');
     acc[st] = (acc[st] || 0) + 1;
     return acc;
   }, {});
-
   const labels = Object.keys(counts);
   const data   = labels.map(l => counts[l]);
 
+  const ctx = document.getElementById('tasksChart').getContext('2d');
   if (state.chart) {
     state.chart.data.labels = labels;
     state.chart.data.datasets[0].data = data;
@@ -82,11 +110,12 @@ function renderTasksChart() {
 function renderTable() {
   const tbody = document.getElementById('tasksTableBody');
   const empty = document.getElementById('emptyState');
+  const filtered = applyFilter(state.items);
   const start = (state.currentPage - 1) * state.pageSize;
-  const pageItems = state.items.slice(start, start + state.pageSize);
+  const pageItems = filtered.slice(start, start + state.pageSize);
 
   tbody.innerHTML = '';
-  if (pageItems.length === 0) {
+  if (!pageItems.length) {
     empty.classList.remove('hidden');
   } else {
     empty.classList.add('hidden');
@@ -105,16 +134,39 @@ function renderTable() {
 }
 
 function changePage(delta) {
-  const maxPage = Math.ceil(state.items.length / state.pageSize) || 1;
+  const filtered = applyFilter(state.items);
+  const maxPage = Math.ceil(filtered.length / state.pageSize) || 1;
   state.currentPage = Math.min(Math.max(1, state.currentPage + delta), maxPage);
   renderTable();
 }
 
+function showModal(show) {
+  document.getElementById('taskModal').classList.toggle('hidden', !show);
+}
+
+async function createTask(e) {
+  e.preventDefault();
+  const desc   = document.getElementById('taskDesc').value;
+  const talhao = document.getElementById('taskTalhao').value;
+  const date   = document.getElementById('taskDate').value;
+  try {
+    await fetch(`${API_BASE_URL}/tarefas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ descricao: desc, talhao, dueDate: date })
+    });
+    showModal(false);
+    await fetchData(window.auth.currentUser.uid);
+  } catch (err) {
+    console.error('Erro ao criar tarefa:', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('operador-dashboard-marker') && window.auth) {
+  if (window.auth && document.getElementById('operador-dashboard-marker')) {
     window.auth.onAuthStateChanged(user => {
       if (user) initOperadorDashboard(user.uid);
-      else        window.location.href = 'login.html';
+      else       window.location.href = 'login.html';
     });
   }
 });
