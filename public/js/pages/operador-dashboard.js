@@ -38,18 +38,25 @@ async function loadFarmId(userId) {
 async function loadPlots() {
   if (!state.farmClientId) return;
   state.plots = [];
-  const propsSnap = await getDocs(collection(db, 'clients', state.farmClientId, 'properties'));
-  for (const prop of propsSnap.docs) {
-    const plotsSnap = await getDocs(collection(db, `clients/${state.farmClientId}/properties/${prop.id}/plots`));
-    plotsSnap.forEach(p => {
-      state.plots.push({ path: p.ref.path, name: p.data().name });
-    });
+ const propsSnap = await getDocs(collection(db, 'clients', state.farmClientId, 'properties'));
+    for (const prop of propsSnap.docs) {
+      const plotsSnap = await getDocs(collection(db, `clients/${state.farmClientId}/properties/${prop.id}/plots`));
+      plotsSnap.forEach(p => {
+        state.plots.push({
+          path: p.ref.path,
+          name: p.data().name,
+          propertyId: prop.id,
+          plotId: p.id
+        });
+      });
+    }
+    const select = document.getElementById('taskTalhao');
+    if (select) {
+      select.innerHTML = state.plots
+        .map(pl => `<option value="${pl.path}" data-property-id="${pl.propertyId}" data-plot-id="${pl.plotId}">${pl.name}</option>`)
+        .join('');
+    }
   }
-  const select = document.getElementById('taskTalhao');
-  if (select) {
-    select.innerHTML = state.plots.map(pl => `<option value="${pl.path}">${pl.name}</option>`).join('');
-  }
-}
 
 function bindUI() {
   document.getElementById('logoutBtn')?.addEventListener('click', () => window.logout());
@@ -204,14 +211,19 @@ async function createTask(e) {
   e.preventDefault();
   const title  = document.getElementById('taskTitle').value;
   const plotSelect = document.getElementById('taskTalhao');
+ const selectedOption = plotSelect.options[plotSelect.selectedIndex];
   const plotPath = plotSelect.value;
-  const plotName = plotSelect.options[plotSelect.selectedIndex]?.text || '';
+  const plotName = selectedOption?.text || '';
+  const propertyId = selectedOption?.dataset.propertyId || null;
+  const plotId = selectedOption?.dataset.plotId || null;  
   const dueDate = document.getElementById('taskDate').value;
 
   await addDoc(collection(db, 'clients', state.farmClientId, 'tasks'), {
     title,
     plotPath,
     plotName,
+     propertyId,
+    plotId,
     dueDate,
     isCompleted: false,
     createdAt: new Date()

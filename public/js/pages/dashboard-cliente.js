@@ -17,6 +17,7 @@ export function initClienteDashboard(userId, userRole) {
     const farmActivities = document.getElementById('farmActivities');
     const activitiesList = document.getElementById('activitiesList');
     const statusFilter = document.getElementById('statusFilter');
+     const plotFilter = document.getElementById('plotFilter');
     const activityDetailsModal = document.getElementById('activityDetailsModal');
     const imageLightboxModal = document.getElementById('imageLightboxModal');
     const lightboxImage = document.getElementById('lightboxImage');
@@ -223,6 +224,7 @@ export function initClienteDashboard(userId, userRole) {
         try {
             const plotsQuery = query(collection(db, `clients/${clientId}/properties/${propertyId}/plots`), where('status', '==', 'ativo'));
             const plotsSnapshot = await getDocs(plotsQuery);
+            populatePlotFilter(plotsSnapshot);
             if (plotsSnapshot.empty) {
                 console.log('Cliente Dashboard: Nenhuma talhão ativo encontrado para esta propriedade.');
             }
@@ -333,8 +335,7 @@ export function initClienteDashboard(userId, userRole) {
                 activitiesList.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma movimentação encontrada para esta propriedade.</p>';
                 return;
             }
-            applyStatusFilter();
-
+applyFilters();
         } catch (error) {
             console.error("Erro ao carregar e exibir movimentações:", error);
             hideSpinner(activitiesList);
@@ -342,9 +343,8 @@ export function initClienteDashboard(userId, userRole) {
         }
     }
 
-      function renderActivities(list) {
-        if (!activitiesList) return;
-        activitiesList.innerHTML = '';
+function renderActivities(list) {
+            activitiesList.innerHTML = '';
         if (list.length === 0) {
             activitiesList.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma movimentação encontrada para o filtro selecionado.</p>';
             return;
@@ -385,24 +385,43 @@ export function initClienteDashboard(userId, userRole) {
         });
     }
 
-    function applyStatusFilter() {
+function populatePlotFilter(plotsSnapshot) {
+        if (!plotFilter) return;
+        plotFilter.innerHTML = '<option value="all">Todos os Talhões</option>';
+        plotsSnapshot.forEach(docSnap => {
+            const option = document.createElement('option');
+            option.value = docSnap.id;
+            option.textContent = docSnap.data().name;
+            plotFilter.appendChild(option);
+        });
+        plotFilter.value = 'all';
+    }
+
+    function applyFilters() {
         if (!activitiesList) return;
-        const filter = statusFilter ? statusFilter.value : 'all';
+        const status = statusFilter ? statusFilter.value : 'all';
+        const plotId = plotFilter ? plotFilter.value : 'all';
         const filtered = allActivities.filter(activity => {
-            if (filter === 'completed') return activity.status === 'Concluída';
-            if (filter === 'pending') return activity.status === 'Pendente';
-            if (filter === 'overdue') return activity.status === 'Atrasada';
-            return true;
+            const statusMatch =
+                status === 'all' ||
+                (status === 'completed' && activity.status === 'Concluída') ||
+                (status === 'pending' && activity.status === 'Pendente') ||
+                (status === 'overdue' && activity.status === 'Atrasada');
+            const plotMatch = plotId === 'all' || activity.plotId === plotId;
+            return statusMatch && plotMatch;
         });
         renderActivities(filtered);
     }
 
     if (statusFilter && !statusFilter._hasListener) {
-        statusFilter.addEventListener('change', applyStatusFilter);
+        statusFilter.addEventListener('change', applyFilters);
         statusFilter._hasListener = true;
     }
-
-    // NOVA FUNÇÃO: Preenche o modal de detalhes com o objeto de atividade já carregado
+    if (plotFilter && !plotFilter._hasListener) {
+        plotFilter.addEventListener('change', applyFilters);
+        plotFilter._hasListener = true;
+    }
+        // NOVA FUNÇÃO: Preenche o modal de detalhes com o objeto de atividade já carregado
     async function openActivityDetailsModal(activity) {
         console.log("openActivityDetailsModal: Iniciando preenchimento do modal com o objeto:", activity);
         
