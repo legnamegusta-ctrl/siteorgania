@@ -7,6 +7,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+  <!-- mantém o seu auth.js para lidar com login/out e chamar initOperadorDashboard -->
+  <script type="module" src="js/services/auth.js"></script>
+  <!-- nosso módulo de dashboard -->
+  <script type="module" src="js/pages/operador-dashboard.js"></script>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="flex h-screen bg-gray-100 text-gray-800">
@@ -17,30 +23,17 @@
     <ul class="space-y-4">
       <li>
         <a href="operador-dashboard.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
+           class="flex items-center px-3 py-2 rounded bg-green-100 font-semibold">
           <i class="fas fa-tachometer-alt mr-3 text-green-600"></i>
           <span>Dashboard</span>
         </a>
       </li>
-      <li>
-        <a href="operador-ordens.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
-          <i class="fas fa-clipboard-list mr-3 text-green-600"></i>
-          <span>Ordens</span>
-        </a>
-      </li>
-      <li>
-        <a href="operador-tarefas.html"
-           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition">
-          <i class="fas fa-tasks mr-3 text-green-600"></i>
-          <span>Tarefas</span>
-        </a>
-      </li>
+      <!-- Removi os links de Ordens/Tarefas até essas páginas serem corrigidas -->
     </ul>
   </nav>
 
   <!-- CONTEÚDO PRINCIPAL -->
-  <div class="flex-1 flex flex-col overflow-auto p-6">
+  <div class="flex-1 flex flex-col p-6">
 
     <!-- HEADER -->
     <header class="flex justify-between items-center mb-6">
@@ -50,23 +43,7 @@
       </button>
     </header>
 
-    <!-- MÉTRICAS -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm font-medium text-gray-500 uppercase">Total de Ordens</h3>
-        <p id="totalOrders" class="mt-2 text-3xl font-bold">0</p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm font-medium text-gray-500 uppercase">Pendentes</h3>
-        <p id="totalPending" class="mt-2 text-3xl font-bold text-yellow-600">0</p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm font-medium text-gray-500 uppercase">Concluídas</h3>
-        <p id="totalCompleted" class="mt-2 text-3xl font-bold text-green-600">0</p>
-      </div>
-    </div>
-
-    <!-- CONTROLES: FILTRO + NOVA TAREFA -->
+    <!-- CONTROLES: FILTROS + NOVA TAREFA -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
       <div>
         <label for="filterSelect" class="mr-2 font-medium">Filtrar:</label>
@@ -83,7 +60,7 @@
       </button>
     </div>
 
-    <!-- GRÁFICO E TABELA -->
+    <!-- GRADE: GRÁFICO E TABELA -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
       <!-- GRÁFICO -->
       <section class="bg-white rounded-lg shadow p-5 flex flex-col">
@@ -95,14 +72,13 @@
 
       <!-- TABELA -->
       <section class="bg-white rounded-lg shadow p-5 flex flex-col">
-        <h3 class="text-lg font-medium mb-4">Ordens / Tarefas</h3>
-        <div class="flex-1 overflow-auto">
+        <h3 class="text-lg font-medium mb-4">Tarefas</h3>
+        <div class="overflow-auto">
           <table class="min-w-full text-left text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-3 py-2">ID</th>
+                <th class="px-3 py-2">Título</th>
                 <th class="px-3 py-2">Talhão</th>
-                <th class="px-3 py-2">Origem</th>
                 <th class="px-3 py-2">Data</th>
                 <th class="px-3 py-2">Status</th>
               </tr>
@@ -111,7 +87,7 @@
           </table>
         </div>
         <p id="emptyState" class="text-center text-gray-500 italic mt-4 hidden">
-          Nenhuma ordem ou tarefa encontrada.
+          Nenhuma tarefa encontrada.
         </p>
         <div class="mt-4 flex justify-end space-x-2">
           <button id="prevPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Anterior</button>
@@ -121,22 +97,22 @@
     </div>
   </div>
 
-  <!-- MODAL SIMPLES PARA NOVA TAREFA -->
+  <!-- MODAL DE CRIAÇÃO -->
   <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-80">
       <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>
       <form id="taskForm" class="space-y-4">
         <div>
-          <label class="block mb-1">Descrição</label>
-          <input id="taskDesc" type="text" required class="w-full border rounded p-2" />
+          <label>Título</label>
+          <input id="taskTitle" required class="w-full border rounded p-2"/>
         </div>
         <div>
-          <label class="block mb-1">Talhão</label>
-          <input id="taskTalhao" type="text" required class="w-full border rounded p-2" />
+          <label>Talhão (Plot ID)</label>
+          <input id="taskTalhao" required class="w-full border rounded p-2"/>
         </div>
         <div>
-          <label class="block mb-1">Data (YYYY-MM-DD)</label>
-          <input id="taskDate" type="date" required class="w-full border rounded p-2" />
+          <label>Data (YYYY-MM-DD)</label>
+          <input id="taskDate" type="date" required class="w-full border rounded p-2"/>
         </div>
         <div class="flex justify-end space-x-2">
           <button type="button" id="cancelTaskBtn" class="px-4 py-2">Cancelar</button>
@@ -146,8 +122,5 @@
     </div>
   </div>
 
-  <!-- SCRIPTS -->
-  <script type="module" src="js/services/auth.js"></script>
-  <script type="module" src="js/pages/operador-dashboard.js"></script>
 </body>
 </html>
