@@ -155,10 +155,16 @@ function renderMetrics() {
     const pending   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
     const completed = state.allTasks.filter(t => t.isCompleted).length;
     const delayed   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
-    document.getElementById('totalTasks').textContent     = state.allTasks.length;
-    document.getElementById('totalPending').textContent   = pending;
-    document.getElementById('totalCompleted').textContent = completed;
-    document.getElementById('totalDelayed').textContent   = delayed;
+
+    const totalTasksEl     = document.getElementById('totalTasks');
+    const totalPendingEl   = document.getElementById('totalPending');
+    const totalCompletedEl = document.getElementById('totalCompleted');
+    const totalDelayedEl   = document.getElementById('totalDelayed');
+
+    if (totalTasksEl)     totalTasksEl.textContent     = state.allTasks.length;
+    if (totalPendingEl)   totalPendingEl.textContent   = pending;
+    if (totalCompletedEl) totalCompletedEl.textContent = completed;
+    if (totalDelayedEl)   totalDelayedEl.textContent   = delayed;
   }
 
   function renderChart() {
