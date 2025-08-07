@@ -87,21 +87,21 @@ async function fetchAndRenderTasks() {
   filterAndRender();
 }
 
-function filterAndRender() {
-  const now = new Date();
-  state.filteredTasks = state.allTasks.filter(t => {
-    const isCompleted = !!t.isCompleted;
-    const due = new Date(t.dueDate);
-    if (state.filter === 'pendentes') return !isCompleted;
-    if (state.filter === 'concluidas') return isCompleted;
-    if (state.filter === 'atrasadas') return !isCompleted && due < now;
-    return true;
-  });
-  state.currentPage = 1;
-  renderTable();
-  renderMetrics();
-  renderChart();
-}
+  function filterAndRender() {
+    const now = new Date();
+    state.filteredTasks = state.allTasks.filter(t => {
+      const isCompleted = !!t.isCompleted;
+      const due = new Date(t.dueDate);
+      if (state.filter === 'pendentes') return !isCompleted && due >= now;
+      if (state.filter === 'concluidas') return isCompleted;
+      if (state.filter === 'atrasadas') return !isCompleted && due < now;
+      return true;
+    });
+    state.currentPage = 1;
+    renderTable();
+    renderMetrics();
+    renderChart();
+  }
 
 function renderTable() {
   const tbody = document.getElementById('tasksTableBody');
@@ -118,17 +118,24 @@ function renderTable() {
     empty.classList.add('hidden');
   }
 
-  pageItems.forEach(t => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="px-3 py-2">${t.title || t.description || '(Sem título)'}</td>
-      <td class="px-3 py-2">${t.plotName || t.talhao || t.plotId || '-'}</td>
-      <td class="px-3 py-2">${formatDate(t.dueDate)}</td>
-      <td class="px-3 py-2">${t.isCompleted ? '<span class="text-green-600">Concluída</span>' : '<span class="text-yellow-600">Pendente</span>'}</td>
-      <td class="px-3 py-2">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 bg-green-500 text-white rounded" data-id="${t.id}">Concluir</button>` : ''}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+   const now = new Date();
+    pageItems.forEach(t => {
+      const due = new Date(t.dueDate);
+      const statusHtml = t.isCompleted
+        ? '<span class="text-green-600">Concluída</span>'
+        : (due < now
+            ? '<span class="text-red-600">Atrasada</span>'
+            : '<span class="text-yellow-600">Pendente</span>');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-3 py-2">${t.title || t.description || '(Sem título)'}</td>
+        <td class="px-3 py-2">${t.plotName || t.talhao || t.plotId || '-'}</td>
+        <td class="px-3 py-2">${formatDate(t.dueDate)}</td>
+        <td class="px-3 py-2">${statusHtml}</td>
+        <td class="px-3 py-2">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 bg-green-500 text-white rounded" data-id="${t.id}">Concluir</button>` : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
 
   // Botões de concluir tarefa
   tbody.querySelectorAll('.concluir-btn').forEach(btn => {
@@ -144,30 +151,38 @@ function renderTable() {
 }
 
 function renderMetrics() {
-  document.getElementById('totalTasks').textContent     = state.allTasks.length;
-  document.getElementById('totalPending').textContent   = state.allTasks.filter(t => !t.isCompleted).length;
-  document.getElementById('totalCompleted').textContent = state.allTasks.filter(t => t.isCompleted).length;
-}
-
-function renderChart() {
-  if (!window.Chart) return;
-  const ctx = document.getElementById('tasksChart').getContext('2d');
-  const pendentes = state.allTasks.filter(t => !t.isCompleted).length;
-  const concluidas = state.allTasks.filter(t => t.isCompleted).length;
-  if (state.chart) {
-    state.chart.data.datasets[0].data = [pendentes, concluidas];
-    state.chart.update();
-  } else {
-    state.chart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Pendentes', 'Concluídas'],
-        datasets: [{ data: [pendentes, concluidas] }]
-      },
-      options: { responsive: true }
-    });
+    const now = new Date();
+    const pending   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
+    const completed = state.allTasks.filter(t => t.isCompleted).length;
+    const delayed   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
+    document.getElementById('totalTasks').textContent     = state.allTasks.length;
+    document.getElementById('totalPending').textContent   = pending;
+    document.getElementById('totalCompleted').textContent = completed;
+    document.getElementById('totalDelayed').textContent   = delayed;
   }
-}
+
+  function renderChart() {
+    if (!window.Chart) return;
+    const ctx = document.getElementById('tasksChart').getContext('2d');
+    const now = new Date();
+    const pendentes = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
+    const concluidas = state.allTasks.filter(t => t.isCompleted).length;
+    const atrasadas = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
+    if (state.chart) {
+      state.chart.data.labels = ['Pendentes', 'Concluídas', 'Atrasadas'];
+      state.chart.data.datasets[0].data = [pendentes, concluidas, atrasadas];
+      state.chart.update();
+    } else {
+      state.chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Pendentes', 'Concluídas', 'Atrasadas'],
+          datasets: [{ data: [pendentes, concluidas, atrasadas] }]
+        },
+        options: { responsive: true }
+      });
+    }
+  }
 
 function formatDate(date) {
   if (!date) return '-';
