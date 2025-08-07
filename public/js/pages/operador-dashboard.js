@@ -21,12 +21,42 @@ const state = {
   currentPage: 1,
   pageSize: 8,
   currentMonth: new Date(),
+  currentDate: new Date(),
   currentTask: null,
-  chart: null
+  chart: null,
+  currentFilter: 'todas',
+  agendaView: 'mes'
 };
 
-// Base da API: sempre same-origin para usar o rewrite do Firebase Hosting
-const API_BASE = '';  // chama /api/** na mesma origem
+// Carrega dados salvos ou cria valores de exemplo
+function loadLocalData() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('operadorDashboard'));
+    if (saved) {
+      state.tasks = saved.tasks || [];
+      state.orders = saved.orders || [];
+      state.agenda = saved.agenda || {};
+    } else {
+      // dados iniciais de demonstração
+      const today = new Date().toISOString().slice(0,10);
+      state.orders = [{ id: 1, status: 'pendente' }];
+      state.tasks = [{ id: 1, talhao: 'Talhão 1', origem: 'agronomo', data: today, status: 'pendente' }];
+      state.agenda = { [today]: [{ titulo: 'Tarefa inicial', id: 1 }] };
+    }
+  } catch {
+    state.tasks = [];
+    state.orders = [];
+    state.agenda = {};
+  }
+}
+
+function saveLocalData() {
+  localStorage.setItem('operadorDashboard', JSON.stringify({
+    tasks: state.tasks,
+    orders: state.orders,
+    agenda: state.agenda
+  }));
+}
 
 // Abre modal
 function openModal(el) {
@@ -48,23 +78,13 @@ function updateConnection() {
   if (el) el.textContent = navigator.onLine ? 'Online' : 'Offline';
 }
 
-// Busca ordens e tarefas, e depois agenda
+// Carrega dados locais e atualiza a interface
 async function fetchData() {
-  try {
-    const [ordens, tarefas] = await Promise.all([
-      fetch(`${API_BASE}/api/ordens`).then(r => r.ok ? r.json() : []),
-      fetch(`${API_BASE}/api/tarefas`).then(r => r.ok ? r.json() : [])
-    ]);
-    state.orders = Array.isArray(ordens) ? ordens : [];
-    state.tasks  = Array.isArray(tarefas) ? tarefas : [];
-
-    updateCards();
-    renderTable();
-    renderChart();
-    await loadAgenda();
-  } catch (e) {
-    console.error('Erro ao buscar dados:', e);
-  }
+  loadLocalData();
+  updateCards();
+  renderTable();
+  renderChart();
+  await loadAgenda();
 }
 
 // Atualiza os cards de estatísticas
@@ -84,14 +104,28 @@ function updateCards() {
     agronomoEl.textContent = state.tasks.filter(t => t.origem === 'agronomo').length;
   }
 }
+function getFilteredTasks() {
+  const today = new Date().toISOString().split('T')[0];
+  if (state.currentFilter === 'atrasadas') {
+    return state.tasks.filter(t => t.status !== 'concluida' && (t.data || t.dueDate) < today);
+  }
+  if (state.currentFilter === 'pendentes') {
+    return state.tasks.filter(t => t.status !== 'concluida' && (t.data || t.dueDate) >= today);
+  }
+  if (state.currentFilter === 'concluidas') {
+    return state.tasks.filter(t => t.status === 'concluida');
+  }
+  return state.tasks;
+}
 
 // Renderiza a tabela de tarefas
 function renderTable() {
   const tbody = document.getElementById('tasksTableBody');
   if (!tbody) return;
   tbody.innerHTML = '';
+  const tasks = getFilteredTasks();
   const start = (state.currentPage - 1) * state.pageSize;
-  state.tasks.slice(start, start + state.pageSize).forEach(t => {
+  tasks.slice(start, start + state.pageSize).forEach(t => {
     const tr = document.createElement('tr');
     tr.className = 'border-b';
     tr.innerHTML = `
@@ -145,22 +179,70 @@ function renderChart() {
 
 // Busca agenda mensal e renderiza
 async function loadAgenda() {
-  const m = state.currentMonth;
-  const mes = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}`;
-  try {
-    const res = await fetch(`${API_BASE}/api/agenda?mes=${mes}`);
-    state.agenda = res.ok ? await res.json() : {};
-  } catch {
-    state.agenda = {};
-  }
-  renderCalendar();
+  renderAgenda();
 }
+
+function renderAgenda() {
+  if (state.agendaView === 'mes') return renderCalendar();
+  if (state.agendaView === 'semana') return renderAgendaWeek();
+  return renderAgendaDay();
+}
+
+function renderAgendaDay() {
+  const container = document.getElementById('agendaContent');
+  if (!container) return;
+  container.innerHTML = '';
+  const ds = state.currentDate.toISOString().split('T')[0];
+  const ul = document.createElement('ul');
+  ul.className = 'list-disc pl-4';
+  (state.agenda[ds] || []).forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = t.titulo || t.id;
+    ul.appendChild(li);
+  });
+  if (!ul.childElementCount) {
+    const li = document.createElement('li');
+    li.textContent = 'Sem tarefas';
+    ul.appendChild(li);
+  }
+  container.appendChild(ul);
+  const label = document.getElementById('agendaLabel');
+  if (label) label.textContent = state.currentDate.toLocaleDateString('pt-BR', { dateStyle: 'full' });
+}
+
+function renderAgendaWeek() {
+  const container = document.getElementById('agendaContent');
+  if (!container) return;
+  container.innerHTML = '';
+  const start = new Date(state.currentDate);
+  start.setDate(start.getDate() - start.getDay());
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const ul = document.createElement('ul');
+  ul.className = 'list-disc pl-4';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const ds = d.toISOString().split('T')[0];
+    const tasks = state.agenda[ds] || [];
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${d.toLocaleDateString('pt-BR',{ weekday:'short', day:'2-digit' })}</strong>: ${tasks.map(t => t.titulo || t.id).join(', ') || 'Sem tarefas'}`;
+    ul.appendChild(li);
+  }
+  container.appendChild(ul);
+  const label = document.getElementById('agendaLabel');
+  if (label) {
+    label.textContent = `${start.toLocaleDateString('pt-BR')} - ${end.toLocaleDateString('pt-BR')}`;
+  }
+
+} 
 
 // Renderiza calendário
 function renderCalendar() {
-  const table = document.getElementById('calendarTable');
-  if (!table) return;
-  table.innerHTML = '';
+ const container = document.getElementById('agendaContent');
+  if (!container) return;
+  container.innerHTML = '<table id="calendarTable" class="w-full text-center text-sm"></table>';
+  const table = container.querySelector('#calendarTable');
   const y = state.currentMonth.getFullYear();
   const m = state.currentMonth.getMonth();
   const first = new Date(y, m, 1), fw = first.getDay();
@@ -195,12 +277,28 @@ function renderCalendar() {
   }
   table.appendChild(row);
 
-  const monthLabelEl = document.getElementById('monthLabel');
-  if (monthLabelEl) {
-    monthLabelEl.textContent = state.currentMonth.toLocaleDateString('pt-BR', {
+  const label = document.getElementById('agendaLabel');
+  if (label) {
+    label.textContent = state.currentMonth.toLocaleDateString('pt-BR', {
       month: 'long', year: 'numeric'
     });
   }
+}
+
+function openDailyAgenda(date) {
+  const m = document.getElementById('dailyAgendaModal');
+  const title = document.getElementById('dailyAgendaTitle');
+  const list = document.getElementById('dailyAgendaList');
+  if (!m || !title || !list) return;
+  title.textContent = new Date(date).toLocaleDateString('pt-BR', { dateStyle: 'full' });
+  list.innerHTML = '';
+  (state.agenda[date] || []).forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = t.titulo || t.id;
+    list.appendChild(li);
+  });
+  m.classList.remove('hidden');
+  m.classList.add('flex');
 }
 
 // Função para preview das fotos na modal de conclusão
@@ -226,11 +324,16 @@ function bindUI() {
   on('completeTaskForm',   'submit',  submitCompleteTask);
   on('completeTaskPhotos', 'change',  previewPhotos);
   on('closeDailyAgenda',   'click',   () => closeModal(document.getElementById('dailyAgendaModal')));
+  on('taskStatusFilter',   'change', e => {
+    state.currentFilter = e.target.value;
+    state.currentPage = 1;
+    renderTable();
+  });
   on('prevPageBtn',        'click',   () => {
     if (state.currentPage > 1) { state.currentPage--; renderTable(); }
   });
   on('nextPageBtn',        'click',   () => {
-    const total = Math.ceil(state.tasks.length / state.pageSize);
+    const total = Math.ceil(getFilteredTasks().length / state.pageSize);
     if (state.currentPage < total) { state.currentPage++; renderTable(); }
   });
   document.getElementById('tasksTableBody')?.addEventListener('click', e => {
@@ -240,32 +343,50 @@ function bindUI() {
       openModal(document.getElementById('completeTaskModal'));
     }
   });
-  document.getElementById('calendarTable')?.addEventListener('click', e => {
-    const cell = e.target.closest('td[data-date]');
+document.getElementById('agendaContent')?.addEventListener('click', e => {
+      const cell = e.target.closest('td[data-date]');
     if (cell) openDailyAgenda(cell.dataset.date);
   });
-  on('prevMonth','click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth()-1); loadAgenda(); });
-  on('nextMonth','click', () => { state.currentMonth.setMonth(state.currentMonth.getMonth()+1); loadAgenda(); });
-  window.addEventListener('online',  updateConnection);
+ on('agendaView','change', e => {
+    state.agendaView = e.target.value;
+    loadAgenda();
+  });
+  on('prevRange','click', () => {
+    if (state.agendaView === 'mes') state.currentMonth.setMonth(state.currentMonth.getMonth()-1);
+    else if (state.agendaView === 'semana') state.currentDate.setDate(state.currentDate.getDate()-7);
+    else state.currentDate.setDate(state.currentDate.getDate()-1);
+    loadAgenda();
+  });
+  on('nextRange','click', () => {
+    if (state.agendaView === 'mes') state.currentMonth.setMonth(state.currentMonth.getMonth()+1);
+    else if (state.agendaView === 'semana') state.currentDate.setDate(state.currentDate.getDate()+7);
+    else state.currentDate.setDate(state.currentDate.getDate()+1);
+    loadAgenda();
+  });
+    window.addEventListener('online',  updateConnection);
   window.addEventListener('offline', updateConnection);
 }
 
 // Envia nova tarefa
 async function submitNewTask(e) {
   e.preventDefault();
-  const body = {
-    talhao:      document.getElementById('newTaskPlot')?.value,
-    tipo:        document.getElementById('newTaskType')?.value,
-    responsavel: document.getElementById('newTaskResp')?.value,
-    prazo:       document.getElementById('newTaskDeadline')?.value,
-    prioridade:  document.getElementById('newTaskPriority')?.value
+const talhao = document.getElementById('newTaskPlot')?.value;
+  const tipo = document.getElementById('newTaskType')?.value;
+  const prazo = document.getElementById('newTaskDeadline')?.value;
+  const task = {
+    id: Date.now(),
+    talhao,
+    origem: 'manual',
+    data: prazo,
+    status: 'pendente'
   };
-  await fetch(`${API_BASE}/api/tarefas`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  closeModal(document.getElementById('newTaskModal'));
+  state.tasks.push(task);
+  if (prazo) {
+    state.agenda[prazo] = state.agenda[prazo] || [];
+    state.agenda[prazo].push({ titulo: tipo || 'Tarefa', id: task.id });
+  }
+  saveLocalData();
+    closeModal(document.getElementById('newTaskModal'));
   fetchData();
 }
 
@@ -273,15 +394,9 @@ async function submitNewTask(e) {
 async function submitCompleteTask(e) {
   e.preventDefault();
   if (!state.currentTask) return;
-  const form = new FormData();
-  form.append('observacoes', document.getElementById('completeTaskObs')?.value || '');
-  Array.from(document.getElementById('completeTaskPhotos').files || [])
-    .slice(0,3)
-    .forEach(f => form.append('fotos', f));
-  await fetch(`${API_BASE}/api/tarefas/${state.currentTask.id}/concluir`, {
-    method: 'PATCH',
-    body: form
-  });
-  closeModal(document.getElementById('completeTaskModal'));
+  state.currentTask.status = 'concluida';
+  state.currentTask.observacoes = document.getElementById('completeTaskObs')?.value || '';
+  saveLocalData();
+    closeModal(document.getElementById('completeTaskModal'));
   fetchData();
 }
