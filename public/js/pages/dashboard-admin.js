@@ -1,12 +1,12 @@
 // js/pages/dashboard-admin.js
 
-import { db } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
 import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../services/ui.js';
 import { initProductionOrders } from './ordens-producao.js';
 import { initFormulasAdmin } from './formulas-admin.js';
 // CORREÇÃO: Adicionado 'onSnapshot', 'writeBatch', e 'collectionGroup' ao import do firebase/firestore
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-
+import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 export function initAdminDashboard(userId, userRole) {
     // --- CONTROLE DAS ABAS ---
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -186,10 +186,18 @@ export function initAdminDashboard(userId, userRole) {
         const adminClientsList = document.getElementById('adminClientsList');
         const adminClientSearch = document.getElementById('adminClientSearch');
         const adminAddClientBtn = document.getElementById('adminAddClientBtn');
+          const adminAddOperatorBtn = document.getElementById('adminAddOperatorBtn');
         
         const clientModal = document.getElementById('clientModal');
         const modulesModal = document.getElementById('modulesModal');
         const accessModal = document.getElementById('accessModal');
+         const addOperatorModal = document.getElementById('addOperatorModal');
+        const addOperatorForm = document.getElementById('addOperatorForm');
+        const closeAddOperatorModalBtn = document.getElementById('closeAddOperatorModalBtn');
+        const newOperatorNameInput = document.getElementById('newOperatorName');
+        const newOperatorEmailInput = document.getElementById('newOperatorEmail');
+        const newOperatorPasswordInput = document.getElementById('newOperatorPassword');
+        const operatorClientSelect = document.getElementById('operatorClientSelect');
 
         // --- Estado da Aba ---
         let allClientsForAdmin = [];
@@ -421,9 +429,65 @@ export function initAdminDashboard(userId, userRole) {
             }
         }
 
+
+        function openAddOperatorModal() {
+            if (operatorClientSelect) operatorClientSelect.innerHTML = '<option value="">Selecione uma fazenda...</option>';
+            allClientsForAdmin.forEach(client => {
+                if (operatorClientSelect) operatorClientSelect.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+            });
+            openModal(addOperatorModal);
+        }
+
+        async function handleAddOperator(e) {
+            e.preventDefault();
+            const name = newOperatorNameInput.value.trim();
+            const email = newOperatorEmailInput.value.trim();
+            const password = newOperatorPasswordInput.value.trim();
+            const farmClientId = operatorClientSelect.value;
+
+            if (!name || !email || !password || !farmClientId) {
+                showToast('Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showToast('A senha deve ter pelo menos 6 caracteres.', 'error');
+                return;
+            }
+
+            showSpinner(addOperatorModal);
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    name,
+                    email,
+                    role: 'operador',
+                    farmClientId,
+                    createdAt: serverTimestamp(),
+                    createdByAdminId: userId
+                });
+                showToast('Funcionário adicionado com sucesso!', 'success');
+                closeModal(addOperatorModal);
+                if (addOperatorForm) addOperatorForm.reset();
+            } catch (error) {
+                console.error('Erro ao adicionar funcionário:', error);
+                let errorMessage = 'Erro ao adicionar funcionário.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email já está em uso.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Formato de email inválido.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'A senha é muito fraca. Use pelo menos 6 caracteres.';
+                }
+                showToast(errorMessage, 'error');
+            } finally {
+                hideSpinner(addOperatorModal);
+            }
+        }
+
         // --- Event Listeners (Delegação de Eventos) ---
         adminClientSearch.addEventListener('input', () => renderAdminClientList(allClientsForAdmin.filter(c => c.name.toLowerCase().includes(adminClientSearch.value.toLowerCase()))));
         adminAddClientBtn.addEventListener('click', () => openClientModal());
+         if (adminAddOperatorBtn) adminAddOperatorBtn.addEventListener('click', () => openAddOperatorModal());
 
         adminClientsList.addEventListener('click', (e) => {
             const button = e.target.closest('button');
@@ -449,6 +513,8 @@ export function initAdminDashboard(userId, userRole) {
             if (action === 'close') closeModal(accessModal);
             if (action === 'save') handleLinkClientUid();
         });
+         if (closeAddOperatorModalBtn) closeAddOperatorModalBtn.addEventListener('click', () => closeModal(addOperatorModal));
+        if (addOperatorForm) addOperatorForm.addEventListener('submit', handleAddOperator);
         
         // --- Carga Inicial da Aba ---
         setupModalHTML();

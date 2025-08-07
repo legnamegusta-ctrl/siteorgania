@@ -90,6 +90,7 @@
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <input type="search" id="adminClientSearch" placeholder="Buscar cliente..." class="w-full sm:w-auto p-2 border border-gray-300 rounded-md">
                             <button id="adminAddClientBtn" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 text-sm whitespace-nowrap" title="Adicionar novo cliente"><i class="fas fa-plus"></i> <span class="hidden sm:inline-block ml-2">Cliente</span></button>
+                               <button id="adminAddOperatorBtn" class="px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 text-sm whitespace-nowrap" title="Adicionar novo funcionário"><i class="fas fa-user-tie"></i> <span class="hidden sm:inline-block ml-2">Funcionário</span></button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -112,6 +113,35 @@
     
     <div id="modulesModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30"></div>
     <div id="accessModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30"></div>
+     <div id="addOperatorModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Adicionar Novo Funcionário</h3>
+            <form id="addOperatorForm" class="space-y-4">
+                <div>
+                    <label for="newOperatorName" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                    <input type="text" id="newOperatorName" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label for="newOperatorEmail" class="block text-sm font-medium text-gray-700">Email (Login)</label>
+                    <input type="email" id="newOperatorEmail" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label for="newOperatorPassword" class="block text-sm font-medium text-gray-700">Senha (Temporária)</label>
+                    <input type="password" id="newOperatorPassword" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label for="operatorClientSelect" class="block text-sm font-medium text-gray-700">Vincular à Fazenda (Cliente)</label>
+                    <select id="operatorClientSelect" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
+                        <option value="">Selecione uma fazenda...</option>
+                    </select>
+                </div>
+                <div class="mt-6 flex justify-end gap-4">
+                    <button type="button" id="closeAddOperatorModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" id="addOperatorBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Funcionário</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="clientModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-40"></div>
 
     <div id="formulaModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-50">

@@ -2,7 +2,7 @@
 
 import { db, auth } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
-import { collection, query, where, orderBy, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 
 export function initAgronomoDashboard(userId, userRole) {
@@ -174,8 +174,8 @@ export function initAgronomoDashboard(userId, userRole) {
                 <div class="bg-gray-50 p-4 rounded-lg shadow-sm flex justify-between items-center">
                     <div>
                         <h4 class="font-bold text-lg text-gray-800">${client.name}</h4>
-                        <p class="text-sm text-gray-600">${client.propertiesCount || 0} propriedades</p>
-                    </div>
+ <p class="text-sm text-gray-600">${client.propertyCount || 0} propriedades</p>
+                     </div>
                     <a href="client-details.html?clientId=${client.id}" class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 text-sm">Ver Detalhes</a>
                 </div>
             `;
@@ -246,8 +246,8 @@ export function initAgronomoDashboard(userId, userRole) {
                     <div class="bg-gray-50 p-4 rounded-lg shadow-sm flex justify-between items-center">
                         <div>
                             <h4 class="font-bold text-lg text-gray-800">${client.name}</h4>
-                            <p class="text-sm text-gray-600">${client.propertiesCount || 0} propriedades</p>
-                        </div>
+    <p class="text-sm text-gray-600">${client.propertyCount || 0} propriedades</p>
+                            </div>
                         <a href="client-details.html?clientId=${client.id}" class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 text-sm">Ver Detalhes</a>
                     </div>
                 `;
@@ -356,8 +356,13 @@ export function initAgronomoDashboard(userId, userRole) {
                 await addDoc(collection(db, 'clients'), {
                     name: clientName,
                     agronomistId: userId,
-                    createdAt: new Date(),
-                    propertiesCount: 0 // Inicializa contador de propriedades
+                     status: 'ativo',
+                    isFavorite: false,
+                    tier: 'standard',
+                    enabledModules: {},
+                    propertyCount: 0,
+                    cultureCount: 0,
+                    createdAt: serverTimestamp()
                 });
                 showToast("Cliente adicionado com sucesso!", "success");
                 closeModal(addClientModal);
