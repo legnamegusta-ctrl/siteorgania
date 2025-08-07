@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orgânia - Fazenda</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+</head>
+<body class="bg-gray-100 text-gray-800 pb-16">
+  <header class="bg-white shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 id="farmTitle" class="text-xl font-bold" style="color: var(--brand-green);"></h1>
+      <a id="backToFarms" href="dashboard-agronomo.html" class="text-sm text-brand-green">Trocar fazenda</a>
+    </div>
+  </header>
+
+  <nav class="bg-white shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex gap-4 text-sm">
+      <a id="employeesLink" class="text-brand-green font-semibold" href="#">Funcionários</a>
+      <a id="agendaLink" class="text-brand-green font-semibold" href="#">Agenda</a>
+      <a id="plotsLink" class="text-brand-green font-semibold" href="#">Talhões</a>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto p-4" id="overview"></main>
+
+  <script type="module" src="js/pages/agronomo-farm.js"></script>
+</body>
+</html>

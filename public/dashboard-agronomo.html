@@ -1,174 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orgânia - Painel do Agrônomo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="manifest" href="/manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin=""/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
-    
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css' rel='stylesheet' />
-
-    <script src='https://unpkg.com/@fullcalendar/core@6.1.11/index.global.min.js'></script>
-    <script src='https://unpkg.com/@fullcalendar/daygrid@6.1.11/index.global.min.js'></script>
-    <script src='https://unpkg.com/@fullcalendar/timegrid@6.1.11/index.global.min.js'></script>
-    <script src='https://unpkg.com/@fullcalendar/interaction@6.1.11/index.global.min.js'></script>
-    <script src='https://unpkg.com/@fullcalendar/core@6.1.11/locales/pt-br.global.min.js'></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orgânia - Painel do Agrônomo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
 </head>
 <body class="bg-gray-100 text-gray-800 pb-16">
-    <div id="dashboard-agronomo-marker" class="hidden"></div>
-
-    <header class="bg-white shadow-lg sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Painel do Agrônomo</h1>
-                
-                <div class="flex items-center gap-6">
-                    <div class="relative">
-                        <button id="notificationsBtn" class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
-                            <i class="fas fa-bell text-xl"></i>
-                            <span id="notificationsBadge" class="absolute -top-1 -right-2 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
-                        </button>
-                        <div id="notificationsDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl overflow-hidden hidden z-30">
-                            <div class="p-4 border-b font-semibold text-gray-800">Notificações</div>
-                            <div id="notificationsList" class="max-h-96 overflow-y-auto">
-                                </div>
-                            <a href="#" id="viewAllNotifications" class="block text-center px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 border-t border-gray-200">Ver todas</a>
-                        </div>
-                    </div>
-                    <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main id="main-content-area" class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    </main>
-
-    <div id="addClientModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Adicionar Novo Cliente</h3>
-            <div>
-                <label for="newClientName" class="block text-sm font-medium text-gray-700">Nome do Cliente</label>
-                <input type="text" id="newClientName" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-            </div>
-            <div class="mt-6 flex justify-end gap-4">
-                <button id="closeAddClientModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                <button id="addClientBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Cliente</button>
-            </div>
-        </div>
+  <header class="bg-white shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold" style="color: var(--brand-green);">Fazendas</h1>
+      <button id="addClientBtn" class="text-sm text-white px-3 py-2 rounded" style="background-color: var(--brand-green);">Adicionar Cliente</button>
     </div>
+  </header>
 
-    <div id="addOperatorModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Adicionar Novo Funcionário</h3>
-            <form id="addOperatorForm" class="space-y-4">
-                <div>
-                    <label for="newOperatorName" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                    <input type="text" id="newOperatorName" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label for="newOperatorEmail" class="block text-sm font-medium text-gray-700">Email (Login)</label>
-                    <input type="email" id="newOperatorEmail" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label for="newOperatorPassword" class="block text-sm font-medium text-gray-700">Senha (Temporária)</label>
-                    <input type="password" id="newOperatorPassword" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label for="operatorClientSelect" class="block text-sm font-medium text-gray-700">Vincular à Fazenda (Cliente)</label>
-                    <select id="operatorClientSelect" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-                        <option value="">Carregando clientes...</option>
-                    </select>
-                </div>
-                <div class="mt-6 flex justify-end gap-4">
-                    <button type="button" id="closeAddOperatorModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                    <button type="submit" id="addOperatorBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Funcionário</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="addTaskModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6">
-            <form>
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Nova Tarefa para o Cliente</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label for="modalTaskTitle" class="block text-sm font-medium text-gray-700">Título da Tarefa</label>
-                        <input type="text" id="modalTaskTitle" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                    <div>
-                        <label for="modalTaskDescription" class="block text-sm font-medium text-gray-700">Descrição (Opcional)</label>
-                        <textarea id="modalTaskDescription" rows="3" placeholder="Ex: Coletar 15 amostras da área norte..." class="mt-1 w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="modalTaskProperty" class="block text-sm font-medium text-gray-700">Vincular à Propriedade (Opcional)</label>
-                            <select id="modalTaskProperty" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                                <option value="">Nenhuma</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="modalTaskPlot" class="block text-sm font-medium text-gray-700">Vincular ao Talhão (Opcional)</label>
-                            <select id="modalTaskPlot" class="mt-1 w-full p-2 border border-gray-300 rounded-md" disabled>
-                                <option value="">Nenhum</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="modalTaskDate" class="block text-sm font-medium text-gray-700">Data para Realização</label>
-                        <input type="date" id="modalTaskDate" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end gap-4">
-                    <button type="button" id="closeAddTaskModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                    <button type="button" id="addClientTaskBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Tarefa</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-30">
-        <div class="grid grid-cols-5 h-16 max-w-md mx-auto"> 
-            <a href="#" data-view="dashboard" id="navHomeBtnDashboardAgronomo" class="flex flex-col items-center justify-center text-blue-600"> 
-                <i class="fas fa-home text-xl"></i>
-                <span class="text-xs mt-1 font-semibold">Home</span>
-            </a>
-            <a href="#" data-view="clients" id="navClientsBtnDashboardAgronomo" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-users text-xl"></i>
-                <span class="text-xs mt-1">Clientes</span>
-            </a>
-            <a href="#" data-view="visit" id="navVisitBtnDashboardAgronomo" class="flex flex-col items-center justify-center -mt-6">
-                <div class="w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-xl">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <span class="text-xs mt-1 text-blue-600 font-semibold">Visita</span>
-            </a>
-            <a href="#" data-view="agenda" id="navAgendaBtnDashboardAgronomo" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-calendar-alt text-xl"></i>
-                <span class="text-xs mt-1">Agenda</span>
-            </a>
-            <a href="#" data-view="profile" id="navProfileBtnDashboardAgronomo" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-user-circle text-xl"></i>
-                <span class="text-xs mt-1">Perfil</span>
-            </a>
-        </div>
-    </nav>
-    
-    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="/__/firebase/init.js"></script>
-    <script type="module" src="js/services/auth.js"></script>
+  <main class="max-w-4xl mx-auto p-4">
+    <div id="farmList" class="grid sm:grid-cols-2 gap-4"></div>
+  </main>
+
+  <script type="module" src="js/pages/dashboard-agronomo.js"></script>
 </body>
 </html>
