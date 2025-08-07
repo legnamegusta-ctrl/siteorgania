@@ -1,13 +1,15 @@
 import { db } from '../config/firebase.js';
 import {
-  collectionGroup,
   collection,
+  doc,
+  getDoc,
   getDocs,
   addDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
 
 let state = {
+  clientId: null,
   allTasks: [],
   filteredTasks: [],
   filter: 'todas',
@@ -15,10 +17,19 @@ let state = {
   pageSize: 8,
   chart: null
 };
-
-export async function initOperadorDashboard() {
+export async function initOperadorDashboard(userId) {
+  await loadClientId(userId);
   bindUI();
   await fetchAndRenderTasks();
+}
+
+async function loadClientId(userId) {
+  try {
+    const snap = await getDoc(doc(db, 'users', userId));
+    state.clientId = snap.data()?.clientId || null;
+  } catch (e) {
+    console.error('Erro ao obter clientId do operador', e);
+  }
 }
 
 function bindUI() {
@@ -47,8 +58,8 @@ function bindUI() {
 }
 
 async function fetchAndRenderTasks() {
-  // Busca todas as tarefas de todas as fazendas
-  const snap = await getDocs(collectionGroup(db, 'tasks'));
+  if (!state.clientId) return;
+  const snap = await getDocs(collection(db, 'clients', state.clientId, 'tasks'));
   state.allTasks = snap.docs.map(d => ({
     id: d.id,
     ...d.data(),
@@ -73,7 +84,7 @@ function filterAndRender() {
   renderChart();
 }
 
-function renderTable() {
+function renderTable() {  
   const tbody = document.getElementById('tasksTableBody');
   const empty = document.getElementById('emptyState');
   const { filteredTasks, pageSize, currentPage } = state;
@@ -114,18 +125,17 @@ function renderTable() {
 }
 
 function renderMetrics() {
-  document.getElementById('totalOrders').textContent    = state.filteredTasks.length;
-  document.getElementById('totalPending').textContent   = state.filteredTasks.filter(t => !t.isCompleted).length;
-  document.getElementById('totalCompleted').textContent = state.filteredTasks.filter(t => t.isCompleted).length;
+document.getElementById('totalTasks').textContent     = state.allTasks.length;
+  document.getElementById('totalPending').textContent   = state.allTasks.filter(t => !t.isCompleted).length;
+  document.getElementById('totalCompleted').textContent = state.allTasks.filter(t => t.isCompleted).length;
 }
 
 function renderChart() {
   if (!window.Chart) return;
   const ctx = document.getElementById('tasksChart').getContext('2d');
-  const pendentes = state.filteredTasks.filter(t => !t.isCompleted).length;
-  const concluidas = state.filteredTasks.filter(t => t.isCompleted).length;
-  if (state.chart) {
-    state.chart.data.labels = ['Pendentes', 'Concluídas'];
+const pendentes = state.allTasks.filter(t => !t.isCompleted).length;
+  const concluidas = state.allTasks.filter(t => t.isCompleted).length;
+    if (state.chart) {
     state.chart.data.datasets[0].data = [pendentes, concluidas];
     state.chart.update();
   } else {
@@ -150,18 +160,14 @@ function showModal(show) {
   document.getElementById('taskModal').classList.toggle('hidden', !show);
 }
 
-// ====== CRIAÇÃO DE TAREFA ======
-// Troque aqui o clientId para o código correto da fazenda no Firestore
-const clientId = "i1fNSMl489V7bGljjTNO";
-
 async function createTask(e) {
   e.preventDefault();
   const title   = document.getElementById('taskTitle').value;
   const talhao  = document.getElementById('taskTalhao').value;
   const dueDate = document.getElementById('taskDate').value;
 
-  await addDoc(collection(db, 'clients', clientId, 'tasks'), {
-    title,
+await addDoc(collection(db, 'clients', state.clientId, 'tasks'), {
+      title,
     plotId: talhao,
     dueDate,
     isCompleted: false,

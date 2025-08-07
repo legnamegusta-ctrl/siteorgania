@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="flex h-screen bg-gray-100 text-gray-800">
+<div id="operador-dashboard-marker" class="hidden"></div>
 
   <!-- SIDEBAR -->
   <nav class="hidden md:flex flex-col w-64 bg-white border-r p-6">
@@ -42,6 +43,23 @@
         <i class="fas fa-sign-out-alt mr-2"></i> Sair
       </button>
     </header>
+
+
+ <!-- MÉTRICAS -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="bg-white p-4 rounded shadow text-center">
+        <p class="text-sm text-gray-500">Total</p>
+        <p id="totalTasks" class="text-2xl font-bold">0</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <p class="text-sm text-gray-500">Pendentes</p>
+        <p id="totalPending" class="text-2xl font-bold">0</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <p class="text-sm text-gray-500">Concluídas</p>
+        <p id="totalCompleted" class="text-2xl font-bold">0</p>
+      </div>
+    </div>
 
     <!-- CONTROLES: FILTROS + NOVA TAREFA -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
@@ -81,6 +99,7 @@
                 <th class="px-3 py-2">Talhão</th>
                 <th class="px-3 py-2">Data</th>
                 <th class="px-3 py-2">Status</th>
+                  <th class="px-3 py-2">Ações</th>
               </tr>
             </thead>
             <tbody id="tasksTableBody"></tbody>
