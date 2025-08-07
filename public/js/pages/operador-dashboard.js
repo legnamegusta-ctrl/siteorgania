@@ -1,4 +1,4 @@
-// Aponta direto para a sua Cloud Function "api"
+// Base da sua Cloud Function “api”
 const API_BASE_URL = 'https://us-central1-app-organia.cloudfunctions.net/api';
 
 function on(id, event, handler) {
@@ -13,7 +13,6 @@ const state = {
   chart: null
 };
 
-// Chamado pelo auth.js assim que autenticar
 export async function initOperadorDashboard(userId) {
   bindUI();
   await fetchData(userId);
@@ -27,17 +26,18 @@ function bindUI() {
 
 async function fetchData(userId) {
   try {
-    const [tasksRes, ordersRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/tasks?role=operador&userId=${userId}`),
-      fetch(`${API_BASE_URL}/orders?role=operador&userId=${userId}`)
+    const [tarefasRes, ordensRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/tarefas?role=operador&userId=${userId}`),
+      fetch(`${API_BASE_URL}/ordens?role=operador&userId=${userId}`)
     ]);
-    const tasks  = await tasksRes.json();
-    const orders = await ordersRes.json();
+    const tarefas = await tarefasRes.json();
+    const ordens  = await ordensRes.json();
 
-    const taggedTasks  = tasks.map(t => ({ ...t, origem: 'Tarefa', data: t.dueDate || t.data }));
-    const taggedOrders = orders.map(o => ({ ...o, origem: 'Ordem',  data: o.data    || o.dueDate }));
+    const taggedTasks  = tarefas.map(t => ({ ...t, origem: 'Tarefa', data: t.dueDate || t.data }));
+    const taggedOrders = ordens .map(o => ({ ...o, origem: 'Ordem',  data: o.data    || o.dueDate }));
 
     state.items = [...taggedOrders, ...taggedTasks];
+    renderMetrics();
     renderTasksChart();
     renderTable();
   } catch (err) {
@@ -45,13 +45,24 @@ async function fetchData(userId) {
   }
 }
 
+function renderMetrics() {
+  const total = state.items.length;
+  const pending = state.items.filter(i => (i.status||'pendente') === 'pendente').length;
+  const completed = state.items.filter(i => (i.status||'pendente') !== 'pendente').length;
+
+  document.getElementById('totalOrders').textContent    = total;
+  document.getElementById('totalPending').textContent   = pending;
+  document.getElementById('totalCompleted').textContent = completed;
+}
+
 function renderTasksChart() {
   const ctx = document.getElementById('tasksChart').getContext('2d');
   const counts = state.items.reduce((acc, { status }) => {
-    const st = status || 'pendente';
+    const st = (status || 'pendente');
     acc[st] = (acc[st] || 0) + 1;
     return acc;
   }, {});
+
   const labels = Object.keys(counts);
   const data   = labels.map(l => counts[l]);
 
@@ -69,22 +80,28 @@ function renderTasksChart() {
 }
 
 function renderTable() {
+  const tbody = document.getElementById('tasksTableBody');
+  const empty = document.getElementById('emptyState');
   const start = (state.currentPage - 1) * state.pageSize;
   const pageItems = state.items.slice(start, start + state.pageSize);
-  const tbody = document.getElementById('tasksTableBody');
-  tbody.innerHTML = '';
 
-  pageItems.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="px-2 py-1">${item.id}</td>
-      <td class="px-2 py-1">${item.talhao || '-'}</td>
-      <td class="px-2 py-1">${item.origem}</td>
-      <td class="px-2 py-1">${item.data?.split('T')[0] || '-'}</td>
-      <td class="px-2 py-1 capitalize">${item.status || 'pendente'}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  tbody.innerHTML = '';
+  if (pageItems.length === 0) {
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    pageItems.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-3 py-2">${item.id}</td>
+        <td class="px-3 py-2">${item.talhao || '-'}</td>
+        <td class="px-3 py-2">${item.origem}</td>
+        <td class="px-3 py-2">${item.data?.split('T')[0] || '-'}</td>
+        <td class="px-3 py-2 capitalize">${item.status || 'pendente'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 }
 
 function changePage(delta) {
@@ -93,7 +110,6 @@ function changePage(delta) {
   renderTable();
 }
 
-// Inicia automaticamente se estiver nesta página
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('operador-dashboard-marker') && window.auth) {
     window.auth.onAuthStateChanged(user => {

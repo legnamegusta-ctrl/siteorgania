@@ -9,71 +9,104 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="h-screen flex bg-gray-100">
-  <div id="operador-dashboard-marker" class="hidden"></div>
+<body class="flex h-screen bg-gray-100 text-gray-800">
 
-  <!-- Sidebar -->
-  <nav id="sidebar" class="hidden md:block w-64 bg-white border-r">
-    <div class="p-4 text-xl font-bold text-green-700">Orgânia</div>
-    <ul class="px-4 space-y-2">
-      <li><a href="operador-dashboard.html" class="block py-2 px-2 rounded hover:bg-green-100">
-        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard</a>
+  <!-- SIDEBAR -->
+  <nav class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 p-6">
+    <h1 class="text-2xl font-bold text-green-700 mb-8">Orgânia</h1>
+    <ul class="space-y-4">
+      <li>
+        <a href="operador-dashboard.html"
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+          <i class="fas fa-tachometer-alt mr-3 text-green-600"></i>
+          <span class="font-medium">Dashboard</span>
+        </a>
       </li>
-      <li><a href="operador-ordens.html" class="block py-2 px-2 rounded hover:bg-green-100">
-        <i class="fas fa-clipboard-list mr-2"></i>Ordens</a>
+      <li>
+        <a href="operador-ordens.html"
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+          <i class="fas fa-clipboard-list mr-3 text-green-600"></i>
+          <span class="font-medium">Ordens</span>
+        </a>
       </li>
-      <li><a href="operador-tarefas.html" class="block py-2 px-2 rounded hover:bg-green-100">
-        <i class="fas fa-tasks mr-2"></i>Tarefas</a>
+      <li>
+        <a href="operador-tarefas.html"
+           class="flex items-center px-3 py-2 rounded hover:bg-green-50 transition-colors">
+          <i class="fas fa-tasks mr-3 text-green-600"></i>
+          <span class="font-medium">Tarefas</span>
+        </a>
       </li>
     </ul>
   </nav>
 
-  <!-- Conteúdo Principal -->
-  <div class="flex-1 p-6 overflow-auto">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="flex-1 flex flex-col overflow-auto p-6">
+    <!-- HEADER -->
     <header class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Dashboard do Operador</h1>
-      <button id="logoutBtn" class="text-red-500 hover:underline">
-        <i class="fas fa-sign-out-alt"></i> Sair
+      <h2 class="text-3xl font-semibold">Dashboard do Operador</h2>
+      <button id="logoutBtn" class="flex items-center text-red-500 hover:text-red-600">
+        <i class="fas fa-sign-out-alt mr-2"></i> Sair
       </button>
     </header>
 
-    <!-- Gráfico de Resumo -->
-    <section class="bg-white rounded-lg shadow-lg p-4 mb-6">
-      <h2 class="text-lg font-bold mb-4">Resumo de Tarefas</h2>
-      <canvas id="tasksChart"></canvas>
-    </section>
+    <!-- MÉTRICAS -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm font-medium text-gray-500 uppercase">Total de Ordens</h3>
+        <p id="totalOrders" class="mt-2 text-3xl font-bold">0</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm font-medium text-gray-500 uppercase">Pendentes</h3>
+        <p id="totalPending" class="mt-2 text-3xl font-bold text-yellow-600">0</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm font-medium text-gray-500 uppercase">Concluídas</h3>
+        <p id="totalCompleted" class="mt-2 text-3xl font-bold text-green-600">0</p>
+      </div>
+    </div>
 
-    <!-- Tabela de Ordens / Tarefas -->
-    <section class="bg-white rounded-lg shadow-lg p-4">
-      <h2 class="text-lg font-bold mb-4">Ordens / Tarefas</h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left">
-          <thead class="border-b text-gray-600">
-            <tr>
-              <th class="px-2 py-1">ID</th>
-              <th class="px-2 py-1">Talhão</th>
-              <th class="px-2 py-1">Origem</th>
-              <th class="px-2 py-1">Data</th>
-              <th class="px-2 py-1">Status</th>
-            </tr>
-          </thead>
-          <tbody id="tasksTableBody"></tbody>
-        </table>
-      </div>
-      <div class="flex justify-end mt-2 space-x-2">
-        <button id="prevPageBtn" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Anterior
-        </button>
-        <button id="nextPageBtn" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Próxima
-        </button>
-      </div>
-    </section>
+    <!-- GRÁFICO E TABELA -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+      <!-- GRÁFICO -->
+      <section class="bg-white rounded-lg shadow p-5 flex flex-col">
+        <h3 class="text-lg font-medium mb-4">Resumo de Tarefas</h3>
+        <div class="flex-1 flex items-center justify-center">
+          <canvas id="tasksChart" class="w-full h-64"></canvas>
+        </div>
+      </section>
+
+      <!-- TABELA -->
+      <section class="bg-white rounded-lg shadow p-5 flex flex-col">
+        <h3 class="text-lg font-medium mb-4">Ordens / Tarefas</h3>
+        <div class="flex-1 overflow-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2">ID</th>
+                <th class="px-3 py-2">Talhão</th>
+                <th class="px-3 py-2">Origem</th>
+                <th class="px-3 py-2">Data</th>
+                <th class="px-3 py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tasksTableBody">
+              <!-- preenchido dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+        <p id="emptyState" class="text-center text-gray-500 italic mt-4 hidden">
+          Nenhuma ordem ou tarefa encontrada.
+        </p>
+        <div class="mt-4 flex justify-end space-x-2">
+          <button id="prevPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Anterior</button>
+          <button id="nextPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Próxima</button>
+        </div>
+      </section>
+    </div>
   </div>
 
-  <!-- Carregamento do auth.js (expondo window.auth e window.logout) -->
+  <!-- SCRIPTS -->
   <script type="module" src="js/services/auth.js"></script>
-  <!-- Nosso módulo de Dashboard -->
   <script type="module" src="js/pages/operador-dashboard.js"></script>
 </body>
 </html>
