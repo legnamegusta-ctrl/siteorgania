@@ -15,26 +15,12 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="flex h-screen bg-gray-100 text-gray-800">
-<div id="operador-dashboard-marker" class="hidden"></div>
+<body class="min-h-screen bg-gray-100 text-gray-800">
 
-  <!-- SIDEBAR -->
-  <nav class="hidden md:flex flex-col w-64 bg-white border-r p-6">
-    <h1 class="text-2xl font-bold text-green-700 mb-8">Orgânia</h1>
-    <ul class="space-y-4">
-      <li>
-        <a href="operador-dashboard.html"
-           class="flex items-center px-3 py-2 rounded bg-green-100 font-semibold">
-          <i class="fas fa-tachometer-alt mr-3 text-green-600"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
-      <!-- Removi os links de Ordens/Tarefas até essas páginas serem corrigidas -->
-    </ul>
-  </nav>
+  <div id="operador-dashboard-marker" class="hidden"></div>
 
   <!-- CONTEÚDO PRINCIPAL -->
-  <div class="flex-1 flex flex-col p-6">
+  <div class="max-w-7xl mx-auto flex flex-col p-6">
 
     <!-- HEADER -->
     <header class="flex justify-between items-center mb-6">
@@ -44,8 +30,7 @@
       </button>
     </header>
 
-
- <!-- MÉTRICAS -->
+    <!-- MÉTRICAS -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="bg-white p-4 rounded shadow text-center">
         <p class="text-sm text-gray-500">Total</p>
@@ -99,7 +84,7 @@
                 <th class="px-3 py-2">Talhão</th>
                 <th class="px-3 py-2">Data</th>
                 <th class="px-3 py-2">Status</th>
-                  <th class="px-3 py-2">Ações</th>
+                <th class="px-3 py-2">Ações</th>
               </tr>
             </thead>
             <tbody id="tasksTableBody"></tbody>
@@ -126,8 +111,8 @@
           <input id="taskTitle" required class="w-full border rounded p-2"/>
         </div>
         <div>
-          <label>Talhão (Plot ID)</label>
-          <input id="taskTalhao" required class="w-full border rounded p-2"/>
+          <label>Talhão</label>
+          <select id="taskTalhao" required class="w-full border rounded p-2"></select>
         </div>
         <div>
           <label>Data (YYYY-MM-DD)</label>

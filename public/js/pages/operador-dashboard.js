@@ -9,7 +9,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
 
 let state = {
-  clientId: null,
+  farmClientId: null,
+  plots: [],
   allTasks: [],
   filteredTasks: [],
   filter: 'todas',
@@ -17,18 +18,36 @@ let state = {
   pageSize: 8,
   chart: null
 };
+
 export async function initOperadorDashboard(userId) {
-  await loadClientId(userId);
+  await loadFarmId(userId);
   bindUI();
+  await loadPlots();
   await fetchAndRenderTasks();
 }
 
-async function loadClientId(userId) {
+async function loadFarmId(userId) {
   try {
     const snap = await getDoc(doc(db, 'users', userId));
-    state.clientId = snap.data()?.clientId || null;
+    state.farmClientId = snap.data()?.farmClientId || null;
   } catch (e) {
-    console.error('Erro ao obter clientId do operador', e);
+    console.error('Erro ao obter farmClientId do operador', e);
+  }
+}
+
+async function loadPlots() {
+  if (!state.farmClientId) return;
+  state.plots = [];
+  const propsSnap = await getDocs(collection(db, 'clients', state.farmClientId, 'properties'));
+  for (const prop of propsSnap.docs) {
+    const plotsSnap = await getDocs(collection(db, `clients/${state.farmClientId}/properties/${prop.id}/plots`));
+    plotsSnap.forEach(p => {
+      state.plots.push({ path: p.ref.path, name: p.data().name });
+    });
+  }
+  const select = document.getElementById('taskTalhao');
+  if (select) {
+    select.innerHTML = state.plots.map(pl => `<option value="${pl.path}">${pl.name}</option>`).join('');
   }
 }
 
@@ -58,8 +77,8 @@ function bindUI() {
 }
 
 async function fetchAndRenderTasks() {
-  if (!state.clientId) return;
-  const snap = await getDocs(collection(db, 'clients', state.clientId, 'tasks'));
+  if (!state.farmClientId) return;
+  const snap = await getDocs(collection(db, 'clients', state.farmClientId, 'tasks'));
   state.allTasks = snap.docs.map(d => ({
     id: d.id,
     ...d.data(),
@@ -84,7 +103,7 @@ function filterAndRender() {
   renderChart();
 }
 
-function renderTable() {  
+function renderTable() {
   const tbody = document.getElementById('tasksTableBody');
   const empty = document.getElementById('emptyState');
   const { filteredTasks, pageSize, currentPage } = state;
@@ -103,7 +122,7 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="px-3 py-2">${t.title || t.description || '(Sem título)'}</td>
-      <td class="px-3 py-2">${t.talhao || t.plotId || '-'}</td>
+      <td class="px-3 py-2">${t.plotName || t.talhao || t.plotId || '-'}</td>
       <td class="px-3 py-2">${formatDate(t.dueDate)}</td>
       <td class="px-3 py-2">${t.isCompleted ? '<span class="text-green-600">Concluída</span>' : '<span class="text-yellow-600">Pendente</span>'}</td>
       <td class="px-3 py-2">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 bg-green-500 text-white rounded" data-id="${t.id}">Concluir</button>` : ''}</td>
@@ -125,7 +144,7 @@ function renderTable() {
 }
 
 function renderMetrics() {
-document.getElementById('totalTasks').textContent     = state.allTasks.length;
+  document.getElementById('totalTasks').textContent     = state.allTasks.length;
   document.getElementById('totalPending').textContent   = state.allTasks.filter(t => !t.isCompleted).length;
   document.getElementById('totalCompleted').textContent = state.allTasks.filter(t => t.isCompleted).length;
 }
@@ -133,9 +152,9 @@ document.getElementById('totalTasks').textContent     = state.allTasks.length;
 function renderChart() {
   if (!window.Chart) return;
   const ctx = document.getElementById('tasksChart').getContext('2d');
-const pendentes = state.allTasks.filter(t => !t.isCompleted).length;
+  const pendentes = state.allTasks.filter(t => !t.isCompleted).length;
   const concluidas = state.allTasks.filter(t => t.isCompleted).length;
-    if (state.chart) {
+  if (state.chart) {
     state.chart.data.datasets[0].data = [pendentes, concluidas];
     state.chart.update();
   } else {
@@ -162,13 +181,16 @@ function showModal(show) {
 
 async function createTask(e) {
   e.preventDefault();
-  const title   = document.getElementById('taskTitle').value;
-  const talhao  = document.getElementById('taskTalhao').value;
+  const title  = document.getElementById('taskTitle').value;
+  const plotSelect = document.getElementById('taskTalhao');
+  const plotPath = plotSelect.value;
+  const plotName = plotSelect.options[plotSelect.selectedIndex]?.text || '';
   const dueDate = document.getElementById('taskDate').value;
 
-await addDoc(collection(db, 'clients', state.clientId, 'tasks'), {
-      title,
-    plotId: talhao,
+  await addDoc(collection(db, 'clients', state.farmClientId, 'tasks'), {
+    title,
+    plotPath,
+    plotName,
     dueDate,
     isCompleted: false,
     createdAt: new Date()
