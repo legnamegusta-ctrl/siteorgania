@@ -6,7 +6,6 @@
     <title>Orgânia - Detalhes do Cliente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="/manifest.json">
@@ -15,8 +14,9 @@
     
     <div id="client-details-marker" class="hidden"></div>
 
-    <header class="bg-white shadow-lg sticky top-0 z-20"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+ <header class="bg-white shadow-lg sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between items-center h-16">
                 <div class="flex items-center gap-4">
                     <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar">
                         <i class="fas fa-arrow-left"></i>
@@ -27,181 +27,15 @@
             </div>
         </div>
     </header>
-
-    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-20"> <div class="px-4 sm:px-0">
-            <div id="summaryCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            </div>
-        </div>
-        
-        <div class="mt-8 px-4 sm:px-0 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button id="showSaleModalBtn" class="w-full px-4 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition-transform transform hover:scale-105 flex items-center justify-center">
-                <i class="fas fa-dollar-sign mr-2"></i>
-                <span>Registrar Venda</span>
-            </button>
-            <button id="showAddPropertyModalBtn" class="w-full px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition-transform transform hover:scale-105 flex items-center justify-center">
-                <i class="fas fa-home mr-2"></i>
-                <span>Adicionar Propriedade</span>
-            </button>
-            <button id="showAddTaskModalBtn" class="w-full px-4 py-3 bg-teal-600 text-white font-bold rounded-lg shadow-md hover:bg-teal-700 transition-transform transform hover:scale-105 flex items-center justify-center">
-                <i class="fas fa-tasks mr-2"></i>
-                <span>Adicionar Tarefa</span>
-            </button>
-        </div>
-
-        <div class="mt-8 px-4 sm:px-0">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold text-gray-800">Propriedades</h2>
-                <div id="propertiesList" class="space-y-1 mt-4">
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8 px-4 sm:px-0">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold text-gray-800">Plano de Ação e Tarefas</h2>
-                <div id="clientTasksList" class="space-y-2 mt-4">
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-8 px-4 sm:px-0">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold text-gray-800">Histórico de Vendas</h2>
-                <div id="salesHistoryList" class="space-y-4 mt-4">
-                </div>
-            </div>
+ <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold text-gray-800">Propriedades</h2>
+  <button id="showAddPropertyBtn" class="px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Adicionar</button>        
+    </div>
+            <div id="propertiesList" class="space-y-2"></div>
         </div>
     </main>
-
-    <div id="saleModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div class="p-6 border-b">
-                <h3 class="text-lg font-bold text-gray-800">Registrar Nova Venda</h3>
-            </div>
-            <div class="p-6 space-y-4 overflow-y-auto" id="saleItemsContainer">
-            </div>
-            <div class="p-4 border-t">
-                <button id="addSaleItemBtn" class="w-full px-4 py-2 bg-blue-100 text-blue-800 font-semibold rounded-lg hover:bg-blue-200 border-2 border-dashed border-blue-300">
-                    <i class="fas fa-plus mr-2"></i>Adicionar Formulação
-                </button>
-            </div>
-            <div class="p-4 bg-gray-50 border-t flex justify-end gap-4">
-                <button id="closeSaleModalBtn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                <button id="saveSaleBtn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Salvar Venda</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="addTaskModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-40">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6">
-            <form>
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Nova Tarefa para o Cliente</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label for="modalTaskTitle" class="block text-sm font-medium text-gray-700">Título da Tarefa</label>
-                        <input type="text" id="modalTaskTitle" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                    <div>
-                        <label for="modalTaskDescription" class="block text-sm font-medium text-gray-700">Descrição (Opcional)</label>
-                        <textarea id="modalTaskDescription" rows="3" placeholder="Ex: Coletar 15 amostras da área norte..." class="mt-1 w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="modalTaskProperty" class="block text-sm font-medium text-gray-700">Vincular à Propriedade (Opcional)</label>
-                            <select id="modalTaskProperty" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                                <option value="">Nenhuma</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="modalTaskPlot" class="block text-sm font-medium text-gray-700">Vincular ao Talhão (Opcional)</label>
-                            <select id="modalTaskPlot" class="mt-1 w-full p-2 border border-gray-300 rounded-md" disabled>
-                                <option value="">Nenhum</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="modalTaskDate" class="block text-sm font-medium text-gray-700">Data para Realização</label>
-                        <input type="date" id="modalTaskDate" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end gap-4">
-                    <button type="button" id="closeAddTaskModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                    <button type="button" id="addClientTaskBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Tarefa</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="addPropertyModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-30">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Adicionar Nova Propriedade</h3>
-            <div class="space-y-4">
-                <div>
-                    <label for="newPropertyName" class="block text-sm font-medium text-gray-700">Nome da Propriedade</label>
-                    <input type="text" id="newPropertyName" class="mt-1 w-full p-2 border border-gray-300 rounded-md" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Localização Geográfica (Opcional)</label>
-                    <button id="openMapModalBtn" type="button" class="mt-1 w-full px-4 py-2 bg-blue-100 text-blue-800 font-semibold rounded-lg hover:bg-blue-200 border-2 border-dashed border-blue-300">
-                        <i class="fas fa-map-marker-alt mr-2"></i>Definir Localização no Mapa
-                    </button>
-                    <p id="coordinatesDisplay" class="text-xs text-gray-500 mt-1 h-4"></p>
-                    <button id="removeLocationBtn" type="button" class="mt-2 w-full px-4 py-2 bg-red-100 text-red-800 font-semibold rounded-lg hover:bg-red-200 border-2 border-dashed border-red-300 hidden">
-                        <i class="fas fa-trash-alt mr-2"></i>Remover Localização
-                    </button>
-                </div>
-            </div>
-            <div class="mt-6 flex justify-end gap-4">
-                <button id="closeAddPropertyModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                <button id="addPropertyBtn" class="px-4 py-2 text-white font-semibold rounded-lg" style="background-color: var(--brand-green);">Salvar Propriedade</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="mapModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Selecione a Localização da Propriedade</h3>
-                <button id="closeMapModalBtn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            </div>
-            <div id="mapContainer" class="flex-grow relative">
-                <button id="getUserLocationBtn" class="absolute top-3 right-3 z-[1000] bg-white p-2 rounded-md shadow-lg text-gray-700 hover:bg-gray-100" title="Usar minha localização atual">
-                    <i class="fas fa-crosshairs"></i>
-                </button>
-            </div>
-            <div class="p-4 bg-gray-50 border-t flex justify-end gap-4">
-                <button id="cancelMapSelectionBtn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Cancelar</button>
-                <button id="confirmMapSelectionBtn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700">Confirmar Localização</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-30">
-        <div class="grid grid-cols-5 h-16 max-w-md mx-auto">
-            <a href="dashboard-agronomo.html" id="navHomeBtnClientDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-home text-xl"></i>
-                <span class="text-xs mt-1">Home</span>
-            </a>
-            <a href="client-list.html" id="navClientsBtnClientDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-users text-xl"></i>
-                <span class="text-xs mt-1">Clientes</span>
-            </a>
-            <a href="#" id="navVisitBtnClientDetails" class="flex flex-col items-center justify-center -mt-6">
-                <div class="w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-xl">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <span class="text-xs mt-1 text-blue-600 font-semibold">Visita</span>
-            </a>
-            <a href="#" data-view="agenda" id="navAgendaBtnClientDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-calendar-alt text-xl"></i>
-                <span class="text-xs mt-1">Agenda</span>
-            </a>
-            <a href="#" id="navProfileBtnClientDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-user-circle text-xl"></i>
-                <span class="text-xs mt-1">Perfil</span>
-            </a>
-        </div>
-    </nav>
 
     <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
     <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>

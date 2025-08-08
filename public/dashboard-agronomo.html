@@ -8,16 +8,17 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
 </head>
-<body class="bg-gray-100 text-gray-800 pb-16">
-  <header class="bg-white shadow-md">
+ <body class="bg-gray-100 text-gray-800 pb-16">
+  <div id="dashboard-agronomo-marker" class="hidden"></div>
+    <header class="bg-white shadow-md">
     <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-bold" style="color: var(--brand-green);">Fazendas</h1>
-      <button id="addClientBtn" class="text-sm text-white px-3 py-2 rounded" style="background-color: var(--brand-green);">Adicionar Cliente</button>
+ <h1 class="text-xl font-bold" style="color: var(--brand-green);">Clientes</h1>
+       <button id="addClientBtn" class="text-sm text-white px-3 py-2 rounded" style="background-color: var(--brand-green);">Adicionar Cliente</button>
     </div>
   </header>
 
   <main class="max-w-4xl mx-auto p-4">
-    <div id="farmList" class="grid sm:grid-cols-2 gap-4"></div>
+ <div id="clientList" class="grid sm:grid-cols-2 gap-4"></div>
   </main>
 
   <script type="module" src="js/pages/dashboard-agronomo.js"></script>
