@@ -6,7 +6,6 @@ export async function initAgronomoDashboard() {
   const farmList = document.getElementById('farmList');
   const addBtn = document.getElementById('addClientBtn');
   if (!addBtn) {
-    console.error('Elemento addClientBtn não encontrado');
     return;
   }
   addBtn.addEventListener('click', () => {
@@ -33,4 +32,9 @@ export async function initAgronomoDashboard() {
     console.error('Erro ao carregar fazendas:', err);
   }
 }
-document.addEventListener('DOMContentLoaded', initAgronomoDashboard);
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('addClientBtn')) {
+    initAgronomoDashboard();
+  }
+});
