@@ -19,43 +19,40 @@
 
   <div id="operador-dashboard-marker" class="hidden"></div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="max-w-7xl mx-auto flex flex-col p-6">
-
-    <!-- HEADER -->
-    <header class="flex justify-between items-center mb-6">
+  <header class="dashboard-header shadow-md">
+    <div class="dashboard-container flex justify-between items-center">
       <h2 class="text-3xl font-semibold">Dashboard do Operador</h2>
-      <button id="logoutBtn" class="flex items-center text-red-500 hover:text-red-600">
+      <button id="logoutBtn" class="dashboard-btn flex items-center">
         <i class="fas fa-sign-out-alt mr-2"></i> Sair
       </button>
-    </header>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="dashboard-container flex flex-col py-6">
 
     <!-- MÉTRICAS -->
 <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-4 rounded shadow text-center">
+            <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Total</p>
         <p id="totalTasks" class="text-2xl font-bold">0</p>
       </div>
-      <div class="bg-white p-4 rounded shadow text-center">
+      <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Pendentes</p>
         <p id="totalPending" class="text-2xl font-bold">0</p>
       </div>
-      <div class="bg-white p-4 rounded shadow text-center">
+      <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Concluídas</p>
         <p id="totalCompleted" class="text-2xl font-bold">0</p>
       </div>
-         <div class="bg-white p-4 rounded shadow text-center">
+         <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Atrasadas</p>
         <p id="totalDelayed" class="text-2xl font-bold">0</p>
       </div>
     </div>
-       <div class="bg-white p-4 rounded shadow text-center">
-        <p class="text-sm text-gray-500">Atrasadas</p>
-        <p id="totalDelayed" class="text-2xl font-bold">0</p>
-      </div>
 
  <!-- CONTROLE: NOVA TAREFA -->
-    <div class="flex justify-end mb-4">    
+    <div class="flex justify-end mb-4">
          <button id="createTaskBtn"
               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
         <i class="fas fa-plus mr-2"></i>Nova Tarefa
@@ -65,7 +62,7 @@
     <!-- GRADE: GRÁFICO E TABELA -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
       <!-- GRÁFICO -->
-      <section class="bg-white rounded-lg shadow p-5 flex flex-col">
+      <section class="dashboard-card flex flex-col p-5">
         <h3 class="text-lg font-medium mb-4">Resumo de Tarefas</h3>
         <div class="flex-1 flex items-center justify-center">
 <canvas id="tasksChart" class="w-full max-w-sm h-48"></canvas>
@@ -73,7 +70,7 @@
       </section>
 
       <!-- TABELA -->
-      <section class="bg-white rounded-lg shadow p-5 flex flex-col">
+      <section class="dashboard-card flex flex-col p-5">
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
           <h3 class="text-lg font-medium">Tarefas</h3>
           <div>
@@ -99,19 +96,7 @@
             </thead>
             <tbody id="tasksTableBody"></tbody>
           </table>
-        </div>
-        <p id="emptyState" class="text-center text-gray-500 italic mt-4 hidden">
-          Nenhuma tarefa encontrada.
-        </p>
-        <div class="mt-4 flex justify-end space-x-2">
-          <button id="prevPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Anterior</button>
-          <button id="nextPageBtn" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Próxima</button>
-        </div>
-      </section>
-    </div>
-  </div>
-
-  <!-- MODAL DE CRIAÇÃO -->
+@@ -115,26 +112,26 @@
   <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-80">
       <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>

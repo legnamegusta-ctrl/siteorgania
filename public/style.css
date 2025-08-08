@@ -267,3 +267,44 @@ input:focus, select:focus, textarea:focus {
 #imageLightboxModal /* Adicionado para garantir que o lightbox de imagem esteja em cima */ {
     z-index: 9999 !important; /* Valor bem alto para garantir sobreposição */
 }
+
+/* ===================================================================
+||      ESTILOS PADRÃO PARA OS DASHBOARDS                        ||
+=================================================================== */
+
+.dashboard-header {
+    background-color: var(--brand-green);
+    color: white;
+}
+
+.dashboard-header a,
+.dashboard-header h1 {
+    color: inherit;
+}
+
+.dashboard-btn {
+    background-color: white;
+    color: var(--brand-green);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.dashboard-btn:hover {
+    background-color: #e6f4ea;
+}
+
+.dashboard-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.dashboard-card {
+    background-color: var(--card-background);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}

@@ -10,16 +10,16 @@
 </head>
  <body class="bg-gray-100 text-gray-800 pb-16">
   <div id="dashboard-agronomo-marker" class="hidden"></div>
-    <header class="bg-white shadow-md">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
- <h1 class="text-xl font-bold" style="color: var(--brand-green);">Clientes</h1>
-       <button id="addClientBtn" class="text-sm text-white px-3 py-2 rounded" style="background-color: var(--brand-green);">Adicionar Cliente</button>
-    </div>
+ <header class="dashboard-header shadow-md">
+    <div class="dashboard-container flex justify-between items-center">
+      <h1 class="text-xl font-bold">Clientes</h1>
+      <button id="addClientBtn" class="dashboard-btn text-sm">Adicionar Cliente</button>
+        </div>
   </header>
 
-  <main class="max-w-4xl mx-auto p-4">
- <div id="clientList" class="grid sm:grid-cols-2 gap-4"></div>
-  </main>
+<main class="dashboard-container">
+    <div id="clientList" class="grid sm:grid-cols-2 gap-4"></div>
+    </main>
 
  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
     <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>

@@ -14,19 +14,17 @@
 
     <div id="dashboard-cliente-marker" class="hidden"></div>
 
-    <header class="bg-white shadow-md sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Meu Painel Orgânia</h1>
-                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
-            </div>
-        </div>
+<header class="dashboard-header shadow-md sticky top-0 z-20">
+        <div class="dashboard-container flex justify-between items-center h-16">
+            <h1 class="text-2xl font-bold">Meu Painel Orgânia</h1>
+            <button onclick="logout()" class="dashboard-btn text-sm">Sair</button>
+                </div>
     </header>
 
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="px-4 sm:px-0">
-            <div class="bg-white p-6 rounded-lg shadow w-full mb-8">
-                <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-1">Carregando...</h2>
+ <main class="dashboard-container py-6">
+        <div>
+            <div class="dashboard-card w-full mb-8">
+                                <h2 id="welcomeMessage" class="text-3xl font-bold text-gray-800 mb-1">Carregando...</h2>
                 <p id="summaryMessage" class="text-gray-600 mb-4">Analisando suas propriedades...</p>
                 
                 <div>
@@ -38,28 +36,28 @@
             </div>
 
 <div id="kpiCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
-    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-        <p class="text-sm font-medium text-gray-500">Área Total</p>
+   <div class="dashboard-card text-center">
+            <p class="text-sm font-medium text-gray-500">Área Total</p>
         <p id="totalAreaStat" class="text-2xl font-bold text-gray-800">...</p>
         <i class="fas fa-map-marker-alt text-xl text-green-500 mt-2"></i>
     </div>
-    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-        <p class="text-sm font-medium text-gray-500">Talhões</p>
+<div class="dashboard-card text-center">
+            <p class="text-sm font-medium text-gray-500">Talhões</p>
         <p id="activePlotsStat" class="text-2xl font-bold text-gray-800">...</p>
         <i class="fas fa-seedling text-xl text-blue-500 mt-2"></i>
     </div>
-    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-        <p class="text-sm font-medium text-gray-500">Tarefas Concluídas</p>
+<div class="dashboard-card text-center">
+            <p class="text-sm font-medium text-gray-500">Tarefas Concluídas</p>
         <p id="completedTasksStat" class="text-2xl font-bold text-gray-800">...</p>
         <i class="fas fa-check-circle text-xl text-green-600 mt-2"></i>
     </div>
-    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-        <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
+ <div class="dashboard-card text-center">
+            <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
         <p id="pendingTasksStat" class="text-2xl font-bold text-gray-800">...</p>
         <i class="fas fa-hourglass-half text-xl text-yellow-500 mt-2"></i>
     </div>
-    <div class="bg-white p-5 rounded-lg shadow-md border border-gray-200 text-center">
-        <p class="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
+   <div class="dashboard-card text-center">
+            <p class="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
         <p id="overdueTasksStat" class="text-2xl font-bold text-gray-800">...</p>
         <i class="fas fa-exclamation-triangle text-xl text-red-500 mt-2"></i>
     </div>
@@ -74,8 +72,8 @@
 
             <div id="tab-content-container" class="px-0">
                 <div id="recentActivities-content" class="tab-content space-y-8">
-                    <div id="farmActivities" class="w-full bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">Movimentações na Lavoura</h3>
+  <div id="farmActivities" class="w-full dashboard-card">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Movimentações na Lavoura</h3>
                         <p class="text-gray-600 text-sm mb-6">Acompanhe todas as atividades realizadas em sua propriedade</p>
                           <div class="mb-4">
                               <label for="plotFilter" class="block text-sm font-medium text-gray-700">Filtrar por talhão:</label>
@@ -99,15 +97,15 @@
                 </div>
 
                 <div id="recommendations-content" class="tab-content hidden">
-                    <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">Recomendações do Agrônomo</h3>
+<div class="dashboard-card">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Recomendações do Agrônomo</h3>
                         <p class="text-gray-500">Nenhuma recomendação disponível no momento para esta propriedade.</p>
                     </div>
                 </div>
 
                 <div id="reports-content" class="tab-content hidden">
-                    <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">Relatórios Gerados</h3>
+ <div class="dashboard-card">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Relatórios Gerados</h3>
                         <p class="text-gray-500">Nenhum relatório disponível no momento para esta propriedade.</p>
                     </div>
                 </div>
