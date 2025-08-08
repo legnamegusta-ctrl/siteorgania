@@ -119,11 +119,11 @@ function renderTable() {
 
   tbody.innerHTML = '';
   if (!pageItems.length) {
-    empty.classList.remove('hidden');
+  empty?.classList.remove('hidden');
     return;
   } else {
-    empty.classList.add('hidden');
-  }
+    empty?.classList.add('hidden');
+    }
 
    const now = new Date();
     pageItems.forEach(t => {
