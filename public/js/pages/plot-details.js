@@ -126,7 +126,6 @@ export function initPlotDetails(userId, userRole) {
         await loadAllUsersForCache(); // Carrega cache de usuários
         await Promise.all([loadHeaderData(), buildTimeline()]);
         addEventListeners();
-        setupBottomNavbarListeners(); // NOVO: Chama a função para configurar os listeners da navbar
     }
 
     async function loadAllUsersForCache() {
@@ -682,56 +681,6 @@ export function initPlotDetails(userId, userRole) {
     }
 
     // Função para configurar os event listeners da Bottom Navigation Bar
-    function setupBottomNavbarListeners() {
-        const navHomeBtn = document.getElementById('navHomeBtnPlotDetails');
-        const navClientsBtn = document.getElementById('navClientsBtnPlotDetails');
-        const navVisitBtn = document.getElementById('navVisitBtnPlotDetails');
-        const navAgendaBtn = document.getElementById('navAgendaBtnPlotDetails');
-        const navProfileBtn = document.getElementById('navProfileBtnPlotDetails');
-
-        if (navHomeBtn) {
-            navHomeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = `dashboard-${userRole}.html`;
-            });
-        }
-        if (navClientsBtn) {
-            navClientsBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (userRole === 'agronomo' || userRole === 'admin') {
-                    window.location.href = `client-list.html`;
-                } else {
-                    showToast("Funcionalidade não disponível para seu perfil.", "info");
-                }
-            });
-        }
-        if (navVisitBtn) {
-            navVisitBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (userRole === 'agronomo' || userRole === 'admin') {
-                    window.location.href = `mapa-agronomo.html`;
-                } else {
-                    showToast("Funcionalidade não disponível para seu perfil.", "info");
-                }
-            });
-        }
-        if (navAgendaBtn) {
-            navAgendaBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (userRole === 'agronomo') {
-                    window.location.href = `agenda.html`;
-                } else {
-                    showToast("Funcionalidade não disponível para seu perfil.", "info");
-                }
-            });
-        }
-        if (navProfileBtn) {
-            navProfileBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                showToast("A seção de Perfil será implementada em breve.", "info");
-            });
-        }
-    }
-
+  // Layout simplificado sem navbar inferior
     initializeCultureDashboard();
 }

@@ -40,8 +40,8 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 pb-20"> <div class="px-4 sm:px-0 mb-6">
-            <h2 id="plotNameHeader" class="text-3xl font-bold text-gray-800">Carregando...</h2>
+<main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"> <div class="px-4 sm:px-0 mb-6">
+                <h2 id="plotNameHeader" class="text-3xl font-bold text-gray-800">Carregando...</h2>
             <p id="cultureInfo" class="text-lg text-gray-600"></p>
             <p id="propertyClientInfo" class="text-sm text-gray-500 mt-1"></p>
             <p id="plantsCountInfo" class="text-sm text-gray-500 mt-1"></p>
@@ -137,43 +137,6 @@
         <span id="closeLightboxBtn" class="close-btn">&times;</span>
         <img id="lightboxImage" src="" alt="Visualização da imagem">
     </div>
-    <div id="viewVisitDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-            <div class="p-6 border-b">
-                <h3 class="text-lg font-bold text-gray-800">Detalhes da Visita</h3>
-            </div>
-            <div id="visitDetailsContent" class="p-6 overflow-y-auto space-y-4">
-            </div>
-            <div class="p-4 bg-gray-50 border-t flex justify-end">
-                <button type="button" id="closeViewVisitDetailsModalBtn" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300">Fechar</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-0 left-0 w-full bg-white shadow-lg z-30">
-        <div class="grid grid-cols-5 h-16 max-w-md mx-auto"> 
-            <a href="dashboard-agronomo.html" id="navHomeBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-home text-xl"></i>
-                <span class="text-xs mt-1">Home</span>
-            </a>
-            <a href="client-list.html" id="navClientsBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-users text-xl"></i>
-                <span class="text-xs mt-1">Clientes</span>
-            </a>
-            <a href="#" id="navVisitBtnPlotDetails" class="flex flex-col items-center justify-center -mt-6"> <div class="w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-xl">
-                    <i class="fas fa-map-marker-alt"></i> </div>
-                <span class="text-xs mt-1 text-blue-600 font-semibold">Visita</span>
-            </a>
-            <a href="#" data-view="agenda" id="navAgendaBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-calendar-alt text-xl"></i>
-                <span class="text-xs mt-1">Agenda</span>
-            </a>
-            <a href="#" id="navProfileBtnPlotDetails" class="flex flex-col items-center justify-center text-gray-600 hover:text-brand-green">
-                <i class="fas fa-user-circle text-xl"></i>
-                <span class="text-xs mt-1">Perfil</span>
-            </a>
-        </div>
-    </nav>
 
     <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
     <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
