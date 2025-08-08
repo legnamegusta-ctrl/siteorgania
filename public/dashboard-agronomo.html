@@ -5,26 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orgânia - Painel do Agrônomo</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
 </head>
- <body class="bg-gray-100 text-gray-800 pb-16">
+ <body class="bg-gray-100 text-gray-800">
   <div id="dashboard-agronomo-marker" class="hidden"></div>
- <header class="dashboard-header shadow-md">
-    <div class="dashboard-container flex justify-between items-center">
-      <h1 class="text-xl font-bold">Clientes</h1>
-      <button id="addClientBtn" class="dashboard-btn text-sm">Adicionar Cliente</button>
-        </div>
+
+  <header class="dashboard-header shadow-md">
+    <div class="dashboard-container flex justify-between items-center h-16">
+      <div class="flex items-center space-x-4">
+        <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
+        <h1 class="text-xl font-bold">Painel do Agrônomo</h1>
+      </div>
+      <div class="flex space-x-2">
+        <button id="addClientBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-user-plus mr-2"></i>Adicionar Cliente</button>
+        <button onclick="logout()" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
+      </div>
+    </div>
   </header>
 
-<main class="dashboard-container">
-    <div id="clientList" class="grid sm:grid-cols-2 gap-4"></div>
-    </main>
+  <main class="dashboard-container py-6">
+    <section class="dashboard-section">
+      <h2 class="text-lg font-semibold">Clientes</h2>
+      <div id="clientList" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+  </main>
 
- <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="/__/firebase/init.js"></script>
-    <script type="module" src="js/services/auth.js"></script>
-  </body>
-  </html>
+  <footer class="text-center mt-8 text-gray-500 text-sm p-4">
+    <p>&copy; 2025 Orgânia Fertilizantes. A tecnologia para o campo não para.</p>
+  </footer>
+
+  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script type="module" src="js/services/auth.js"></script>
+ </body>
+</html>
