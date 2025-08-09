@@ -321,3 +321,49 @@ input:focus, select:focus, textarea:focus {
 .dashboard-section h2 {
     margin-bottom: 1rem;
 }
+
+/* ========================================================== */
+/* Reusable Navbar component */
+.navbar {
+    background-color: var(--brand-green);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.navbar-logo img {
+    height: 40px;
+}
+.navbar-links a {
+    margin-right: 1rem;
+    color: #fff;
+    font-weight: 500;
+}
+.navbar-links a:last-child {
+    margin-right: 0;
+}
+.navbar-icons i {
+    font-size: 1.25rem;
+}
+.breadcrumbs {
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+.breadcrumbs a {
+    color: var(--brand-green);
+    margin-right: 0.25rem;
+}
+.breadcrumbs span {
+    color: var(--text-light);
+}
+/* ========================================================== */
