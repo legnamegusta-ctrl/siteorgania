@@ -21,14 +21,38 @@ async function loadTasks() {
 }
 
 function renderList(tasks) {
-  const ul = document.getElementById('tasksList');
-  if (!ul) return;
-  ul.innerHTML = '';
+const tbody = document.getElementById('tasksList');
+  if (!tbody) return;
+  tbody.innerHTML = '';
   tasks.forEach(t => {
-    const li = document.createElement('li');
-    li.className = 'py-2 flex justify-between';
-    li.innerHTML = `<span>${t.talhao || ''} - ${t.tipo || t.id}</span><span>${t.status || ''}</span>`;
-    ul.appendChild(li);
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-gray-50';
+
+    const tdTalhao = document.createElement('td');
+    tdTalhao.className = 'px-4 py-2';
+    tdTalhao.textContent = t.talhao || '-';
+
+    const tdTipo = document.createElement('td');
+    tdTipo.className = 'px-4 py-2';
+    tdTipo.textContent = t.tipo || t.id;
+
+    const tdStatus = document.createElement('td');
+    tdStatus.className = 'px-4 py-2';
+    tdStatus.textContent = t.status || '';
+
+    const tdAction = document.createElement('td');
+    tdAction.className = 'px-4 py-2 text-right';
+    const btn = document.createElement('button');
+    btn.className = 'text-green-600 hover:underline';
+    btn.textContent = 'Detalhes';
+    btn.addEventListener('click', () => openTaskModal(t));
+    tdAction.appendChild(btn);
+
+    tr.appendChild(tdTalhao);
+    tr.appendChild(tdTipo);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
   });
 }
 
@@ -40,4 +64,29 @@ function bindUI() {
   openBtn?.addEventListener('click', () => mobileSidebar?.classList.remove('hidden'));
   closeBtn?.addEventListener('click', () => mobileSidebar?.classList.add('hidden'));
   closeMenu?.addEventListener('click', () => mobileSidebar?.classList.add('hidden'));
+
+  const modal = document.getElementById('taskModal');
+  const closeModal = document.getElementById('closeTaskModal');
+  closeModal?.addEventListener('click', hideTaskModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) hideTaskModal();
+  });
+}
+
+function openTaskModal(task) {
+  const modal = document.getElementById('taskModal');
+  const content = document.getElementById('taskModalContent');
+  if (!modal || !content) return;
+  content.innerHTML = `
+    <p><strong>Talhão:</strong> ${task.talhao || '-'}</p>
+    <p><strong>Tipo:</strong> ${task.tipo || '-'}</p>
+    <p><strong>Status:</strong> ${task.status || '-'}</p>
+    <p><strong>Descrição:</strong> ${task.descricao || task.description || 'Sem descrição'}</p>
+  `;
+  modal.classList.remove('hidden');
+}
+
+function hideTaskModal() {
+  const modal = document.getElementById('taskModal');
+  modal?.classList.add('hidden');
 }
