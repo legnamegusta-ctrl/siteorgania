@@ -1,19 +1,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
 
-/* Definindo as cores da marca para fácil reutilização */
+/* Paleta de cores e espaçamentos baseados no grid de 8 pontos */
 :root {
-    --brand-green: #3a7d44; /* Verde principal do logo da Orgânia */
-    --brand-brown: #5a3a22; /* Marrom do logo */
-    --text-dark: #2d3748; /* Cinza escuro para texto */
-    --text-light: #4a5568; /* Cinza mais claro para texto secundário */
-    --background-light: #f7fafc; /* Fundo principal da página (cinza bem claro) */
-    --card-background: #ffffff; /* Fundo dos cards (branco) */
+ --color-primary: #3a7d44;
+    --color-primary-light: #6cbf7c;
+    --color-primary-dark: #27532e;
+    --color-secondary: #5a3a22;
+    --color-secondary-light: #8b5e3c;
+    --color-secondary-dark: #392213;
+
+    /* Mapas antigos para manter compatibilidade */
+    --brand-green: var(--color-primary); /* Verde principal do logo da Orgânia */
+    --brand-brown: var(--color-secondary); /* Marrom do logo */
+    --text-dark: #2d3748; /* Texto padrão */
+    --text-light: #4a5568; /* Texto secundário */
+    --background-light: #f7fafc; /* Fundo claro */
+    --card-background: #ffffff; /* Fundo dos cards */
+
+    /* Escala de espaçamentos 8pt */
+    --space-1: 0.5rem;  /* 8px */
+    --space-2: 1rem;    /* 16px */
+    --space-3: 1.5rem;  /* 24px */
+    --space-4: 2rem;    /* 32px */
+
+    --radius-base: 0.5rem;
+    --transition-base: 0.2s ease-in-out;
 }
+
+[data-theme="dark"] {
+    --text-dark: #f7fafc;
+    --text-light: #a0aec0;
+    --background-light: #1a202c;
+    --card-background: #2d3748;
+    }
 
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--background-light);
     color: var(--text-dark);
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+}
+
+.long-text {
+    font-family: 'Merriweather', serif;
+    line-height: 1.5;
+}
+
+p {
+    margin-bottom: calc(var(--space-2) * 2);
+    letter-spacing: 0.12em;
+    word-spacing: 0.16em;
 }
 
 /* Fundo da página de login com imagem LOCAL */
@@ -76,6 +117,34 @@ input:focus, select:focus, textarea:focus {
 
 .icon-premium {
     color: var(--brand-green);
+}
+
+/* Componentes base */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--radius-base);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    padding: var(--space-3);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+button, .btn {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-base);
+    transition: background-color var(--transition-base), transform var(--transition-base);
+}
+
+button:hover, .btn:hover {
+    transform: scale(1.02);
+}
+
+button:active, .btn:active {
+    transform: scale(0.98);
 }
 
 /* Estilo para os itens da agenda */
@@ -353,6 +422,13 @@ input:focus, select:focus, textarea:focus {
 .navbar-icons i {
     font-size: 1.25rem;
 }
+.navbar-icons button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
 .breadcrumbs {
     background-color: var(--background-light);
     color: var(--text-dark);
@@ -367,3 +443,10 @@ input:focus, select:focus, textarea:focus {
     color: var(--text-light);
 }
 /* ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

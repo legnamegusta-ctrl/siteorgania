@@ -71,6 +71,7 @@
       <a href="/index.html" class="navbar-logo"><img src="logo.png" alt="Orgânia"></a>
       <nav class="navbar-links"></nav>
       <div class="navbar-icons">
+        <button id="themeToggle" aria-label="Alternar tema"><i class="fas fa-moon"></i></button>
         <i class="fas fa-bell"></i>
       </div>
     </div>
@@ -96,4 +97,25 @@
   const current = document.createElement('span');
   current.textContent = document.title;
   breadcrumb.appendChild(current);
+
+  // Tema claro/escuro
+  const themeToggle = nav.querySelector('#themeToggle');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const storedTheme = localStorage.getItem('organia-theme') || (prefersDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', storedTheme);
+  updateThemeIcon(storedTheme);
+
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('organia-theme', nextTheme);
+    updateThemeIcon(nextTheme);
+  });
+
+  function updateThemeIcon(theme) {
+    const icon = themeToggle.querySelector('i');
+    icon.classList.toggle('fa-moon', theme === 'light');
+    icon.classList.toggle('fa-sun', theme === 'dark');
+  }
 })();
