@@ -54,14 +54,14 @@
     <main class="flex-1 overflow-y-auto p-4">
       <section class="bg-white rounded-lg shadow-lg p-4">
         <h2 class="text-lg font-bold mb-4">Minhas Tarefas</h2>
-    <div class="overflow-x-auto">
+ <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Talhão</th>
                 <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tipo</th>
                 <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th class="px-4 py-2"></th>
+                <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Ações</th>
               </tr>
             </thead>
             <tbody id="tasksList" class="divide-y"></tbody>
@@ -82,7 +82,8 @@
     </div>
   </div>
 
+  <script type="module" src="js/pages/operador-tarefas.js"></script>
   <script type="module" src="js/services/auth.js"></script>
-   <script src="js/navbar.js"></script>
+  <script src="js/navbar.js"></script>
 </body>
 </html>

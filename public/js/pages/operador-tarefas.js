@@ -43,7 +43,7 @@ const tbody = document.getElementById('tasksList');
     const tdAction = document.createElement('td');
     tdAction.className = 'px-4 py-2 text-right';
     const btn = document.createElement('button');
-    btn.className = 'text-green-600 hover:underline';
+    btn.className = 'bg-green-600 text-white text-sm px-3 py-1 rounded hover:bg-green-700 transition';
     btn.textContent = 'Detalhes';
     btn.addEventListener('click', () => openTaskModal(t));
     tdAction.appendChild(btn);
