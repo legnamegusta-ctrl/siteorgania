@@ -397,3 +397,145 @@ button:active, .btn:active {
         transition: none !important;
     }
 }
+
+/* Sidebar: layout and utility classes */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 260px;
+    background: #FFFFFF;
+    border-right: 1px solid #E5E7EB;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+}
+
+.sidebar.open {
+    transform: translateX(0);
+}
+
+.sidebar-logo {
+    padding: 16px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 8px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #1F2937;
+    text-decoration: none;
+}
+
+.sidebar-link:hover {
+    background: #F3F4F6;
+}
+
+.sidebar-link.is-active {
+    background: rgba(108,159,61,0.12);
+    color: #5A8733;
+    position: relative;
+}
+
+.sidebar-link.is-active i {
+    color: #6C9F3D;
+}
+
+.sidebar-link.is-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #6C9F3D;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.sidebar-link:focus,
+.sidebar-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(108,159,61,0.30);
+}
+
+.sidebar-badge {
+    margin-left: auto;
+    background: #DBEAFE;
+    color: #1E40AF;
+    border-radius: 9999px;
+    padding: 0 8px;
+    font-size: 12px;
+    font-weight: 500;
+    display: none;
+}
+
+.sidebar-badge.show {
+    display: inline-block;
+}
+
+.sidebar-indicator {
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    background: #16A34A;
+    border-radius: 50%;
+    display: none;
+}
+
+.sidebar-indicator.show {
+    display: block;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 40;
+    display: none;
+}
+
+.sidebar-backdrop.show {
+    display: block;
+}
+
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 60;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 8px;
+    color: #1F2937;
+}
+
+.main-content {
+    padding: 0;
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        transform: none;
+    }
+    .sidebar-toggle {
+        display: none;
+    }
+    .sidebar-backdrop {
+        display: none !important;
+    }
+    .main-content {
+        margin-left: 260px;
+    }
+}
