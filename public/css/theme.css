@@ -1,0 +1,37 @@
+:root {
+  color-scheme: light;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111827;
+  --surface: #1f2937;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --error: #f87171;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: var(--lh-base);
+}
+
+a { color: var(--brand); }
+
+a:hover, a:focus { text-decoration: underline; }
+
+:focus {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.btn:disabled, .input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}

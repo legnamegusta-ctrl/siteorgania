@@ -1,48 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orgânia Fertilizantes - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="favicon.png">
-<link rel="manifest" href="/manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orgânia Fertilizantes - Login</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
 </head>
-<body class="login-background">
-<div class="flex items-center justify-center min-h-screen p-4">
+<body>
+  <header class="navbar">
+    <div class="navbar__brand"><img src="logo.png" alt="Orgânia" height="40"></div>
+    <div class="navbar__actions"><button class="btn btn--ghost" data-theme-toggle aria-label="Alternar tema">🌓</button></div>
+  </header>
 
-        <div class="relative z-10 card w-full max-w-md">            
-            <img src="logo.png" alt="Orgânia Fertilizantes Logo" class="mx-auto mb-6 w-72">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-gray-800">Bem-vindo(a) de volta!</h1>
-                <p class="text-gray-500">Acesse sua plataforma de gestão agrícola.</p>
-            </div>
-
-            <form id="loginForm" class="space-y-5">
-                <div>
-                    <label for="email" class="block mb-1 font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" name="email" placeholder="seu.email@exemplo.com" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800" required>
-                </div>
-                <div>
-                    <label for="password" class="block mb-1 font-medium text-gray-700">Senha</label>
-                    <input type="password" id="password" name="password" placeholder="••••••••" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800" required>
-                </div>
-
-                <p id="loginError" class="text-red-500 text-sm !mt-2 hidden"></p>
-
-  <button type="submit" style="background-color: var(--brand-green);" class="w-full text-white font-bold btn">                    
-                        Entrar
-                </button>
-            </form>
-
-            <p class="text-gray-500 text-sm text-center mt-6">
-                Ainda não tem acesso? <a href="#" class="font-semibold" style="color: var(--brand-green);">Entre em contato com a Orgânia.</a>
-            </p>
+  <main class="container" style="padding-top:80px;">
+    <div class="card" style="max-width:400px;margin:auto;">
+      <form id="loginForm" class="stack-4">
+        <h1 style="font-size:var(--fs-2xl);line-height:var(--lh-heading);">Bem-vindo(a) de volta!</h1>
+        <div class="stack-2">
+          <label for="email">Email</label>
+          <input class="input" type="email" id="email" name="email" required>
         </div>
+        <div class="stack-2">
+          <label for="password">Senha</label>
+          <input class="input" type="password" id="password" name="password" required>
+        </div>
+        <p id="loginError" class="badge badge--error hidden"></p>
+        <button type="submit" class="btn btn--primary" style="width:100%">Entrar</button>
+      </form>
     </div>
-    
-    <script type="module" src="js/services/auth.js"></script>
-    <script src="js/navbar.js"></script>
+  </main>
+
+  <script type="module" src="js/services/auth.js"></script>
+  <script src="js/navbar.js"></script>
+  <script defer src="js/ui/components.js"></script>
 </body>
 </html>
