@@ -53,8 +53,8 @@ h1, h2, h3, h4, h5, h6 {
 
 p {
     margin-bottom: calc(var(--space-2) * 2);
-    letter-spacing: 0.12em;
-    word-spacing: 0.16em;
+letter-spacing: normal;
+    word-spacing: normal;
 }
 
 /* Fundo da página de login com imagem LOCAL */
