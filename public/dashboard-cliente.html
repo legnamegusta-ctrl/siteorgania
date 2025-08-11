@@ -38,32 +38,36 @@
                 </div>
             </section>
 
-<section id="kpiCards" class="dashboard-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
-   <div class="dashboard-card text-center">
-            <p class="text-sm font-medium text-gray-500">Área Total</p>
-        <p id="totalAreaStat" class="text-2xl font-bold text-gray-800">...</p>
-        <i class="fas fa-map-marker-alt text-xl text-green-500 mt-2"></i>
-    </div>
-<div class="dashboard-card text-center">
-            <p class="text-sm font-medium text-gray-500">Talhões</p>
-        <p id="activePlotsStat" class="text-2xl font-bold text-gray-800">...</p>
-        <i class="fas fa-seedling text-xl text-blue-500 mt-2"></i>
-    </div>
-<div class="dashboard-card text-center">
-            <p class="text-sm font-medium text-gray-500">Tarefas Concluídas</p>
-        <p id="completedTasksStat" class="text-2xl font-bold text-gray-800">...</p>
-        <i class="fas fa-check-circle text-xl text-green-600 mt-2"></i>
-    </div>
- <div class="dashboard-card text-center">
-            <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
-        <p id="pendingTasksStat" class="text-2xl font-bold text-gray-800">...</p>
-        <i class="fas fa-hourglass-half text-xl text-yellow-500 mt-2"></i>
-    </div>
-   <div class="dashboard-card text-center">
-            <p class="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
-        <p id="overdueTasksStat" class="text-2xl font-bold text-gray-800">...</p>
-        <i class="fas fa-exclamation-triangle text-xl text-red-500 mt-2"></i>
-    </div>
+<section id="kpiCards" class="dashboard-section mb-8 space-y-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="dashboard-card text-center">
+                        <p class="text-sm font-medium text-gray-500">Área Total</p>
+     <p id="totalAreaStat" class="text-2xl font-bold text-gray-800">...</p>
+            <i class="fas fa-map-marker-alt text-xl text-green-500 mt-2"></i>
+        </div>
+        <div class="dashboard-card text-center">
+                        <p class="text-sm font-medium text-gray-500">Talhões</p>
+  <p id="activePlotsStat" class="text-2xl font-bold text-gray-800">...</p>
+            <i class="fas fa-seedling text-xl text-blue-500 mt-2"></i>
+        </div>
+        </div>
+   <div class="flex gap-5">
+        <div class="dashboard-card text-center flex-1">
+                        <p class="text-sm font-medium text-gray-500">Tarefas Concluídas</p>
+      <p id="completedTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+            <i class="fas fa-check-circle text-xl text-green-600 mt-2"></i>
+        </div>
+        <div class="dashboard-card text-center flex-1">
+                        <p class="text-sm font-medium text-gray-500">Tarefas Pendentes</p>
+     <p id="pendingTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+            <i class="fas fa-hourglass-half text-xl text-yellow-500 mt-2"></i>
+        </div>
+        <div class="dashboard-card text-center flex-1">
+                        <p class="text-sm font-medium text-gray-500">Tarefas Atrasadas</p>
+  <p id="overdueTasksStat" class="text-2xl font-bold text-gray-800">...</p>
+            <i class="fas fa-exclamation-triangle text-xl text-red-500 mt-2"></i>
+        </div>
+        </div>
 </section>
             <div class="dashboard-section mb-6 border-b border-gray-200">
                 <nav class="-mb-px flex space-x-6" aria-label="Tabs">
@@ -151,6 +155,5 @@
 <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
 <script src="/__/firebase/init.js"></script>
     <script type="module" src="js/services/auth.js"></script>
-    <script src="js/navbar.js"></script>
 </body>
 </html>
