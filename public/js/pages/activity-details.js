@@ -71,7 +71,7 @@ export async function initActivityDetails(userId, userRole) {
             } else if (activity.registeredBy) {
                 responsible = activity.registeredBy;
             }
-            const plotSnap = await getDoc(doc(db, `clients/${clientId}/properties/${propertyId}/plots/${plotId}`));
+         const plotSnap = await getDoc(doc(db, `clients/${clientId}/properties/${propertyId}/plots/${plotId}`));
             if (plotSnap.exists()) local = plotSnap.data().name || 'N/A';
             titleEl.textContent = `Detalhes do Evento`;
         }
@@ -96,24 +96,62 @@ export async function initActivityDetails(userId, userRole) {
 
             const observationForm = document.getElementById('addObservationForm');
             const observationInput = document.getElementById('observationInput');
-            observationForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const value = observationInput.value.trim();
-                if (!value) return;
-                try {
-                    await updateDoc(taskRef, { observations: arrayUnion(value) });
-                    observations.push(value);
-                    renderObservations(observations);
-                    observationInput.value = '';
-                    showToast('Observação adicionada.', 'success');
-                } catch (err) {
-                    console.error('Erro ao adicionar observação:', err);
-                    showToast('Erro ao salvar observação.', 'error');
-                }
-            });
-
+            const photoForm = document.getElementById('addPhotoForm');
+            const photoInput = document.getElementById('photoInput');
             const commentForm = document.getElementById('addCommentForm');
             const commentInput = document.getElementById('commentInput');
+
+            if (userRole === 'cliente') {
+                observationForm.classList.add('hidden');
+                photoForm.classList.add('hidden');
+            } else {
+                observationForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const value = observationInput.value.trim();
+                    if (!value) return;
+                    try {
+                        await updateDoc(taskRef, { observations: arrayUnion(value) });
+                        observations.push(value);
+                        renderObservations(observations);
+                        observationInput.value = '';
+                        showToast('Observação adicionada.', 'success');
+                    } catch (err) {
+                        console.error('Erro ao adicionar observação:', err);
+                        showToast('Erro ao salvar observação.', 'error');
+                    }
+                });
+
+                photoForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const file = photoInput.files[0];
+                    if (!file) return;
+                    try {
+                        showSpinner(document.getElementById('photosSection'));
+                        const base64 = await fileToBase64(file);
+                        const res = await fetch('/uploadTaskPhoto', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: base64, clientId, taskId: activityId })
+                        });
+                        const data = await res.json();
+                        if (data.imageUrl) {
+                            await updateDoc(taskRef, { imageUrls: arrayUnion(data.imageUrl) });
+                            imageUrls.push(data.imageUrl);
+                            renderPhotos(imageUrls);
+                            showToast('Foto enviada com sucesso.', 'success');
+                            photoInput.value = '';
+                        } else {
+                            showToast('Falha no envio da foto.', 'error');
+                        }
+                    } catch (err) {
+                        console.error('Erro ao enviar foto:', err);
+                        showToast('Erro ao enviar foto.', 'error');
+                    } finally {
+                        hideSpinner(document.getElementById('photosSection'));
+                    }
+                });
+            }
+
             commentForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const text = commentInput.value.trim();
@@ -128,38 +166,6 @@ export async function initActivityDetails(userId, userRole) {
                 } catch (err) {
                     console.error('Erro ao adicionar comentário:', err);
                     showToast('Erro ao salvar comentário.', 'error');
-                }
-            });
-
-            const photoForm = document.getElementById('addPhotoForm');
-            const photoInput = document.getElementById('photoInput');
-            photoForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const file = photoInput.files[0];
-                if (!file) return;
-                try {
-                    showSpinner(document.getElementById('photosSection'));
-                    const base64 = await fileToBase64(file);
-                    const res = await fetch('/uploadTaskPhoto', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageBase64: base64, clientId, taskId: activityId })
-                    });
-                    const data = await res.json();
-                    if (data.imageUrl) {
-                        await updateDoc(taskRef, { imageUrls: arrayUnion(data.imageUrl) });
-                        imageUrls.push(data.imageUrl);
-                        renderPhotos(imageUrls);
-                        showToast('Foto enviada com sucesso.', 'success');
-                        photoInput.value = '';
-                    } else {
-                        showToast('Falha no envio da foto.', 'error');
-                    }
-                } catch (err) {
-                    console.error('Erro ao enviar foto:', err);
-                    showToast('Erro ao enviar foto.', 'error');
-                } finally {
-                    hideSpinner(document.getElementById('photosSection'));
                 }
             });
         } else {

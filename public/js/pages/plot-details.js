@@ -112,19 +112,20 @@ export function initPlotDetails(userId, userRole) {
         if (backBtn) backBtn.href = backUrl;
 
         // Controle de visibilidade de botões de edição/adição
+        if (showAddAnalysisModalBtn) showAddAnalysisModalBtn.style.display = 'none';
+        if (showAddManagementModalBtn) showAddManagementModalBtn.style.display = 'none';
+        if (editAnalysisBtn) editAnalysisBtn.style.display = 'none';
+
         if (userRole === 'agronomo') {
             if (showAddAnalysisModalBtn) showAddAnalysisModalBtn.style.display = 'inline-flex';
-            if (showAddManagementModalBtn) showAddManagementModalBtn.style.display = 'inline-flex';
             if (editAnalysisBtn) editAnalysisBtn.style.display = 'inline-block';
-        } else { // Cliente, Operador, Admin
-            if (showAddAnalysisModalBtn) showAddAnalysisModalBtn.style.display = 'none';
-            if (showAddManagementModalBtn) showAddManagementModalBtn.style.display = 'none';
-            if (editAnalysisBtn) editAnalysisBtn.style.display = 'none'; // Cliente e Operador não editam análises
         }
-        // O operador pode adicionar manejos rapidamente do dashboard dele, não precisa deste botão aqui.
+        if (userRole === 'agronomo' || userRole === 'operador') {
+            if (showAddManagementModalBtn) showAddManagementModalBtn.style.display = 'inline-flex';
+        }
 
         await loadAllUsersForCache(); // Carrega cache de usuários
-        await Promise.all([loadHeaderData(), buildTimeline()]);
+            await Promise.all([loadHeaderData(), buildTimeline()]);
         addEventListeners();
     }
 
