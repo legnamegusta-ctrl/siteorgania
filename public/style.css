@@ -1,0 +1,452 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+
+/* Paleta de cores e espaçamentos baseados no grid de 8 pontos */
+:root {
+ --color-primary: #3a7d44;
+    --color-primary-light: #6cbf7c;
+    --color-primary-dark: #27532e;
+    --color-secondary: #5a3a22;
+    --color-secondary-light: #8b5e3c;
+    --color-secondary-dark: #392213;
+
+    /* Mapas antigos para manter compatibilidade */
+    --brand-green: var(--color-primary); /* Verde principal do logo da Orgânia */
+    --brand-brown: var(--color-secondary); /* Marrom do logo */
+    --text-dark: #2d3748; /* Texto padrão */
+    --text-light: #4a5568; /* Texto secundário */
+    --background-light: #f7fafc; /* Fundo claro */
+    --card-background: #ffffff; /* Fundo dos cards */
+
+    /* Escala de espaçamentos 8pt */
+    --space-1: 0.5rem;  /* 8px */
+    --space-2: 1rem;    /* 16px */
+    --space-3: 1.5rem;  /* 24px */
+    --space-4: 2rem;    /* 32px */
+
+    --radius-base: 0.5rem;
+    --transition-base: 0.2s ease-in-out;
+}
+
+[data-theme="dark"] {
+    --text-dark: #f7fafc;
+    --text-light: #a0aec0;
+    --background-light: #1a202c;
+    --card-background: #2d3748;
+    }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+}
+
+.long-text {
+    font-family: 'Merriweather', serif;
+    line-height: 1.5;
+}
+
+p {
+    margin-bottom: calc(var(--space-2) * 2);
+    letter-spacing: 0.12em;
+    word-spacing: 0.16em;
+}
+
+/* Fundo da página de login com imagem LOCAL */
+.login-background {
+    background-image: url('background.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.login-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 0;
+}
+
+/* Estilo de foco para inputs, usando a cor da marca */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    --tw-ring-color: var(--brand-green);
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    border-color: var(--brand-green) !important;
+}
+
+/* Estilo para o botão de filtro ativo */
+.filter-active {
+    background-color: var(--brand-green) !important;
+    color: white !important;
+    border-color: var(--brand-green) !important;
+}
+
+/* Estilo para o card de cliente */
+.client-card-item {
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease-in-out;
+}
+
+.client-card-item:hover {
+    border-color: var(--brand-green);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Classe de destaque para cards importantes */
+.card-highlight {
+    border: 1px solid var(--brand-green);
+    box-shadow: 0 4px 14px 0 rgba(58, 125, 68, 0.1);
+}
+
+/* Estilo para o ícone de Favorito e Premium */
+.icon-star {
+    color: #f59e0b; /* Amarelo/Laranja */
+}
+
+.icon-premium {
+    color: var(--brand-green);
+}
+
+/* Componentes base */
+.card {
+    background-color: var(--card-background);
+    border-radius: var(--radius-base);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    padding: var(--space-3);
+    transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+button, .btn {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-base);
+    transition: background-color var(--transition-base), transform var(--transition-base);
+}
+
+button:hover, .btn:hover {
+    transform: scale(1.02);
+}
+
+button:active, .btn:active {
+    transform: scale(0.98);
+}
+
+/* Estilo para os itens da agenda */
+.agenda-item .agenda-date {
+    background-color: var(--brand-green);
+    color: white;
+}
+/* Estilos para o Spinner de Carregamento */
+.spinner-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-bottom-color: var(--brand-green); /* Usa a cor verde da marca */
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+/* Estilos para as Notificações Toast */
+#toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 350px;
+    max-width: 90%;
+}
+
+.toast {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.toast.fade-out {
+    animation: fadeOut 0.5s ease-in forwards;
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    margin-top: 2px;
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Tipos de Toast */
+.toast-success {
+    background-color: #3a7d44; /* Verde da marca */
+}
+
+.toast-error {
+    background-color: #c53030; /* Vermelho */
+}
+
+.toast-info {
+    background-color: #2b6cb0; /* Azul */
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+/* ESTILO PARA O DROPDOWN DE NOTIFICAÇÕES */
+#notification-dropdown {
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    transform-origin: top right;
+}
+
+/* ===================================================================
+||              ESTILOS FINAIS PARA O BOTÃO TOGGLE SWITCH          ||
+=================================================================== */
+
+.toggle-checkbox:checked + .toggle-label {
+    background-color: var(--brand-green);
+}
+
+.toggle-checkbox:checked + .toggle-label::after {
+    transform: translateX(16px);
+}
+
+.toggle-label::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1.25rem; /* 20px */
+    height: 1.25rem; /* 20px */
+    background-color: white;
+    border-radius: 9999px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.toggle-label {
+    position: relative;
+}
+
+/* REGRA ADICIONADA: Garante que o checkbox seja 100% invisível */
+.toggle-checkbox {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+/* ===================================================================
+||              ESTILOS PARA O NOVO LAYOUT DE ABAS                 ||
+=================================================================== */
+
+.tab-btn {
+    border-color: transparent;
+    color: #6b7280; /* text-gray-500 */
+    transition: all 0.2s ease-in-out;
+}
+
+.tab-btn:hover {
+    border-color: #d1d5db; /* border-gray-300 */
+    color: #111827; /* text-gray-900 */
+}
+
+.tab-btn.active-tab {
+    border-color: var(--brand-green);
+    color: var(--brand-green);
+}
+
+/* NOVO: Estilos para garantir que o painel de visita e modais fiquem acima do mapa */
+#visitInProgressPanel,
+#addObservationModal,
+#formulaModal, /* Adicionado para garantir que o modal de fórmula esteja em cima */
+#modulesModal, /* Adicionado para garantir que o modal de módulos esteja em cima */
+#accessModal, /* Adicionado para garantir que o modal de acesso esteja em cima */
+#saleModal, /* Adicionado para garantir que o modal de vendas esteja em cima */
+#addTaskModal, /* Adicionado para garantir que o modal de tarefas esteja em cima */
+#addPropertyModal, /* Adicionado para garantir que o modal de propriedade esteja em cima */
+#mapModal, /* Adicionado para garantir que o modal de seleção de mapa esteja em cima */
+#analysisModal, /* Adicionado para garantir que o modal de análise esteja em cima */
+#viewAnalysisModal, /* Adicionado para garantir que o modal de visualização de análise esteja em cima */
+#managementModal, /* Adicionado para garantir que o modal de manejo esteja em cima */
+#imageLightboxModal /* Adicionado para garantir que o lightbox de imagem esteja em cima */ {
+    z-index: 9999 !important; /* Valor bem alto para garantir sobreposição */
+}
+
+/* ===================================================================
+||      ESTILOS PADRÃO PARA OS DASHBOARDS                        ||
+=================================================================== */
+
+.dashboard-header {
+    background-color: var(--brand-green);
+    color: white;
+}
+
+.dashboard-header a,
+.dashboard-header h1 {
+    color: inherit;
+}
+
+.dashboard-btn {
+    background-color: white;
+    color: var(--brand-green);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.dashboard-btn:hover {
+    background-color: #e6f4ea;
+}
+
+.dashboard-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.dashboard-card {
+    background-color: var(--card-background);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Elementos comuns entre os dashboards */
+.dashboard-logo {
+    height: 2.5rem;
+}
+
+.dashboard-section {
+    margin-top: 2rem;
+}
+
+.dashboard-section h2 {
+    margin-bottom: 1rem;
+}
+
+/* ========================================================== */
+/* Reusable Navbar component */
+.navbar {
+    background-color: var(--brand-green);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.navbar-logo img {
+    height: 40px;
+}
+.navbar-links a {
+    margin-right: 1rem;
+    color: #fff;
+    font-weight: 500;
+}
+.navbar-links a:last-child {
+    margin-right: 0;
+}
+.navbar-icons i {
+    font-size: 1.25rem;
+}
+.navbar-icons button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+.breadcrumbs {
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+.breadcrumbs a {
+    color: var(--brand-green);
+    margin-right: 0.25rem;
+}
+.breadcrumbs span {
+    color: var(--text-light);
+}
+/* ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
