@@ -9,37 +9,58 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
 </head>
- <body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100 text-gray-800">
   <div id="dashboard-agronomo-marker" class="hidden"></div>
 
-  <header class="dashboard-header shadow-md">
-    <div class="dashboard-container flex justify-between items-center h-16">
-      <div class="flex items-center space-x-4">
-        <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
-        <h1 class="text-xl font-bold">Painel do Agrônomo</h1>
-      </div>
-      <div class="flex space-x-2">
-        <button id="addClientBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-user-plus mr-2"></i>Adicionar Cliente</button>
-        <button onclick="logout()" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
-      </div>
+  <button id="sidebarToggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+    <i class="fas fa-bars"></i>
+  </button>
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="Orgânia" />
     </div>
-  </header>
+    <nav class="sidebar-nav">
+      <a href="dashboard-agronomo.html" class="sidebar-link"><i class="fas fa-home"></i><span>Clientes</span></a>
+      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
+      <div id="sidebarTasks" class="sidebar-submenu"></div>
+      <a href="agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
+      <a href="#" onclick="logout()" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span>Sair</span></a>
+    </nav>
+  </aside>
 
-  <main class="dashboard-container py-6">
-    <section class="dashboard-section">
-      <h2 class="text-lg font-semibold">Clientes</h2>
-      <div id="clientList" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-    </section>
+  <main class="main-content">
+    <header class="dashboard-header shadow-md">
+      <div class="dashboard-container flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
+          <h1 class="text-xl font-bold">Painel do Agrônomo</h1>
+        </div>
+        <div class="flex space-x-2">
+          <button id="addClientBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-user-plus mr-2"></i>Adicionar Cliente</button>
+          <button onclick="logout()" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-container py-6">
+      <section class="dashboard-section">
+        <h2 class="text-lg font-semibold">Clientes</h2>
+        <div id="clientList" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+    </div>
+
+    <footer class="text-center mt-8 text-gray-500 text-sm p-4">
+      <p>&copy; 2025 Orgânia Fertilizantes. A tecnologia para o campo não para.</p>
+    </footer>
   </main>
-
-  <footer class="text-center mt-8 text-gray-500 text-sm p-4">
-    <p>&copy; 2025 Orgânia Fertilizantes. A tecnologia para o campo não para.</p>
-  </footer>
 
   <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
   <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
   <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
- </body>
+  <script type="module" src="js/ui/sidebar.js"></script>
+</body>
 </html>
