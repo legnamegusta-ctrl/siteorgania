@@ -350,6 +350,7 @@ button:active, .btn:active {
     height: 64px;
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .dashboard-btn {
@@ -376,6 +377,23 @@ button:active, .btn:active {
 @media (min-width: 640px) {
     .dashboard-container {
         padding: 1.5rem;
+    }
+}
+
+@media (max-width: 1023px) {
+    #kpis-linha-2 {
+        display: flex;
+        overflow-x: auto;
+        gap: 12px;
+        padding-inline: 16px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+    #kpis-linha-2 > .dashboard-card {
+        min-width: 220px;
+        scroll-snap-align: start;
+        flex: 0 0 auto;
     }
 }
 

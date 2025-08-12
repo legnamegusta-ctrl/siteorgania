@@ -1,11 +1,15 @@
-import { db } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
 import {
   collection,
   doc,
   getDoc,
   getDocs,
   addDoc,
-  updateDoc
+  updateDoc,
+  Timestamp,
+  query,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
 
 let state = {
@@ -17,7 +21,8 @@ let state = {
   currentPage: 1,
   pageSize: 8,
   chart: null,
-  sevenChart: null
+  sevenChart: null,
+  currentTaskId: null
 };
 
 const barValuePlugin = {
@@ -164,20 +169,19 @@ function renderTable() {
       <td class="px-3 py-3 h-12 max-w-[160px] truncate min-w-[72px]">${t.plotName || t.talhao || t.plotId || '-'}</td>
       <td class="px-3 py-3 h-12 min-w-[112px]">${formatDate(t.dueDate)}</td>
       <td class="px-3 py-3 h-12 min-w-[120px]">${statusHtml}</td>
-      <td class="px-3 py-3 h-12">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 text-sm text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white" data-id="${t.id}">Concluir</button>` : ''}</td>
+      <td class="px-3 py-3 h-12">
+        <button class="details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1" data-id="${t.id}">
+          <i class="fas fa-eye"></i><span>Ver detalhes</span>
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Botões de concluir tarefa
-  tbody.querySelectorAll('.concluir-btn').forEach(btn => {
-    btn.onclick = async e => {
-      const id = e.target.getAttribute('data-id');
-      const task = state.filteredTasks.find(t => t.id === id);
-      if (task && task._ref) {
-        await updateDoc(task._ref, { isCompleted: true, completedAt: new Date() });
-        await fetchAndRenderTasks();
-      }
+  tbody.querySelectorAll('.details-btn').forEach(btn => {
+    btn.onclick = e => {
+      const id = e.currentTarget.getAttribute('data-id');
+      openTaskModalFromDashboard(id);
     };
   });
 }
@@ -448,6 +452,13 @@ function formatDate(date) {
   return d.toLocaleDateString('pt-BR');
 }
 
+function formatDateTime(ts) {
+  if (!ts) return '-';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
 function showModal(show) {
   document.getElementById('taskModal').classList.toggle('hidden', !show);
 }
@@ -478,4 +489,83 @@ async function createTask(e) {
 
   showModal(false);
   await fetchAndRenderTasks();
+}
+
+export async function openTaskModalFromDashboard(taskId) {
+  if (!state.farmClientId || !taskId) return;
+  state.currentTaskId = taskId;
+  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
+  const snap = await getDoc(taskRef);
+  if (!snap.exists()) return;
+  const data = snap.data();
+  document.getElementById('task-titulo-dash').value = data.title || '';
+  document.getElementById('task-talhao-dash').value = data.talhao || data.plotName || '';
+  document.getElementById('task-vencimento-dash').value = data.dueDate ? new Date(data.dueDate).toISOString().split('T')[0] : '';
+  document.getElementById('task-resp-dash').value = data.responsavel || data.responsible || '';
+  document.getElementById('task-desc-dash').value = data.description || '';
+  document.getElementById('task-modal-dash').classList.remove('hidden');
+  document.getElementById('task-titulo-dash').focus();
+  await loadComments(taskRef);
+  document.getElementById('btn-salvar-dash').onclick = () => saveTaskFromDashboard(taskId);
+  document.getElementById('btn-concluir-dash').onclick = () => completeTaskFromDashboard(taskId);
+  document.getElementById('btn-fechar-dash').onclick = () => document.getElementById('task-modal-dash').classList.add('hidden');
+  document.getElementById('btn-add-comment-dash').onclick = () => addCommentFromDashboard(taskId);
+}
+
+export async function saveTaskFromDashboard(taskId) {
+  if (!state.farmClientId || !taskId) return;
+  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
+  const updates = {
+    title: document.getElementById('task-titulo-dash').value,
+    talhao: document.getElementById('task-talhao-dash').value,
+    plotName: document.getElementById('task-talhao-dash').value,
+    dueDate: document.getElementById('task-vencimento-dash').value,
+    responsavel: document.getElementById('task-resp-dash').value,
+    description: document.getElementById('task-desc-dash').value
+  };
+  await updateDoc(taskRef, updates);
+  await fetchAndRenderTasks();
+}
+
+export async function completeTaskFromDashboard(taskId) {
+  if (!state.farmClientId || !taskId) return;
+  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
+  const snap = await getDoc(taskRef);
+  const data = snap.data() || {};
+  const updates = { status: 'Concluída', isCompleted: true };
+  if (!data.fim) updates.fim = Timestamp.now();
+  if (!data.completedAt) updates.completedAt = new Date();
+  await updateDoc(taskRef, updates);
+  await fetchAndRenderTasks();
+  document.getElementById('task-modal-dash').classList.add('hidden');
+}
+
+export async function addCommentFromDashboard(taskId) {
+  if (!state.farmClientId || !taskId) return;
+  const text = document.getElementById('comment-input-dash').value.trim();
+  if (!text) return;
+  const user = auth.currentUser;
+  const nome = user?.displayName || user?.email || user?.uid || 'Anônimo';
+  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
+  await addDoc(collection(taskRef, 'comentarios'), {
+    autorUid: user?.uid || '',
+    autorNome: nome,
+    texto: text,
+    criadoEm: Timestamp.now()
+  });
+  document.getElementById('comment-input-dash').value = '';
+  await loadComments(taskRef);
+}
+
+async function loadComments(taskRef) {
+  const list = document.getElementById('commentsListDash');
+  list.innerHTML = '';
+  const q = query(collection(taskRef, 'comentarios'), orderBy('criadoEm', 'desc'), limit(20));
+  const snap = await getDocs(q);
+  snap.forEach(c => {
+    const data = c.data();
+    const div = document.createElement('div');
+    div.innerHTML = `<p class="text-sm font-semibold">${data.autorNome || 'Anônimo'} <span class="text-xs text-gray-500">${formatDateTime(data.criadoEm)}</span></p><p class="text-sm">${data.texto || ''}</p>`;
+    list.appendChild(div);
+  });
 }
