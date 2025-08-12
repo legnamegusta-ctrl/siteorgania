@@ -79,8 +79,8 @@
        </button>
     </div>
 
-    <!-- GRADE: GRÁFICO E TABELA -->
-    <section class="dashboard-section grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+    <!-- GRADE: GRÁFICOS -->
+    <section class="dashboard-section grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <!-- GRÁFICO -->
       <section class="dashboard-card flex flex-col p-5">
         <h3 class="text-lg font-semibold mb-4">Resumo de Tarefas</h3>
@@ -89,7 +89,19 @@
         </div>
       </section>
 
-      <!-- TABELA -->
+      <!-- CARD 7 DIAS -->
+      <section id="card-7dias" class="dashboard-card flex flex-col p-5">
+        <h3 class="text-lg font-semibold mb-4">Vencem nos próximos 7 dias</h3>
+        <div id="card-7dias-loading" class="flex-1 flex items-center justify-center">Carregando...</div>
+        <div id="card-7dias-empty" class="hidden flex-1 flex items-center justify-center text-center text-sm text-gray-500">Nada vencendo nos próximos 7 dias</div>
+        <div id="card-7dias-chart" class="flex-1 flex items-center justify-center">
+          <canvas id="chart-7dias" class="w-full h-48 hidden"></canvas>
+        </div>
+      </section>
+    </section>
+
+    <!-- TABELA -->
+    <section class="dashboard-section flex-1">
       <section class="dashboard-card flex flex-col p-5">
         <div class="flex items-start justify-between mb-4">
           <h3 class="text-lg font-semibold">Tarefas</h3>
@@ -103,14 +115,14 @@
             </select>
           </div>
         </div>
-        <div class="overflow-auto">
-          <table class="min-w-full text-left text-sm">
+        <div class="overflow-x-auto md:overflow-x-visible">
+          <table class="w-full table-auto text-left text-sm">
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Título</th>
-                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Talhão</th>
-                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Data</th>
-                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Status</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[72px]">Talhão</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[112px]">Data</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[120px]">Status</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Ações</th>
               </tr>
             </thead>

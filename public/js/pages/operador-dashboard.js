@@ -16,7 +16,8 @@ let state = {
   filter: 'todas',
   currentPage: 1,
   pageSize: 8,
-  chart: null
+  chart: null,
+  sevenChart: null
 };
 
 export async function initOperadorDashboard(userId) {
@@ -108,6 +109,7 @@ async function fetchAndRenderTasks() {
     renderTable();
     renderMetrics();
     renderChart();
+    render7DaysChart();
   }
 
 function renderTable() {
@@ -134,9 +136,9 @@ function renderTable() {
     tr.className = 'border-b border-gray-200 hover:bg-gray-100';
     tr.innerHTML = `
       <td class="px-3 py-3 h-12 max-w-[160px] truncate">${t.title || t.description || '(Sem título)'}</td>
-      <td class="px-3 py-3 h-12 max-w-[160px] truncate">${t.plotName || t.talhao || t.plotId || '-'}</td>
-      <td class="px-3 py-3 h-12">${formatDate(t.dueDate)}</td>
-      <td class="px-3 py-3 h-12">${statusHtml}</td>
+      <td class="px-3 py-3 h-12 max-w-[160px] truncate min-w-[72px]">${t.plotName || t.talhao || t.plotId || '-'}</td>
+      <td class="px-3 py-3 h-12 min-w-[112px]">${formatDate(t.dueDate)}</td>
+      <td class="px-3 py-3 h-12 min-w-[120px]">${statusHtml}</td>
       <td class="px-3 py-3 h-12">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 text-sm text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white" data-id="${t.id}">Concluir</button>` : ''}</td>
     `;
     tbody.appendChild(tr);
@@ -190,8 +192,8 @@ function renderMetrics() {
   }
 
   function renderChart() {
-    if (!window.Chart) return;
-    const ctx = document.getElementById('tasksChart').getContext('2d');
+  if (!window.Chart) return;
+  const ctx = document.getElementById('tasksChart').getContext('2d');
     const now = new Date();
     const pendentes = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
     const concluidas = state.allTasks.filter(t => t.isCompleted).length;
@@ -231,6 +233,110 @@ function renderMetrics() {
         }
       });
   }
+}
+
+function render7DaysChart() {
+  if (!window.Chart) return;
+  const loadingEl = document.getElementById('card-7dias-loading');
+  const emptyEl = document.getElementById('card-7dias-empty');
+  const chartWrap = document.getElementById('card-7dias-chart');
+  const canvas = document.getElementById('chart-7dias');
+  if (!loadingEl || !emptyEl || !canvas || !chartWrap) return;
+
+  loadingEl.classList.remove('hidden');
+  emptyEl.classList.add('hidden');
+  chartWrap.classList.add('hidden');
+  canvas.classList.add('hidden');
+
+  const now = new Date();
+  const start = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+
+  const labels = ['Hoje', 'Amanhã', 'D+2', 'D+3', 'D+4', 'D+5', 'D+6'];
+  const counts = Array(7).fill(0);
+
+  state.allTasks.forEach(t => {
+    if (t.isCompleted) return;
+    const status = normalizeStatus(t.status || (new Date(t.dueDate) < now ? 'Atrasada' : 'Pendente'));
+    if (status !== 'pendente' && status !== 'atrasada') return;
+    const raw = parseDate(t.vencimento || t.dueDate);
+    if (!raw) return;
+    const due = new Date(raw.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    if (due < start || due > end) return;
+    const diff = Math.floor((due - start) / (1000 * 60 * 60 * 24));
+    if (diff >= 0 && diff < 7) counts[diff]++;
+  });
+
+  loadingEl.classList.add('hidden');
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (!total) {
+    emptyEl.classList.remove('hidden');
+    if (state.sevenChart) {
+      state.sevenChart.destroy();
+      state.sevenChart = null;
+    }
+    return;
+  }
+
+  chartWrap.classList.remove('hidden');
+  canvas.classList.remove('hidden');
+  const ctx = canvas.getContext('2d');
+  if (state.sevenChart) {
+    state.sevenChart.data.datasets[0].data = counts;
+    state.sevenChart.options.plugins.tooltip.callbacks.title = ctx => {
+      const idx = ctx[0].dataIndex;
+      const d = new Date(start);
+      d.setDate(start.getDate() + idx);
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    };
+    state.sevenChart.options.plugins.tooltip.callbacks.label = ctx => `${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`;
+    state.sevenChart.update();
+  } else {
+    state.sevenChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: counts,
+          backgroundColor: '#93C5FD',
+          borderColor: '#60A5FA',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: { precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: ctx => {
+                const idx = ctx[0].dataIndex;
+                const d = new Date(start);
+                d.setDate(start.getDate() + idx);
+                return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+              },
+              label: ctx => `${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+function parseDate(value) {
+  if (!value) return null;
+  return typeof value === 'string' ? new Date(value) : value.toDate?.() || new Date(value);
 }
 
 function normalizeStatus(str) {
