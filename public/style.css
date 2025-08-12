@@ -368,7 +368,7 @@ button:active, .btn:active {
 }
 
 .dashboard-container {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
     padding: 1rem;
 }
@@ -385,6 +385,10 @@ button:active, .btn:active {
     border-radius: 0.75rem; /* 12px */
     padding: 1.25rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.kpi-grid .dashboard-card {
+    min-height: 112px;
 }
 
 /* Elementos comuns entre os dashboards */
@@ -584,6 +588,8 @@ button:active, .btn:active {
     display: inline-flex;
     align-items: center;
     border: 1px solid transparent;
+    white-space: nowrap;
+    width: auto;
 }
 
 .status-pill.pending {
