@@ -37,11 +37,4 @@ function renderTable(ordens) {
 }
 
 function bindUI() {
-  const openBtn = document.getElementById('openSidebarBtn');
-  const mobileSidebar = document.getElementById('mobileSidebar');
-  const closeBtn = document.getElementById('closeSidebarBtn');
-  const closeMenu = document.getElementById('closeMobileMenu');
-  openBtn?.addEventListener('click', () => mobileSidebar?.classList.remove('hidden'));
-  closeBtn?.addEventListener('click', () => mobileSidebar?.classList.add('hidden'));
-  closeMenu?.addEventListener('click', () => mobileSidebar?.classList.add('hidden'));
 }

@@ -16,21 +16,40 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="min-h-screen bg-gray-100 text-gray-800">
-
   <div id="operador-dashboard-marker" class="hidden"></div>
 
-  <header class="dashboard-header shadow-md">
-    <div class="dashboard-container flex justify-between items-center h-16">
-      <div class="flex items-center space-x-4">
-        <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
-        <h1 class="text-2xl font-semibold">Dashboard do Operador</h1>
-      </div>
-      <button id="logoutBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
-    </div>
-  </header>
+  <button id="sidebarToggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+    <i class="fas fa-bars"></i>
+  </button>
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="dashboard-container flex flex-col py-6">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="Orgânia" />
+    </div>
+    <!-- Links podem receber data-role para controle de acesso -->
+    <nav class="sidebar-nav">
+      <a href="operador-dashboard.html" class="sidebar-link"><i class="fas fa-home"></i><span>Dashboard</span></a>
+      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
+      <a href="operador-ordens.html" class="sidebar-link"><i class="fas fa-clipboard-list"></i><span>Ordens</span><span id="ordersBadge" class="sidebar-badge"></span></a>
+      <a href="operador-agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
+      <a href="operador-perfil.html" class="sidebar-link"><i class="fas fa-user"></i><span>Perfil</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="dashboard-header shadow-md">
+      <div class="dashboard-container flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
+          <h1 class="text-2xl font-semibold">Dashboard do Operador</h1>
+        </div>
+        <button id="logoutBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="dashboard-container flex flex-col py-6">
 
     <!-- MÉTRICAS -->
 <section class="dashboard-section grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
@@ -101,7 +120,8 @@
         </div>
       </section>
     </section>
-  </div>
+    </div>
+  </main>
 
   <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-lg p-6 w-80">
@@ -126,5 +146,7 @@
       </form>
     </div>
   </div>
+
+  <script type="module" src="js/ui/sidebar.js"></script>
 </body>
 </html>
