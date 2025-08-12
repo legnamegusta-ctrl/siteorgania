@@ -6,11 +6,9 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  Timestamp,
-  query,
-  orderBy,
-  limit
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
 let state = {
   farmClientId: null,
@@ -51,10 +49,13 @@ if (window.Chart) {
 }
 
 export async function initOperadorDashboard(userId) {
+  initTaskModal();
   await loadFarmId(userId);
+  window.taskModalFarmId = state.farmClientId;
   bindUI();
   await loadPlots();
   await fetchAndRenderTasks();
+  document.addEventListener('task-updated', () => fetchAndRenderTasks());
 }
 
 async function loadFarmId(userId) {
@@ -181,7 +182,7 @@ function renderTable() {
   tbody.querySelectorAll('.details-btn').forEach(btn => {
     btn.onclick = e => {
       const id = e.currentTarget.getAttribute('data-id');
-      openTaskModalFromDashboard(id);
+      openTaskModal(id, 'table');
     };
   });
 }
@@ -489,83 +490,4 @@ async function createTask(e) {
 
   showModal(false);
   await fetchAndRenderTasks();
-}
-
-export async function openTaskModalFromDashboard(taskId) {
-  if (!state.farmClientId || !taskId) return;
-  state.currentTaskId = taskId;
-  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
-  const snap = await getDoc(taskRef);
-  if (!snap.exists()) return;
-  const data = snap.data();
-  document.getElementById('task-titulo-dash').value = data.title || '';
-  document.getElementById('task-talhao-dash').value = data.talhao || data.plotName || '';
-  document.getElementById('task-vencimento-dash').value = data.dueDate ? new Date(data.dueDate).toISOString().split('T')[0] : '';
-  document.getElementById('task-resp-dash').value = data.responsavel || data.responsible || '';
-  document.getElementById('task-desc-dash').value = data.description || '';
-  document.getElementById('task-modal-dash').classList.remove('hidden');
-  document.getElementById('task-titulo-dash').focus();
-  await loadComments(taskRef);
-  document.getElementById('btn-salvar-dash').onclick = () => saveTaskFromDashboard(taskId);
-  document.getElementById('btn-concluir-dash').onclick = () => completeTaskFromDashboard(taskId);
-  document.getElementById('btn-fechar-dash').onclick = () => document.getElementById('task-modal-dash').classList.add('hidden');
-  document.getElementById('btn-add-comment-dash').onclick = () => addCommentFromDashboard(taskId);
-}
-
-export async function saveTaskFromDashboard(taskId) {
-  if (!state.farmClientId || !taskId) return;
-  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
-  const updates = {
-    title: document.getElementById('task-titulo-dash').value,
-    talhao: document.getElementById('task-talhao-dash').value,
-    plotName: document.getElementById('task-talhao-dash').value,
-    dueDate: document.getElementById('task-vencimento-dash').value,
-    responsavel: document.getElementById('task-resp-dash').value,
-    description: document.getElementById('task-desc-dash').value
-  };
-  await updateDoc(taskRef, updates);
-  await fetchAndRenderTasks();
-}
-
-export async function completeTaskFromDashboard(taskId) {
-  if (!state.farmClientId || !taskId) return;
-  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
-  const snap = await getDoc(taskRef);
-  const data = snap.data() || {};
-  const updates = { status: 'Concluída', isCompleted: true };
-  if (!data.fim) updates.fim = Timestamp.now();
-  if (!data.completedAt) updates.completedAt = new Date();
-  await updateDoc(taskRef, updates);
-  await fetchAndRenderTasks();
-  document.getElementById('task-modal-dash').classList.add('hidden');
-}
-
-export async function addCommentFromDashboard(taskId) {
-  if (!state.farmClientId || !taskId) return;
-  const text = document.getElementById('comment-input-dash').value.trim();
-  if (!text) return;
-  const user = auth.currentUser;
-  const nome = user?.displayName || user?.email || user?.uid || 'Anônimo';
-  const taskRef = doc(db, 'clients', state.farmClientId, 'tasks', taskId);
-  await addDoc(collection(taskRef, 'comentarios'), {
-    autorUid: user?.uid || '',
-    autorNome: nome,
-    texto: text,
-    criadoEm: Timestamp.now()
-  });
-  document.getElementById('comment-input-dash').value = '';
-  await loadComments(taskRef);
-}
-
-async function loadComments(taskRef) {
-  const list = document.getElementById('commentsListDash');
-  list.innerHTML = '';
-  const q = query(collection(taskRef, 'comentarios'), orderBy('criadoEm', 'desc'), limit(20));
-  const snap = await getDocs(q);
-  snap.forEach(c => {
-    const data = c.data();
-    const div = document.createElement('div');
-    div.innerHTML = `<p class="text-sm font-semibold">${data.autorNome || 'Anônimo'} <span class="text-xs text-gray-500">${formatDateTime(data.criadoEm)}</span></p><p class="text-sm">${data.texto || ''}</p>`;
-    list.appendChild(div);
-  });
 }

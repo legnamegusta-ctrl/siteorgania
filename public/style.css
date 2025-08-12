@@ -692,3 +692,53 @@ button:active, .btn:active {
 #chart-7dias {
     cursor: pointer;
 }
+
+/* ----- Task modal ----- */
+#task-form.modal-read input[disabled],
+#task-form.modal-read textarea[disabled] {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    background-color: #6B7280;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-meta {
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+.btn-ghost {
+    background: transparent;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+}
+
+.btn-ghost:hover {
+    background-color: #f3f4f6;
+}
