@@ -59,13 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Lista de tarefas na sidebar
   const sidebarTasks = document.getElementById('sidebarTasks');
   if (sidebarTasks) {
-    fetch(`${API_BASE}/api/tarefas`)
-      .then(res => res.json())
-      .then(tasks => {
-        sidebarTasks.innerHTML = tasks.map(t => `<a href="operador-tarefas.html#${t.id || ''}" class="sidebar-sublink">${t.talhao || t.tipo || t.id}</a>`).join('');
+    const q = query(
+      collection(db, 'tarefas'),
+      where('status', 'in', ['pending', 'running'])
+    );
+
+    onSnapshot(
+      q,
+      snap => {
+        const tasks = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        sidebarTasks.innerHTML = tasks
+          .map(t => `<a href="operador-tarefas.html#${t.id}" class="sidebar-sublink">${t.talhao || t.tipo || t.id}</a>`)
+          .join('');
         sidebarTasks.classList.toggle('show', tasks.length > 0);
-      })
-      .catch(() => sidebarTasks.classList.remove('show'));
+      },
+      () => sidebarTasks.classList.remove('show')
+    );
   }
 
   // Badges: ordens abertas
