@@ -15,7 +15,7 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="min-h-screen bg-gray-100 text-gray-800">
+<body class="min-h-screen bg-gray-50 text-gray-800">
   <div id="operador-dashboard-marker" class="hidden"></div>
 
   <button id="sidebarToggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
@@ -38,52 +38,44 @@
   </aside>
 
   <main class="main-content">
-    <header class="dashboard-header shadow-md">
+    <header class="dashboard-header">
       <div class="dashboard-container flex justify-between items-center h-16">
-        <div class="flex items-center space-x-4">
-          <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
-          <h1 class="text-2xl font-semibold">Dashboard do Operador</h1>
-        </div>
-        <button id="logoutBtn" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
+        <h1 class="text-lg font-semibold">Dashboard do Operador</h1>
+        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
       </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <div class="dashboard-container flex flex-col py-6">
+    <div class="dashboard-container flex flex-col pt-4 pb-6">
 
-    <!-- MÉTRICAS DO MÊS -->
-    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <!-- KPIS -->
+    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Concluídas este mês</p>
-        <p id="monthCompleted" class="text-2xl font-bold">0</p>
+        <p class="text-xs text-gray-500">Concluídas mês</p>
+        <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
       </div>
       <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Novas este mês</p>
-        <p id="monthNew" class="text-2xl font-bold">0</p>
+        <p class="text-xs text-gray-500">Novas mês</p>
+        <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+      </div>
+      <div class="dashboard-card text-center">
+        <p class="text-xs text-gray-500">Pendentes</p>
+        <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
+      </div>
+      <div class="dashboard-card text-center">
+        <p class="text-xs text-gray-500">Atrasadas</p>
+        <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
+      </div>
+      <div class="dashboard-card text-center">
+        <p class="text-xs text-gray-500">Concluídas</p>
+        <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
       </div>
     </section>
 
-    <!-- MÉTRICAS GERAIS -->
-    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Pendentes</p>
-        <p id="totalPending" class="text-2xl font-bold">0</p>
-      </div>
-      <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Atrasadas</p>
-        <p id="totalDelayed" class="text-2xl font-bold">0</p>
-      </div>
-      <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Concluídas</p>
-        <p id="totalCompleted" class="text-2xl font-bold">0</p>
-      </div>
-    </section>
-
- <!-- CONTROLE: NOVA TAREFA -->
-    <div class="dashboard-section flex justify-end mb-4">
-         <button id="createTaskBtn"
-              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-        <i class="fas fa-plus mr-2"></i>Nova Tarefa
+    <!-- CONTROLE: NOVA TAREFA -->
+    <div class="dashboard-section flex justify-end mt-2 mb-4">
+         <button id="createTaskBtn" class="flex items-center gap-2 bg-green-600 text-white px-4 h-11 rounded hover:bg-green-700 transition">
+        <i class="fas fa-plus"></i><span>Nova Tarefa</span>
       </button>
     </div>
 
@@ -91,19 +83,19 @@
     <section class="dashboard-section grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
       <!-- GRÁFICO -->
       <section class="dashboard-card flex flex-col p-5">
-        <h3 class="text-lg font-medium mb-4">Resumo de Tarefas</h3>
+        <h3 class="text-lg font-semibold mb-4">Resumo de Tarefas</h3>
         <div class="flex-1 flex items-center justify-center">
-<canvas id="tasksChart" class="w-full max-w-sm h-48"></canvas>
+          <canvas id="tasksChart" class="w-full max-w-sm h-48"></canvas>
         </div>
       </section>
 
       <!-- TABELA -->
       <section class="dashboard-card flex flex-col p-5">
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
-          <h3 class="text-lg font-medium">Tarefas</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+          <h3 class="text-lg font-semibold">Tarefas</h3>
           <div>
-            <label for="filterSelect" class="mr-2 font-medium">Filtrar:</label>
-            <select id="filterSelect" class="border rounded p-1">
+            <label for="filterSelect" class="mr-2 text-sm text-gray-700">Filtrar:</label>
+            <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">
               <option value="todas">Todas</option>
               <option value="pendentes">Pendentes</option>
               <option value="concluidas">Concluídas</option>
@@ -111,15 +103,15 @@
             </select>
           </div>
         </div>
-                <div class="overflow-auto">
+        <div class="overflow-auto">
           <table class="min-w-full text-left text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-3 py-2">Título</th>
-                <th class="px-3 py-2">Talhão</th>
-                <th class="px-3 py-2">Data</th>
-                <th class="px-3 py-2">Status</th>
-                <th class="px-3 py-2">Ações</th>
+                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Título</th>
+                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Talhão</th>
+                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Data</th>
+                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Status</th>
+                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Ações</th>
               </tr>
             </thead>
             <tbody id="tasksTableBody"></tbody>
