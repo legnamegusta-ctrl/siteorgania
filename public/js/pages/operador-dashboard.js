@@ -125,24 +125,25 @@ function renderTable() {
     empty?.classList.add('hidden');
     }
 
-   const now = new Date();
-    pageItems.forEach(t => {
-      const due = new Date(t.dueDate);
-      const statusHtml = t.isCompleted
-        ? '<span class="text-green-600">Concluída</span>'
-        : (due < now
-            ? '<span class="text-red-600">Atrasada</span>'
-            : '<span class="text-yellow-600">Pendente</span>');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="px-3 py-2">${t.title || t.description || '(Sem título)'}</td>
-        <td class="px-3 py-2">${t.plotName || t.talhao || t.plotId || '-'}</td>
-        <td class="px-3 py-2">${formatDate(t.dueDate)}</td>
-        <td class="px-3 py-2">${statusHtml}</td>
-        <td class="px-3 py-2">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 bg-green-500 text-white rounded" data-id="${t.id}">Concluir</button>` : ''}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+  const now = new Date();
+  pageItems.forEach(t => {
+    const due = new Date(t.dueDate);
+    const statusHtml = t.isCompleted
+      ? '<span class="status-pill completed">Concluída</span>'
+      : (due < now
+          ? '<span class="status-pill delayed">Atrasada</span>'
+          : '<span class="status-pill pending">Pendente</span>');
+    const tr = document.createElement('tr');
+    tr.className = 'border-b border-gray-200 hover:bg-gray-50';
+    tr.innerHTML = `
+      <td class="px-3 py-3 max-w-[160px] truncate">${t.title || t.description || '(Sem título)'}</td>
+      <td class="px-3 py-3 max-w-[160px] truncate">${t.plotName || t.talhao || t.plotId || '-'}</td>
+      <td class="px-3 py-3">${formatDate(t.dueDate)}</td>
+      <td class="px-3 py-3">${statusHtml}</td>
+      <td class="px-3 py-3">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 text-sm text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white" data-id="${t.id}">Concluir</button>` : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 
   // Botões de concluir tarefa
   tbody.querySelectorAll('.concluir-btn').forEach(btn => {
@@ -178,11 +179,17 @@ function renderMetrics() {
     const monthCompletedEl = document.getElementById('monthCompleted');
     const monthNewEl = document.getElementById('monthNew');
 
-    if (totalPendingEl) totalPendingEl.textContent = pending;
-    if (totalDelayedEl) totalDelayedEl.textContent = delayed;
-    if (totalCompletedEl) totalCompletedEl.textContent = completed;
-    if (monthCompletedEl) monthCompletedEl.textContent = monthCompleted;
-    if (monthNewEl) monthNewEl.textContent = monthNew;
+    const setValue = (el, value) => {
+      if (!el) return;
+      el.textContent = value;
+      el.classList.remove('skeleton');
+    };
+
+    setValue(totalPendingEl, pending);
+    setValue(totalDelayedEl, delayed);
+    setValue(totalCompletedEl, completed);
+    setValue(monthCompletedEl, monthCompleted);
+    setValue(monthNewEl, monthNew);
   }
 
   function renderChart() {
@@ -192,16 +199,21 @@ function renderMetrics() {
     const pendentes = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
     const concluidas = state.allTasks.filter(t => t.isCompleted).length;
     const atrasadas = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
+    const colors = ['#FEF08A', '#86EFAC', '#FCA5A5'];
     if (state.chart) {
       state.chart.data.labels = ['Pendentes', 'Concluídas', 'Atrasadas'];
       state.chart.data.datasets[0].data = [pendentes, concluidas, atrasadas];
+      state.chart.data.datasets[0].backgroundColor = colors;
       state.chart.update();
     } else {
       state.chart = new Chart(ctx, {
         type: 'pie',
         data: {
           labels: ['Pendentes', 'Concluídas', 'Atrasadas'],
-          datasets: [{ data: [pendentes, concluidas, atrasadas] }]
+          datasets: [{
+            data: [pendentes, concluidas, atrasadas],
+            backgroundColor: colors
+          }]
         },
         options: { responsive: true }
       });
