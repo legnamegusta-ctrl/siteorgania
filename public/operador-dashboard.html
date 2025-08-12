@@ -37,60 +37,59 @@
     </nav>
   </aside>
 
-  <main class="main-content">
-    <header class="dashboard-header">
-      <div class="dashboard-container grid grid-cols-3 items-center">
-        <div></div>
-        <h1 class="text-lg font-semibold justify-self-center">Dashboard do Operador</h1>
-        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm justify-self-end"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
-      </div>
-    </header>
+    <main class="main-content">
+      <header class="dashboard-header">
+        <div class="dashboard-container flex items-center justify-center h-full">
+          <h1 class="text-lg font-semibold text-center">Dashboard do Operador</h1>
+        </div>
+        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm absolute right-6 top-1/2 -translate-y-1/2"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
+      </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="dashboard-container flex flex-col pt-4 pb-6">
 
     <!-- KPIS -->
-    <section class="dashboard-section flex flex-col gap-4 mb-6 kpi-grid">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div class="dashboard-card flex items-center gap-3">
-          <i class="fas fa-calendar-check text-[20px] text-gray-500"></i>
-          <div class="flex flex-col">
-            <p class="text-xs text-gray-500">Concluídas mês</p>
-            <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+      <section class="dashboard-section flex flex-col gap-4 mb-6 kpi-grid">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div class="dashboard-card flex items-center gap-3">
+            <i class="fas fa-calendar-check text-[20px] text-gray-500"></i>
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-500">Concluídas mês</p>
+              <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+            </div>
+          </div>
+          <div class="dashboard-card flex items-center gap-3">
+            <i class="fas fa-circle-plus text-[20px] text-gray-500"></i>
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-500">Novas mês</p>
+              <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+            </div>
           </div>
         </div>
-        <div class="dashboard-card flex items-center gap-3">
-          <i class="fas fa-circle-plus text-[20px] text-gray-500"></i>
-          <div class="flex flex-col">
-            <p class="text-xs text-gray-500">Novas mês</p>
-            <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+        <div id="kpis-linha-2" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="dashboard-card flex items-center gap-3">
+            <i class="fas fa-circle-check text-[20px] text-gray-500"></i>
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-500">Concluídas</p>
+              <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
+            </div>
+          </div>
+          <div class="dashboard-card flex items-center gap-3">
+            <i class="fas fa-clock text-[20px] text-gray-500"></i>
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-500">Pendentes</p>
+              <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
+            </div>
+          </div>
+          <div class="dashboard-card flex items-center gap-3">
+            <i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i>
+            <div class="flex flex-col">
+              <p class="text-xs text-gray-500">Atrasadas</p>
+              <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="dashboard-card flex items-center gap-3">
-          <i class="fas fa-circle-check text-[20px] text-gray-500"></i>
-          <div class="flex flex-col">
-            <p class="text-xs text-gray-500">Concluídas</p>
-            <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
-          </div>
-        </div>
-        <div class="dashboard-card flex items-center gap-3">
-          <i class="fas fa-clock text-[20px] text-gray-500"></i>
-          <div class="flex flex-col">
-            <p class="text-xs text-gray-500">Pendentes</p>
-            <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
-          </div>
-        </div>
-        <div class="dashboard-card flex items-center gap-3">
-          <i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i>
-          <div class="flex flex-col">
-            <p class="text-xs text-gray-500">Atrasadas</p>
-            <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
 
     <!-- GRADE: GRÁFICOS -->
     <section id="dash-graphs-row" class="dashboard-section mb-6">
@@ -157,9 +156,9 @@
     </div>
   </main>
 
-  <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-80">
-      <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+      <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+        <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>
       <form id="taskForm" class="space-y-4">
         <div>
           <label>Título</label>
@@ -182,8 +181,51 @@
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
         </div>
       </form>
+      </div>
     </div>
-  </div>
+
+    <div id="task-modal-dash" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden" aria-modal="true" role="dialog">
+      <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-4 border-b">
+          <h3 class="text-lg font-semibold">Detalhes da Tarefa</h3>
+          <button id="btn-fechar-dash" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="task-form-dash" class="p-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Título</label>
+            <input id="task-titulo-dash" class="w-full border rounded p-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Talhão</label>
+            <input id="task-talhao-dash" class="w-full border rounded p-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Vencimento</label>
+            <input id="task-vencimento-dash" type="date" class="w-full border rounded p-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Responsável</label>
+            <input id="task-resp-dash" class="w-full border rounded p-2" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Descrição</label>
+            <textarea id="task-desc-dash" class="w-full border rounded p-2" rows="3"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" id="btn-salvar-dash" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+            <button type="button" id="btn-concluir-dash" class="bg-blue-600 text-white px-4 py-2 rounded">Concluir</button>
+          </div>
+        </form>
+        <div class="p-4 border-t space-y-4">
+          <h4 class="text-md font-semibold">Comentários</h4>
+          <div id="commentsListDash" class="space-y-2"></div>
+          <div class="flex items-start gap-2">
+            <textarea id="comment-input-dash" class="flex-1 border rounded p-2" rows="2" placeholder="Escreva um comentário"></textarea>
+            <button id="btn-add-comment-dash" class="bg-gray-700 text-white px-3 py-2 rounded">Adicionar comentário</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   <script type="module" src="js/ui/sidebar.js"></script>
 </body>
