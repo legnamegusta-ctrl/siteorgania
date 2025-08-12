@@ -128,19 +128,16 @@ function renderTable() {
   const now = new Date();
   pageItems.forEach(t => {
     const due = new Date(t.dueDate);
-    const statusHtml = t.isCompleted
-      ? '<span class="status-pill completed">Concluída</span>'
-      : (due < now
-          ? '<span class="status-pill delayed">Atrasada</span>'
-          : '<span class="status-pill pending">Pendente</span>');
+    const status = t.isCompleted ? 'Concluída' : (due < now ? 'Atrasada' : 'Pendente');
+    const statusHtml = createStatusPill(status);
     const tr = document.createElement('tr');
-    tr.className = 'border-b border-gray-200 hover:bg-gray-50';
+    tr.className = 'border-b border-gray-200 hover:bg-gray-100';
     tr.innerHTML = `
-      <td class="px-3 py-3 max-w-[160px] truncate">${t.title || t.description || '(Sem título)'}</td>
-      <td class="px-3 py-3 max-w-[160px] truncate">${t.plotName || t.talhao || t.plotId || '-'}</td>
-      <td class="px-3 py-3">${formatDate(t.dueDate)}</td>
-      <td class="px-3 py-3">${statusHtml}</td>
-      <td class="px-3 py-3">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 text-sm text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white" data-id="${t.id}">Concluir</button>` : ''}</td>
+      <td class="px-3 py-3 h-12 max-w-[160px] truncate">${t.title || t.description || '(Sem título)'}</td>
+      <td class="px-3 py-3 h-12 max-w-[160px] truncate">${t.plotName || t.talhao || t.plotId || '-'}</td>
+      <td class="px-3 py-3 h-12">${formatDate(t.dueDate)}</td>
+      <td class="px-3 py-3 h-12">${statusHtml}</td>
+      <td class="px-3 py-3 h-12">${!t.isCompleted ? `<button class="concluir-btn px-2 py-1 text-sm text-green-700 border border-green-700 rounded hover:bg-green-700 hover:text-white" data-id="${t.id}">Concluir</button>` : ''}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -217,8 +214,29 @@ function renderMetrics() {
         },
         options: { responsive: true }
       });
-    }
   }
+}
+
+function normalizeStatus(str) {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function createStatusPill(status) {
+  const normalized = normalizeStatus(status);
+  if (normalized === 'concluida') {
+    return '<span class="status-pill completed">Concluída</span>';
+  }
+  if (normalized === 'atrasada') {
+    return '<span class="status-pill delayed">Atrasada</span>';
+  }
+  if (normalized === 'pendente') {
+    return '<span class="status-pill pending">Pendente</span>';
+  }
+  return `<span class="status-pill default">${status}</span>`;
+}
 
 function formatDate(date) {
   if (!date) return '-';
