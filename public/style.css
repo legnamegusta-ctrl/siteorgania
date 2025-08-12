@@ -652,7 +652,15 @@ button:active, .btn:active {
 #card-7dias-loading,
 #card-7dias-empty,
 #card-7dias-chart {
-    min-height: 360px;
+    min-height: 260px;
+}
+
+@media (min-width: 640px) {
+    #card-7dias-loading,
+    #card-7dias-empty,
+    #card-7dias-chart {
+        min-height: 300px;
+    }
 }
 
 #card-7dias-empty {

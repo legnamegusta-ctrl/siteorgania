@@ -39,9 +39,10 @@
 
   <main class="main-content">
     <header class="dashboard-header">
-      <div class="dashboard-container flex justify-between items-center">
-        <h1 class="text-lg font-semibold">Dashboard do Operador</h1>
-        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
+      <div class="dashboard-container grid grid-cols-3 items-center">
+        <div></div>
+        <h1 class="text-lg font-semibold justify-self-center">Dashboard do Operador</h1>
+        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm justify-self-end"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
       </div>
     </header>
 
@@ -49,43 +50,55 @@
     <div class="dashboard-container flex flex-col pt-4 pb-6">
 
     <!-- KPIS -->
-    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 kpi-grid">
-      <div class="dashboard-card text-center">
-        <p class="text-xs text-gray-500">Concluídas mês</p>
-        <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+    <section class="dashboard-section flex flex-col gap-4 mb-6 kpi-grid">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="dashboard-card flex items-center gap-3">
+          <i class="fas fa-calendar-check text-[20px] text-gray-500"></i>
+          <div class="flex flex-col">
+            <p class="text-xs text-gray-500">Concluídas mês</p>
+            <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+          </div>
+        </div>
+        <div class="dashboard-card flex items-center gap-3">
+          <i class="fas fa-circle-plus text-[20px] text-gray-500"></i>
+          <div class="flex flex-col">
+            <p class="text-xs text-gray-500">Novas mês</p>
+            <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+          </div>
+        </div>
       </div>
-      <div class="dashboard-card text-center">
-        <p class="text-xs text-gray-500">Novas mês</p>
-        <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
-      </div>
-      <div class="dashboard-card text-center">
-        <p class="text-xs text-gray-500">Pendentes</p>
-        <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
-      </div>
-      <div class="dashboard-card text-center">
-        <p class="text-xs text-gray-500">Atrasadas</p>
-        <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
-      </div>
-      <div class="dashboard-card text-center">
-        <p class="text-xs text-gray-500">Concluídas</p>
-        <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="dashboard-card flex items-center gap-3">
+          <i class="fas fa-circle-check text-[20px] text-gray-500"></i>
+          <div class="flex flex-col">
+            <p class="text-xs text-gray-500">Concluídas</p>
+            <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
+          </div>
+        </div>
+        <div class="dashboard-card flex items-center gap-3">
+          <i class="fas fa-clock text-[20px] text-gray-500"></i>
+          <div class="flex flex-col">
+            <p class="text-xs text-gray-500">Pendentes</p>
+            <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
+          </div>
+        </div>
+        <div class="dashboard-card flex items-center gap-3">
+          <i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i>
+          <div class="flex flex-col">
+            <p class="text-xs text-gray-500">Atrasadas</p>
+            <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
+          </div>
+        </div>
       </div>
     </section>
-
-    <!-- CONTROLE: NOVA TAREFA -->
-    <div class="dashboard-section flex justify-end mt-2 mb-4">
-         <button id="createTaskBtn" class="flex items-center gap-2 bg-[#6C9F3D] text-white px-4 h-11 rounded hover:bg-[#5A8733] transition">
-         <i class="fas fa-plus"></i><span>Nova Tarefa</span>
-       </button>
-    </div>
 
     <!-- GRADE: GRÁFICOS -->
     <section id="dash-graphs-row" class="dashboard-section grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <!-- GRÁFICO -->
       <section class="dashboard-card flex flex-col p-5">
         <h3 class="text-lg font-semibold mb-4">Resumo de Tarefas</h3>
-        <div class="flex-1 flex items-center justify-center">
-          <canvas id="tasksChart" class="w-full max-w-sm h-48"></canvas>
+        <div class="flex items-center justify-center h-[260px] sm:h-[300px]">
+          <canvas id="tasksChart" class="w-full h-full"></canvas>
         </div>
       </section>
 
@@ -93,12 +106,12 @@
       <section id="card-7dias" class="dashboard-card flex flex-col p-5">
         <h3 class="text-lg font-semibold">Vencem nos próximos 7 dias</h3>
         <p class="text-xs text-gray-500 mb-4">Somente Pendentes e Atrasadas</p>
-        <div id="card-7dias-loading" class="flex-1 flex items-center justify-center">Carregando...</div>
-        <div id="card-7dias-empty" class="hidden flex-1 flex flex-col items-center justify-center gap-2 text-center text-gray-500 text-[13px]">
+        <div id="card-7dias-loading" class="flex items-center justify-center h-[260px] sm:h-[300px]">Carregando...</div>
+        <div id="card-7dias-empty" class="hidden flex flex-col items-center justify-center gap-2 text-center text-gray-500 text-[13px] h-[260px] sm:h-[300px]">
           <i class="fas fa-calendar-check text-xl"></i>
           <span>Nada vencendo nos próximos 7 dias</span>
         </div>
-        <div id="card-7dias-chart" class="flex-1 flex items-center justify-center">
+        <div id="card-7dias-chart" class="flex items-center justify-center h-[260px] sm:h-[300px]">
           <canvas id="chart-7dias" class="w-full h-full hidden cursor-pointer"></canvas>
         </div>
       </section>
@@ -107,16 +120,21 @@
     <!-- TABELA -->
     <section id="dash-table-row" class="dashboard-section w-full">
       <section class="dashboard-card flex flex-col p-5">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Tarefas</h3>
-          <div class="flex items-center">
-            <label for="filterSelect" class="mr-2 text-sm text-gray-700">Filtrar:</label>
-            <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
-              <option value="todas">Todas</option>
-              <option value="pendentes">Pendentes</option>
-              <option value="concluidas">Concluídas</option>
-              <option value="atrasadas">Atrasadas</option>
-            </select>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center">
+              <label for="filterSelect" class="mr-2 text-sm text-gray-700">Filtrar:</label>
+              <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
+                <option value="todas">Todas</option>
+                <option value="pendentes">Pendentes</option>
+                <option value="concluidas">Concluídas</option>
+                <option value="atrasadas">Atrasadas</option>
+              </select>
+            </div>
+            <button id="createTaskBtn" class="flex items-center gap-2 bg-[#6C9F3D] text-white px-4 h-11 rounded hover:bg-[#5A8733] transition">
+              <i class="fas fa-plus"></i><span>Nova Tarefa</span>
+            </button>
           </div>
         </div>
         <div class="overflow-x-auto md:overflow-x-visible">
