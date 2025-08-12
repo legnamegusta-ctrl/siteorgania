@@ -93,25 +93,25 @@
     </section>
 
     <!-- GRADE: GRÁFICOS -->
-    <section id="dash-graphs-row" class="dashboard-section grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <section id="dash-graphs-row" class="dashboard-section mb-6">
       <!-- GRÁFICO -->
-      <section class="dashboard-card flex flex-col p-5">
+      <section class="dashboard-card flex flex-col p-5 min-w-0">
         <h3 class="text-lg font-semibold mb-4">Resumo de Tarefas</h3>
-        <div class="flex items-center justify-center h-[260px] sm:h-[300px]">
+        <div class="flex items-center justify-center w-full h-[260px] sm:h-[300px]">
           <canvas id="tasksChart" class="w-full h-full"></canvas>
         </div>
       </section>
 
       <!-- CARD 7 DIAS -->
-      <section id="card-7dias" class="dashboard-card flex flex-col p-5">
+      <section id="card-7dias" class="dashboard-card flex flex-col p-5 min-w-0">
         <h3 class="text-lg font-semibold">Vencem nos próximos 7 dias</h3>
         <p class="text-xs text-gray-500 mb-4">Somente Pendentes e Atrasadas</p>
-        <div id="card-7dias-loading" class="flex items-center justify-center h-[260px] sm:h-[300px]">Carregando...</div>
-        <div id="card-7dias-empty" class="hidden flex flex-col items-center justify-center gap-2 text-center text-gray-500 text-[13px] h-[260px] sm:h-[300px]">
+        <div id="card-7dias-loading" class="flex items-center justify-center w-full h-[280px] sm:h-[300px]">Carregando...</div>
+        <div id="card-7dias-empty" class="hidden flex flex-col items-center justify-center gap-2 text-center text-gray-500 text-[13px] w-full h-[280px] sm:h-[300px]">
           <i class="fas fa-calendar-check text-xl"></i>
           <span>Nada vencendo nos próximos 7 dias</span>
         </div>
-        <div id="card-7dias-chart" class="flex items-center justify-center h-[260px] sm:h-[300px]">
+        <div id="card-7dias-chart" class="flex items-center justify-center w-full h-[280px] sm:h-[300px] max-w-full">
           <canvas id="chart-7dias" class="w-full h-full hidden cursor-pointer"></canvas>
         </div>
       </section>

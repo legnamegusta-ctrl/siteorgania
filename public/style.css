@@ -385,6 +385,8 @@ button:active, .btn:active {
     border-radius: 0.75rem; /* 12px */
     padding: 1.25rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .kpi-grid .dashboard-card {
@@ -408,12 +410,13 @@ button:active, .btn:active {
 #dash-graphs-row {
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
 }
 
 @media (min-width: 1024px) {
     #dash-graphs-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 }
 
