@@ -484,6 +484,32 @@ button:active, .btn:active {
     display: inline-block;
 }
 
+.sidebar-submenu {
+    display: none;
+    flex-direction: column;
+    margin-left: 24px;
+    margin-top: 4px;
+}
+
+.sidebar-submenu.show {
+    display: flex;
+}
+
+.sidebar-sublink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: #1F2937;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.sidebar-sublink:hover {
+    background: #F3F4F6;
+}
+
 .sidebar-indicator {
     margin-left: auto;
     width: 8px;
