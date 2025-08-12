@@ -245,6 +245,7 @@ function renderMetrics() {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: {
               position: 'top',
@@ -381,6 +382,7 @@ function render7DaysChart() {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         onClick: (evt, elements) => {
           if (elements.length) {
             const idx = elements[0].index;
