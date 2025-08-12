@@ -201,6 +201,8 @@ function renderMetrics() {
       state.chart.data.labels = ['Pendentes', 'Concluídas', 'Atrasadas'];
       state.chart.data.datasets[0].data = [pendentes, concluidas, atrasadas];
       state.chart.data.datasets[0].backgroundColor = colors;
+      state.chart.data.datasets[0].borderColor = '#ffffff';
+      state.chart.data.datasets[0].borderWidth = 2;
       state.chart.update();
     } else {
       state.chart = new Chart(ctx, {
@@ -209,10 +211,24 @@ function renderMetrics() {
           labels: ['Pendentes', 'Concluídas', 'Atrasadas'],
           datasets: [{
             data: [pendentes, concluidas, atrasadas],
-            backgroundColor: colors
+            backgroundColor: colors,
+            borderColor: '#ffffff',
+            borderWidth: 2
           }]
         },
-        options: { responsive: true }
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { size: 12 },
+                color: '#6B7280',
+                padding: 8
+              }
+            }
+          }
+        }
       });
   }
 }
