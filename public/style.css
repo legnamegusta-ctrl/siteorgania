@@ -76,14 +76,15 @@ letter-spacing: normal;
     z-index: 0;
 }
 
-/* Estilo de foco para inputs, usando a cor da marca */
-input:focus, select:focus, textarea:focus {
+/* Estilo de foco visível para elementos interativos */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+a:focus {
     outline: none;
-    --tw-ring-color: var(--brand-green);
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-    border-color: var(--brand-green) !important;
+    box-shadow: 0 0 0 3px rgba(108,159,61,0.30);
+    border-color: #6C9F3D !important;
 }
 
 /* Estilo para o botão de filtro ativo */
@@ -346,6 +347,9 @@ button:active, .btn:active {
     border-bottom: 1px solid #E5E7EB;
     box-shadow: 0 1px 0 rgba(0,0,0,0.02);
     color: #1F2937;
+    height: 64px;
+    display: flex;
+    align-items: center;
 }
 
 .dashboard-btn {
@@ -376,11 +380,11 @@ button:active, .btn:active {
 }
 
 .dashboard-card {
-    background-color: var(--card-background);
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.75rem; /* 12px */
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 /* Elementos comuns entre os dashboards */
@@ -577,26 +581,33 @@ button:active, .btn:active {
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
 }
 
 .status-pill.pending {
-    background: #FEF08A;
-    color: #92400E;
+    background: #FEF9C3;
+    color: #854D0E;
+    border-color: #FEF08A;
 }
 
 .status-pill.delayed {
-    background: #FCA5A5;
+    background: #FEE2E2;
     color: #991B1B;
+    border-color: #FECACA;
 }
 
 .status-pill.completed {
-    background: #86EFAC;
+    background: #DCFCE7;
     color: #166534;
+    border-color: #BBF7D0;
 }
 
 .status-pill.default {
     background: #E5E7EB;
     color: #1F2937;
+    border-color: #D1D5DB;
 }
 
 /* Simple skeleton loader */

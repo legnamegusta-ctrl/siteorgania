@@ -39,7 +39,7 @@
 
   <main class="main-content">
     <header class="dashboard-header">
-      <div class="dashboard-container flex justify-between items-center h-16">
+      <div class="dashboard-container flex justify-between items-center">
         <h1 class="text-lg font-semibold">Dashboard do Operador</h1>
         <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
       </div>
@@ -49,7 +49,7 @@
     <div class="dashboard-container flex flex-col pt-4 pb-6">
 
     <!-- KPIS -->
-    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 kpi-grid">
       <div class="dashboard-card text-center">
         <p class="text-xs text-gray-500">Concluídas mês</p>
         <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
@@ -62,11 +62,11 @@
         <p class="text-xs text-gray-500">Pendentes</p>
         <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
       </div>
-      <div class="dashboard-card text-center">
+      <div class="dashboard-card text-center lg:col-span-2">
         <p class="text-xs text-gray-500">Atrasadas</p>
         <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
       </div>
-      <div class="dashboard-card text-center">
+      <div class="dashboard-card text-center lg:col-span-2">
         <p class="text-xs text-gray-500">Concluídas</p>
         <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
       </div>
@@ -74,9 +74,9 @@
 
     <!-- CONTROLE: NOVA TAREFA -->
     <div class="dashboard-section flex justify-end mt-2 mb-4">
-         <button id="createTaskBtn" class="flex items-center gap-2 bg-green-600 text-white px-4 h-11 rounded hover:bg-green-700 transition">
-        <i class="fas fa-plus"></i><span>Nova Tarefa</span>
-      </button>
+         <button id="createTaskBtn" class="flex items-center gap-2 bg-[#6C9F3D] text-white px-4 h-11 rounded hover:bg-[#5A8733] transition">
+         <i class="fas fa-plus"></i><span>Nova Tarefa</span>
+       </button>
     </div>
 
     <!-- GRADE: GRÁFICO E TABELA -->
@@ -95,7 +95,7 @@
           <h3 class="text-lg font-semibold">Tarefas</h3>
           <div>
             <label for="filterSelect" class="mr-2 text-sm text-gray-700">Filtrar:</label>
-            <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">
+            <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
               <option value="todas">Todas</option>
               <option value="pendentes">Pendentes</option>
               <option value="concluidas">Concluídas</option>
@@ -107,11 +107,11 @@
           <table class="min-w-full text-left text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Título</th>
-                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Talhão</th>
-                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Data</th>
-                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Status</th>
-                <th scope="col" class="px-3 py-3 text-xs font-semibold text-gray-700">Ações</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Título</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Talhão</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Data</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Status</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Ações</th>
               </tr>
             </thead>
             <tbody id="tasksTableBody"></tbody>
