@@ -1,19 +1,30 @@
 // public/js/pages/operador-tarefas.js
 
-const API_BASE = window.location.hostname === 'localhost'
-  ? ''
-  : 'https://us-central1-app-organia.cloudfunctions.net';
+import { db } from '../config/firebase.js';
+import {
+  collection,
+  onSnapshot
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 export function initOperadorTarefas(userId, userRole) {
   loadTasks();
   bindUI();
 }
 
-async function loadTasks() {
+function loadTasks() {
   try {
-    const res = await fetch(`${API_BASE}/api/tarefas`);
-    const data = await res.json();
-    renderList(Array.isArray(data) ? data : []);
+    const q = collection(db, 'tarefas');
+    onSnapshot(
+      q,
+      snap => {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderList(data);
+      },
+      err => {
+        console.error('Erro ao carregar tarefas', err);
+        renderList([]);
+      }
+    );
   } catch (e) {
     console.error(e);
     renderList([]);
@@ -21,7 +32,7 @@ async function loadTasks() {
 }
 
 function renderList(tasks) {
-const tbody = document.getElementById('tasksList');
+  const tbody = document.getElementById('tasksList');
   if (!tbody) return;
   tbody.innerHTML = '';
   tasks.forEach(t => {
