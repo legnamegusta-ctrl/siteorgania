@@ -7,13 +7,15 @@ import {
   doc,
   getDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
 const state = { farmClientId: null };
 
 export async function initOperadorTarefas(userId, userRole) {
   await loadFarmId(userId);
+  window.taskModalFarmId = state.farmClientId;
+  initTaskModal();
   loadTasks();
-  bindUI();
 }
 
 async function loadFarmId(userId) {
@@ -73,11 +75,11 @@ function renderList(tasks) {
     tdStatus.textContent = statusText;
 
     const tdAction = document.createElement('td');
-    tdAction.className = 'px-4 py-2 text-right';
+    tdAction.className = 'px-4 py-2';
     const btn = document.createElement('button');
-    btn.className = 'bg-green-600 text-white text-sm px-3 py-1 rounded hover:bg-green-700 transition';
-    btn.textContent = 'Detalhes';
-    btn.addEventListener('click', () => openTaskModal({ ...t, status: statusText }));
+    btn.className = 'details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1';
+    btn.innerHTML = '<i class="fas fa-eye"></i><span>Ver detalhes</span>';
+    btn.addEventListener('click', () => openTaskModal(t.id, 'table'));
     tdAction.appendChild(btn);
 
     tr.appendChild(tdTalhao);
@@ -89,31 +91,3 @@ function renderList(tasks) {
   });
 }
 
-function bindUI() {
-  const modal = document.getElementById('taskModal');
-  const closeModal = document.getElementById('closeTaskModal');
-  closeModal?.addEventListener('click', hideTaskModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) hideTaskModal();
-  });
-}
-
-function openTaskModal(task) {
-  const modal = document.getElementById('taskModal');
-  const content = document.getElementById('taskModalContent');
-  if (!modal || !content) return;
-  const due = task.dueDate ? new Date(task.dueDate).toLocaleDateString('pt-BR') : '-';
-  content.innerHTML = `
-    <p><strong>Título:</strong> ${task.title || '-'}</p>
-    <p><strong>Talhão:</strong> ${task.plotName || '-'}</p>
-    <p><strong>Vencimento:</strong> ${due}</p>
-    <p><strong>Status:</strong> ${task.status || '-'}</p>
-    <p><strong>Descrição:</strong> ${task.description || 'Sem descrição'}</p>
-  `;
-  modal.classList.remove('hidden');
-}
-
-function hideTaskModal() {
-  const modal = document.getElementById('taskModal');
-  modal?.classList.add('hidden');
-}
