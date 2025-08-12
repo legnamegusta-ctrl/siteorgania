@@ -61,6 +61,10 @@ function renderList(tasks) {
     tdTipo.className = 'px-4 py-2';
     tdTipo.textContent = t.title || t.tipo || t.id;
 
+    const tdVenc = document.createElement('td');
+    tdVenc.className = 'px-4 py-2';
+    tdVenc.textContent = t.dueDate ? new Date(t.dueDate).toLocaleDateString('pt-BR') : '-';
+
     const tdStatus = document.createElement('td');
     tdStatus.className = 'px-4 py-2';
     let statusText = 'Pendente';
@@ -78,6 +82,7 @@ function renderList(tasks) {
 
     tr.appendChild(tdTalhao);
     tr.appendChild(tdTipo);
+    tr.appendChild(tdVenc);
     tr.appendChild(tdStatus);
     tr.appendChild(tdAction);
     tbody.appendChild(tr);
@@ -101,7 +106,7 @@ function openTaskModal(task) {
   content.innerHTML = `
     <p><strong>Título:</strong> ${task.title || '-'}</p>
     <p><strong>Talhão:</strong> ${task.plotName || '-'}</p>
-    <p><strong>Data:</strong> ${due}</p>
+    <p><strong>Vencimento:</strong> ${due}</p>
     <p><strong>Status:</strong> ${task.status || '-'}</p>
     <p><strong>Descrição:</strong> ${task.description || 'Sem descrição'}</p>
   `;

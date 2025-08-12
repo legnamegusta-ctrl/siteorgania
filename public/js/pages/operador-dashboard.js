@@ -150,7 +150,7 @@ function renderTable() {
       const id = e.target.getAttribute('data-id');
       const task = state.filteredTasks.find(t => t.id === id);
       if (task && task._ref) {
-        await updateDoc(task._ref, { isCompleted: true });
+        await updateDoc(task._ref, { isCompleted: true, completedAt: new Date() });
         await fetchAndRenderTasks();
       }
     };
@@ -159,19 +159,30 @@ function renderTable() {
 
 function renderMetrics() {
     const now = new Date();
-    const pending   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
+    const pending = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
+    const delayed = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
     const completed = state.allTasks.filter(t => t.isCompleted).length;
-    const delayed   = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
 
-    const totalTasksEl     = document.getElementById('totalTasks');
-    const totalPendingEl   = document.getElementById('totalPending');
+    const sameMonth = d => {
+      if (!d) return false;
+      const date = d.toDate ? d.toDate() : new Date(d);
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    };
+
+    const monthCompleted = state.allTasks.filter(t => t.isCompleted && sameMonth(t.completedAt)).length;
+    const monthNew = state.allTasks.filter(t => sameMonth(t.createdAt)).length;
+
+    const totalPendingEl = document.getElementById('totalPending');
+    const totalDelayedEl = document.getElementById('totalDelayed');
     const totalCompletedEl = document.getElementById('totalCompleted');
-    const totalDelayedEl   = document.getElementById('totalDelayed');
+    const monthCompletedEl = document.getElementById('monthCompleted');
+    const monthNewEl = document.getElementById('monthNew');
 
-    if (totalTasksEl)     totalTasksEl.textContent     = state.allTasks.length;
-    if (totalPendingEl)   totalPendingEl.textContent   = pending;
+    if (totalPendingEl) totalPendingEl.textContent = pending;
+    if (totalDelayedEl) totalDelayedEl.textContent = delayed;
     if (totalCompletedEl) totalCompletedEl.textContent = completed;
-    if (totalDelayedEl)   totalDelayedEl.textContent   = delayed;
+    if (monthCompletedEl) monthCompletedEl.textContent = monthCompleted;
+    if (monthNewEl) monthNewEl.textContent = monthNew;
   }
 
   function renderChart() {
@@ -211,15 +222,17 @@ async function createTask(e) {
   e.preventDefault();
   const title  = document.getElementById('taskTitle').value;
   const plotSelect = document.getElementById('taskTalhao');
- const selectedOption = plotSelect.options[plotSelect.selectedIndex];
+  const selectedOption = plotSelect.options[plotSelect.selectedIndex];
   const plotPath = plotSelect.value;
   const plotName = selectedOption?.text || '';
   const propertyId = selectedOption?.dataset.propertyId || null;
-  const plotId = selectedOption?.dataset.plotId || null;  
+  const plotId = selectedOption?.dataset.plotId || null;
+  const description = document.getElementById('taskDescription').value;
   const dueDate = document.getElementById('taskDate').value;
 
   await addDoc(collection(db, 'clients', state.farmClientId, 'tasks'), {
     title,
+    description,
     plotPath,
     plotName,
      propertyId,

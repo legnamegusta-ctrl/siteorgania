@@ -32,7 +32,6 @@
       <a href="operador-dashboard.html" class="sidebar-link"><i class="fas fa-home"></i><span>Dashboard</span></a>
       <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
       <div id="sidebarTasks" class="sidebar-submenu"></div>
-      <a href="operador-ordens.html" class="sidebar-link"><i class="fas fa-clipboard-list"></i><span>Ordens</span><span id="ordersBadge" class="sidebar-badge"></span></a>
       <a href="operador-agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
       <a href="operador-perfil.html" class="sidebar-link"><i class="fas fa-user"></i><span>Perfil</span></a>
     </nav>
@@ -52,23 +51,31 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="dashboard-container flex flex-col py-6">
 
-    <!-- MÉTRICAS -->
-<section class="dashboard-section grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-            <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Total</p>
-        <p id="totalTasks" class="text-2xl font-bold">0</p>
+    <!-- MÉTRICAS DO MÊS -->
+    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div class="dashboard-card text-center">
+        <p class="text-sm text-gray-500">Concluídas este mês</p>
+        <p id="monthCompleted" class="text-2xl font-bold">0</p>
       </div>
+      <div class="dashboard-card text-center">
+        <p class="text-sm text-gray-500">Novas este mês</p>
+        <p id="monthNew" class="text-2xl font-bold">0</p>
+      </div>
+    </section>
+
+    <!-- MÉTRICAS GERAIS -->
+    <section class="dashboard-section grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Pendentes</p>
         <p id="totalPending" class="text-2xl font-bold">0</p>
       </div>
       <div class="dashboard-card text-center">
-        <p class="text-sm text-gray-500">Concluídas</p>
-        <p id="totalCompleted" class="text-2xl font-bold">0</p>
-      </div>
-         <div class="dashboard-card text-center">
         <p class="text-sm text-gray-500">Atrasadas</p>
         <p id="totalDelayed" class="text-2xl font-bold">0</p>
+      </div>
+      <div class="dashboard-card text-center">
+        <p class="text-sm text-gray-500">Concluídas</p>
+        <p id="totalCompleted" class="text-2xl font-bold">0</p>
       </div>
     </section>
 
@@ -135,6 +142,10 @@
         <div>
           <label>Talhão</label>
           <select id="taskTalhao" required class="w-full border rounded p-2"></select>
+        </div>
+        <div>
+          <label>Descrição</label>
+          <textarea id="taskDescription" class="w-full border rounded p-2" rows="3"></textarea>
         </div>
         <div>
           <label>Data (YYYY-MM-DD)</label>
