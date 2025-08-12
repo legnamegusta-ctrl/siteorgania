@@ -404,6 +404,23 @@ button:active, .btn:active {
     margin-bottom: 1rem;
 }
 
+/* Dashboard rows layout */
+#dash-graphs-row {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+    #dash-graphs-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+#dash-table-row {
+    width: 100%;
+}
+
 @media (prefers-reduced-motion: reduce) {
     * {
         animation: none !important;
