@@ -77,17 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  // Badges: ordens abertas
-  const ordersBadge = document.getElementById('ordersBadge');
-  if (ordersBadge) {
-    const q = query(collection(db, 'ordens'), where('status', '==', 'aberta'));
-    onSnapshot(q, snap => {
-      const count = snap.size;
-      ordersBadge.textContent = count;
-      ordersBadge.classList.toggle('show', count > 0);
-    });
-  }
-
   // Agenda indicator
   const agendaIndicator = document.getElementById('agendaIndicator');
   if (agendaIndicator) {
