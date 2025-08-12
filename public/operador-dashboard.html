@@ -91,11 +91,15 @@
 
       <!-- CARD 7 DIAS -->
       <section id="card-7dias" class="dashboard-card flex flex-col p-5">
-        <h3 class="text-lg font-semibold mb-4">Vencem nos próximos 7 dias</h3>
+        <h3 class="text-lg font-semibold">Vencem nos próximos 7 dias</h3>
+        <p class="text-xs text-gray-500 mb-4">Somente Pendentes e Atrasadas</p>
         <div id="card-7dias-loading" class="flex-1 flex items-center justify-center">Carregando...</div>
-        <div id="card-7dias-empty" class="hidden flex-1 flex items-center justify-center text-center text-sm text-gray-500">Nada vencendo nos próximos 7 dias</div>
+        <div id="card-7dias-empty" class="hidden flex-1 flex flex-col items-center justify-center gap-2 text-center text-gray-500 text-[13px]">
+          <i class="fas fa-calendar-check text-xl"></i>
+          <span>Nada vencendo nos próximos 7 dias</span>
+        </div>
         <div id="card-7dias-chart" class="flex-1 flex items-center justify-center">
-          <canvas id="chart-7dias" class="w-full h-48 hidden"></canvas>
+          <canvas id="chart-7dias" class="w-full h-full hidden cursor-pointer"></canvas>
         </div>
       </section>
     </section>

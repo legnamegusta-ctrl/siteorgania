@@ -20,6 +20,31 @@ let state = {
   sevenChart: null
 };
 
+const barValuePlugin = {
+  id: 'barValuePlugin',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'bar') return;
+    const { ctx } = chart;
+    ctx.save();
+    const dataset = chart.data.datasets[0];
+    const meta = chart.getDatasetMeta(0);
+    meta.data.forEach((bar, index) => {
+      const value = dataset.data[index];
+      if (value > 0) {
+        ctx.font = '600 12px Inter, sans-serif';
+        ctx.fillStyle = '#1F2937';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(value, bar.x, bar.y - 6);
+      }
+    });
+  }
+};
+
+if (window.Chart) {
+  Chart.register(barValuePlugin);
+}
+
 export async function initOperadorDashboard(userId) {
   await loadFarmId(userId);
   bindUI();
@@ -251,12 +276,21 @@ function render7DaysChart() {
   const now = new Date();
   const start = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
   start.setHours(0, 0, 0, 0);
+
+  const labels = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    if (i === 0) labels.push(`Hoje ${dateStr}`);
+    else if (i === 1) labels.push(`Amanhã ${dateStr}`);
+    else labels.push(`D+${i} ${dateStr}`);
+  }
+
+  const counts = Array(7).fill(0);
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
   end.setHours(23, 59, 59, 999);
-
-  const labels = ['Hoje', 'Amanhã', 'D+2', 'D+3', 'D+4', 'D+5', 'D+6'];
-  const counts = Array(7).fill(0);
 
   state.allTasks.forEach(t => {
     if (t.isCompleted) return;
@@ -281,18 +315,57 @@ function render7DaysChart() {
     return;
   }
 
+  const bgColors = counts.map((v, i) => {
+    if (v > 0) {
+      if (i === 0) return '#EF4444';
+      if (i === 1) return '#F59E0B';
+      if (i === 2) return '#FACC15';
+    }
+    return '#93C5FD';
+  });
+  const borderColors = counts.map((v, i) => {
+    if (v > 0) {
+      if (i === 0) return '#DC2626';
+      if (i === 1) return '#D97706';
+      if (i === 2) return '#EAB308';
+    }
+    return '#60A5FA';
+  });
+
   chartWrap.classList.remove('hidden');
   canvas.classList.remove('hidden');
   const ctx = canvas.getContext('2d');
+  const maxVal = Math.max(...counts);
+
+  const tooltipLabel = ctx => {
+    const idx = ctx.dataIndex;
+    const d = new Date(start);
+    d.setDate(start.getDate() + idx);
+    const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+    const nameCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    return `${dateStr} (${nameCap}): ${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`;
+  };
+
   if (state.sevenChart) {
+    state.sevenChart.data.labels = labels;
     state.sevenChart.data.datasets[0].data = counts;
-    state.sevenChart.options.plugins.tooltip.callbacks.title = ctx => {
-      const idx = ctx[0].dataIndex;
-      const d = new Date(start);
-      d.setDate(start.getDate() + idx);
-      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    state.sevenChart.data.datasets[0].backgroundColor = bgColors;
+    state.sevenChart.data.datasets[0].borderColor = borderColors;
+    state.sevenChart.options.scales.y.suggestedMax = maxVal + 1;
+    state.sevenChart.options.plugins.tooltip.callbacks.label = tooltipLabel;
+    state.sevenChart.options.plugins.tooltip.callbacks.title = () => '';
+    state.sevenChart.options.onClick = (evt, elements) => {
+      if (elements.length) {
+        const idx = elements[0].index;
+        const d = new Date(start);
+        d.setDate(start.getDate() + idx);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        window.location.href = `operador-tarefas.html?dia=${y}-${m}-${day}&status=abertas`;
+      }
     };
-    state.sevenChart.options.plugins.tooltip.callbacks.label = ctx => `${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`;
     state.sevenChart.update();
   } else {
     state.sevenChart = new Chart(ctx, {
@@ -301,16 +374,28 @@ function render7DaysChart() {
         labels,
         datasets: [{
           data: counts,
-          backgroundColor: '#93C5FD',
-          borderColor: '#60A5FA',
+          backgroundColor: bgColors,
+          borderColor: borderColors,
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
+        onClick: (evt, elements) => {
+          if (elements.length) {
+            const idx = elements[0].index;
+            const d = new Date(start);
+            d.setDate(start.getDate() + idx);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            window.location.href = `operador-tarefas.html?dia=${y}-${m}-${day}&status=abertas`;
+          }
+        },
         scales: {
           y: {
             beginAtZero: true,
+            suggestedMax: maxVal + 1,
             grid: { color: 'rgba(0,0,0,0.05)' },
             ticks: { precision: 0 }
           }
@@ -319,13 +404,8 @@ function render7DaysChart() {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              title: ctx => {
-                const idx = ctx[0].dataIndex;
-                const d = new Date(start);
-                d.setDate(start.getDate() + idx);
-                return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-              },
-              label: ctx => `${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`
+              label: tooltipLabel,
+              title: () => ''
             }
           }
         }
