@@ -668,6 +668,38 @@ body.sidebar-open {
     border-color: #D1D5DB;
 }
 
+/* Pílulas status ordens */
+.status-pill.aberta,
+.status-pill.em-andamento,
+.status-pill.concluida,
+.status-pill.cancelada {
+    padding: 2px 8px;
+}
+
+.status-pill.aberta {
+    background: #DBEAFE;
+    color: #1E40AF;
+    border-color: #BFDBFE;
+}
+
+.status-pill.em-andamento {
+    background: #FEF9C3;
+    color: #854D0E;
+    border-color: #FEF08A;
+}
+
+.status-pill.concluida {
+    background: #DCFCE7;
+    color: #166534;
+    border-color: #BBF7D0;
+}
+
+.status-pill.cancelada {
+    background: #FEE2E2;
+    color: #991B1B;
+    border-color: #FECACA;
+}
+
 /* Simple skeleton loader */
 .skeleton {
     background: #E5E7EB;
