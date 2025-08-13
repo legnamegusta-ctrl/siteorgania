@@ -13,6 +13,7 @@ import {
   Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
+let overlay;
 let currentTaskId = null;
 let currentTaskRef = null;
 let original = null;
@@ -23,8 +24,9 @@ let creatingTask = false;
 
 export function initTaskModal() {
   if (window.__taskModalInited) return;
-  const modal = document.getElementById('task-modal');
-  if (!modal) return;
+  overlay = document.getElementById('task-modal-overlay');
+  const modal = overlay?.querySelector('.modal');
+  if (!overlay || !modal) return;
   window.__taskModalInited = true;
   document.getElementById('btn-edit')?.addEventListener('click', enterEditMode);
   document.getElementById('task-form')?.addEventListener('submit', e => {
@@ -32,13 +34,15 @@ export function initTaskModal() {
     saveTaskEdits();
   });
   document.getElementById('btn-close')?.addEventListener('click', () => {
-    modal.classList.add('hidden');
+    overlay.setAttribute('hidden','');
+    document.body.classList.remove('has-modal');
     exitEditMode();
     if (returnOrderId) {
       window.openOrderModal?.(returnOrderId);
       returnOrderId = null;
     }
   });
+  overlay.addEventListener('click', e => { if (e.target === overlay) document.getElementById('btn-close')?.click(); });
   document.getElementById('btn-complete')?.addEventListener('click', completeTask);
   document.getElementById('btn-add-comment')?.addEventListener('click', addComment);
 }
@@ -47,8 +51,9 @@ export async function openTaskModal(taskId, opts = {}) {
   if (typeof opts === 'string') opts = { source: opts };
   const { source = 'table', mode = taskId ? 'view' : 'create', ordemId, ordemCodigo, prefill = {} } = opts;
   currentSource = source;
-  const modalEl = document.getElementById('task-modal');
-  if (!modalEl) return;
+  document.getElementById('order-modal-overlay')?.setAttribute('hidden','');
+  const modalEl = overlay?.querySelector('.modal');
+  if (!overlay || !modalEl) return;
   modalEl.dataset.mode = mode;
   const chip = document.getElementById('task-order-chip');
 
@@ -78,7 +83,8 @@ export async function openTaskModal(taskId, opts = {}) {
       chip.classList.remove('hidden');
     }
     document.getElementById('comments-list')?.replaceChildren();
-    modalEl.classList.remove('hidden');
+    overlay.hidden = false;
+    document.body.classList.add('has-modal');
     document.getElementById('task-titulo')?.focus();
     return;
   }
@@ -113,7 +119,8 @@ export async function openTaskModal(taskId, opts = {}) {
     }
   }
   await loadComments(currentTaskRef);
-  modalEl.classList.remove('hidden');
+  overlay.hidden = false;
+  document.body.classList.add('has-modal');
 }
 
 export function enterEditMode() {
@@ -328,4 +335,25 @@ function formatDateTime(ts) {
   else date = new Date(ts);
   const pad = n => n.toString().padStart(2, '0');
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function parseDateLocal(v){
+  if(!v) return null;
+  if(v instanceof Timestamp) return v.toDate();
+  if(typeof v==='string'){
+    const [y,m,d]=v.split('-').map(Number);
+    return new Date(y,m-1,d);
+  }
+  return new Date(v);
+}
+
+function formatDDMMYYYY(d){
+  return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+}
+
+function toYYYYMMDD(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
 }

@@ -10,17 +10,19 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { openTaskModal } from './task-modal.js';
 
+let overlay;
 let modal;
 let currentOrder = null;
 let unsubscribeTasks = null;
 
 export function initOrderModal() {
   if (window.__orderModalInited) return;
-  modal = document.getElementById('order-modal');
-  if (!modal) return;
+  overlay = document.getElementById('order-modal-overlay');
+  if (!overlay) return;
+  modal = overlay.querySelector('.modal');
   window.__orderModalInited = true;
   document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.getElementById('btn-order-new-task')?.addEventListener('click', () => {
     if (!currentOrder) return;
     openTaskModal(null, {
@@ -40,8 +42,8 @@ export function initOrderModal() {
 
 export async function openOrderModal(orderId) {
   initOrderModal();
-  document.getElementById('task-modal')?.classList.add('hidden');
-  if (!modal) return;
+  document.getElementById('task-modal-overlay')?.setAttribute('hidden','');
+  if (!overlay) return;
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
   currentOrder = { id: orderId };
   const orderRef = doc(db, 'orders', orderId);
@@ -60,7 +62,8 @@ export async function openOrderModal(orderId) {
     document.getElementById('order-obs').value = data.obs || '';
   }
   loadTasks(orderId);
-  modal.classList.remove('hidden');
+  overlay.hidden = false;
+  document.body.classList.add('has-modal');
 }
 
 function loadTasks(orderId) {
@@ -96,7 +99,8 @@ function loadTasks(orderId) {
 }
 
 function closeModal() {
-  modal?.classList.add('hidden');
+  overlay?.setAttribute('hidden','');
+  document.body.classList.remove('has-modal');
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
 }
 
@@ -131,6 +135,13 @@ function parseDateLocal(v) {
 
 function formatDDMMYYYY(d) {
   return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+}
+
+function toYYYYMMDD(d){
+  const year=d.getFullYear();
+  const month=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${year}-${month}-${day}`;
 }
 
 function nowLocal() {

@@ -339,13 +339,17 @@ function openModal(order, mode = 'view') {
   const newTaskBtn = document.getElementById('btn-order-new-task');
   if (newTaskBtn) newTaskBtn.onclick = () => newTaskFromOrder(order.id);
   state.editing = (mode === 'edit');
+  document.getElementById('order-modal-overlay').hidden = false;
   modal.classList.remove('hidden');
+  document.body.classList.add('has-modal');
 }
 
 function closeModal(force = false) {
   if (!force && (modal.dataset.mode === 'create' || modal.dataset.mode === 'edit') && form.dataset.dirty === 'true') {
     if (!confirm('Descartar alterações?')) return;
   }
+  document.getElementById('order-modal-overlay').setAttribute('hidden','');
+  document.body.classList.remove('has-modal');
   modal.classList.add('hidden');
   modal.dataset.mode = 'view';
 }
@@ -501,6 +505,17 @@ function parseDateLocal(v) {
     return new Date(y, m - 1, d);
   }
   return new Date(v);
+}
+
+function formatDDMMYYYY(d){
+  return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
+}
+
+function toYYYYMMDD(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
 }
 
 function startOfLocalDay(d) {
