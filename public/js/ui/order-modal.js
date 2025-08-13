@@ -5,16 +5,17 @@ import {
   collection,
   query,
   where,
-  onSnapshot,
-  Timestamp
+  onSnapshot
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { parseDateLocal, formatDDMMYYYY, endOfLocalDay, toYYYYMMDD } from '../lib/date-utils.js';
+import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
 import { openTaskModal } from './task-modal.js';
 
 let overlay;
 let modal;
 let currentOrder = null;
 let unsubscribeTasks = null;
+let tasks = [];
+let currentFilter = 'all';
 
 export function initOrderModal() {
   if (window.__orderModalInited) return;
@@ -46,6 +47,20 @@ export function initOrderModal() {
     closeModal();
     openTaskModal(btn.dataset.taskId, { mode: 'view' });
   });
+
+  document.getElementById('order-tasks-filters')?.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-filter]');
+    if (!btn) return;
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('#order-tasks-filters .chip')
+      .forEach(ch => ch.classList.remove('filter-active'));
+    btn.classList.add('filter-active');
+    renderTaskList();
+  });
+
+  document.getElementById('btn-order-empty-create')?.addEventListener('click', () => {
+    document.getElementById('btn-order-new-task')?.click();
+  });
 }
 
 export async function openOrderModal(orderId) {
@@ -68,43 +83,92 @@ export async function openOrderModal(orderId) {
     currentOrder.codigo = orderId;
     fillOrderForm(currentOrder);
   }
+  currentFilter = 'all';
+  document.querySelectorAll('#order-tasks-filters .chip')
+    .forEach(ch => ch.classList.remove('filter-active'));
+  document.querySelector('#order-tasks-filters [data-filter="all"]')?.classList.add('filter-active');
   loadTasks(orderId);
   overlay.hidden = false;
   document.body.classList.add('has-modal');
 }
 
 function loadTasks(orderId) {
+  tasks = [];
   const list = document.getElementById('order-tasks-list');
   if (list) list.innerHTML = '';
   const q = query(collection(db, 'tasks'), where('ordemId', '==', orderId));
   unsubscribeTasks = onSnapshot(q, snap => {
-    const frag = document.createDocumentFragment();
-    let total = 0, completed = 0, open = 0;
+    tasks = [];
     snap.forEach(d => {
       const data = d.data();
       const status = taskStatus(data);
-      total++;
-      if (status === 'Concluída') completed++;
-      if (status === 'Pendente' || status === 'Atrasada') open++;
       const dueRaw = data.dueDate || data.vencimento;
       const dueDate = dueRaw ? parseDateLocal(dueRaw) : null;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${data.title || d.id}</td>
-        <td>${dueDate ? formatDDMMYYYY(dueDate) : '-'}</td>
-        <td>${renderTaskStatus(status)}</td>
-        <td class="text-right"><button type="button" class="btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${d.id}">Ver detalhes</button></td>`;
-      frag.appendChild(tr);
+      tasks.push({ id: d.id, title: data.title || d.id, status, dueDate });
     });
-    list?.replaceChildren(frag);
-    const counter = document.getElementById('order-tasks-counter');
-    if (counter) counter.textContent = `${open}/${total} abertas`;
-    const bar = document.querySelector('#order-tasks .progress');
-    const barFill = bar?.querySelector('.progress__bar');
-    const percent = total ? (completed / total) * 100 : 0;
-    if (barFill) barFill.style.width = `${percent}%`;
-    if (bar) bar.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
+    sortTasks();
+    updateTaskStats();
+    renderTaskList();
   });
+}
+
+function sortTasks() {
+  const order = { 'Atrasada': 0, 'Pendente': 1, 'Concluída': 2 };
+  tasks.sort((a, b) => {
+    const pa = order[a.status] - order[b.status];
+    if (pa !== 0) return pa;
+    const da = a.dueDate ? a.dueDate.getTime() : Infinity;
+    const db = b.dueDate ? b.dueDate.getTime() : Infinity;
+    if (da !== db) return da - db;
+    return a.title.localeCompare(b.title);
+  });
+}
+
+function updateTaskStats() {
+  const total = tasks.length;
+  const late = tasks.filter(t => t.status === 'Atrasada').length;
+  const pending = tasks.filter(t => t.status === 'Pendente').length;
+  const completed = tasks.filter(t => t.status === 'Concluída').length;
+  const open = late + pending;
+  const counter = document.getElementById('order-tasks-counter');
+  if (counter) counter.textContent = `${open}/${total} abertas`;
+  const bar = document.querySelector('#order-tasks .progress');
+  const barFill = bar?.querySelector('.progress__bar');
+  const percent = total ? (completed / total) * 100 : 0;
+  if (barFill) barFill.style.width = `${percent}%`;
+  if (bar) {
+    bar.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
+    bar.setAttribute('aria-valuenow', percent.toFixed(0));
+  }
+  const filters = document.getElementById('order-tasks-filters');
+  if (filters) {
+    filters.querySelector('[data-filter="all"] .count').textContent = total;
+    filters.querySelector('[data-filter="Pendente"] .count').textContent = pending;
+    filters.querySelector('[data-filter="Atrasada"] .count').textContent = late;
+    filters.querySelector('[data-filter="Concluída"] .count').textContent = completed;
+  }
+}
+
+function renderTaskList() {
+  const list = document.getElementById('order-tasks-list');
+  const table = document.getElementById('order-tasks-table');
+  const empty = document.getElementById('order-tasks-empty');
+  if (!list) return;
+  const frag = document.createDocumentFragment();
+  tasks.filter(t => currentFilter === 'all' || t.status === currentFilter).forEach(t => {
+    const tr = document.createElement('tr');
+    const dueText = t.dueDate ? formatDDMMYYYY(t.dueDate) : '-';
+    tr.innerHTML = `
+      <td>${t.title}</td>
+      <td>${dueText}</td>
+      <td>${renderTaskStatus(t.status)}</td>
+      <td class="text-right"><button type="button" class="btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${t.id}">Ver detalhes</button></td>`;
+    frag.appendChild(tr);
+  });
+  list.replaceChildren(frag);
+  const hasTasks = tasks.length > 0;
+  table?.classList.toggle('hidden', !hasTasks);
+  empty?.classList.toggle('hidden', hasTasks);
 }
 
 function closeModal() {
