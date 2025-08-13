@@ -8,7 +8,7 @@ import {
   onSnapshot,
   Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
+import { parseDateLocal, formatDDMMYYYY, endOfLocalDay, toYYYYMMDD } from '../lib/date-utils.js';
 import { openTaskModal } from './task-modal.js';
 
 let overlay;
@@ -62,16 +62,11 @@ export async function openOrderModal(orderId) {
   const snap = await getDoc(orderRef);
   if (snap.exists()) {
     const data = snap.data();
-    currentOrder.codigo = data.codigo || orderId;
-    currentOrder.prazo = data.prazo || '';
-    document.getElementById('order-codigo').value = currentOrder.codigo;
-    document.getElementById('order-cliente').value = data.cliente || '';
-    document.getElementById('order-propriedade').value = data.propriedade || '';
-    document.getElementById('order-talhao').value = data.talhao || '';
-    document.getElementById('order-abertura').value = data.abertura || '';
-    document.getElementById('order-prazo').value = data.prazo || '';
-    document.getElementById('order-itens').value = data.itens || '';
-    document.getElementById('order-obs').value = data.obs || '';
+    currentOrder = { id: orderId, ...data, codigo: data.codigo || orderId, prazo: data.prazo || '' };
+    fillOrderForm(currentOrder);
+  } else {
+    currentOrder.codigo = orderId;
+    fillOrderForm(currentOrder);
   }
   loadTasks(orderId);
   overlay.hidden = false;
@@ -137,6 +132,20 @@ function renderTaskStatus(st) {
 
 function nowLocal() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+}
+
+function fillOrderForm(order) {
+  document.getElementById('order-codigo').value = order.codigo || '';
+  document.getElementById('order-cliente').value = order.cliente || '';
+  document.getElementById('order-propriedade').value = order.propriedade || '';
+  document.getElementById('order-talhao').value = order.talhao || '';
+  const ab = document.getElementById('order-abertura');
+  ab.value = order.abertura ? toYYYYMMDD(parseDateLocal(order.abertura)) : '';
+  const prazo = document.getElementById('order-prazo');
+  prazo.value = order.prazo ? toYYYYMMDD(parseDateLocal(order.prazo)) : '';
+  document.getElementById('order-itens').value = order.itens || '';
+  document.getElementById('order-total').value = order.total || '';
+  document.getElementById('order-obs').value = order.obs || '';
 }
 
 window.openOrderModal = openOrderModal;

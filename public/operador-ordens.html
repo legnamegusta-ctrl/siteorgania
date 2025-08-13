@@ -155,43 +155,43 @@
         </div>
       </header>
       <form id="order-form" class="modal__body space-y-4 modal-read">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="order-codigo" class="block text-sm text-gray-600">Código</label>
-            <input id="order-codigo" class="w-full border rounded p-2" disabled />
+        <div class="modal__grid-2">
+          <div class="field">
+            <label for="order-codigo" class="field__label">Código</label>
+            <input id="order-codigo" class="field__input" readonly />
           </div>
-          <div>
-            <label for="order-cliente" class="block text-sm text-gray-600">Cliente</label>
-            <input id="order-cliente" class="w-full border rounded p-2" disabled />
+          <div class="field">
+            <label for="order-cliente" class="field__label">Cliente</label>
+            <input id="order-cliente" class="field__input" readonly />
           </div>
-          <div>
-            <label for="order-propriedade" class="block text-sm text-gray-600">Propriedade</label>
-            <input id="order-propriedade" class="w-full border rounded p-2" disabled />
+          <div class="field">
+            <label for="order-propriedade" class="field__label">Propriedade</label>
+            <input id="order-propriedade" class="field__input" readonly />
           </div>
-          <div>
-            <label for="order-talhao" class="block text-sm text-gray-600">Talhão</label>
-            <input id="order-talhao" class="w-full border rounded p-2" disabled />
+          <div class="field">
+            <label for="order-talhao" class="field__label">Talhão</label>
+            <input id="order-talhao" class="field__input" readonly />
           </div>
-          <div>
-            <label for="order-abertura" class="block text-sm text-gray-600">Abertura</label>
-            <input id="order-abertura" class="w-full border rounded p-2" disabled />
+          <div class="field">
+            <label for="order-abertura" class="field__label">Abertura</label>
+            <input id="order-abertura" class="field__input" readonly />
           </div>
-          <div>
-            <label for="order-prazo" class="block text-sm text-gray-600">Prazo</label>
-            <input id="order-prazo" type="date" class="w-full border rounded p-2" disabled />
+          <div class="field">
+            <label for="order-prazo" class="field__label">Prazo</label>
+            <input id="order-prazo" type="date" class="field__input" readonly />
           </div>
         </div>
-        <div>
-          <label for="order-itens" class="block text-sm text-gray-600">Itens</label>
-          <textarea id="order-itens" class="w-full border rounded p-2" rows="3" disabled></textarea>
+        <div class="field">
+          <label for="order-itens" class="field__label">Itens</label>
+          <textarea id="order-itens" class="field__input" rows="3" readonly></textarea>
         </div>
-        <div>
-          <label for="order-total" class="block text-sm text-gray-600">Total (R$)</label>
-          <input id="order-total" class="w-full border rounded p-2 text-right" disabled />
+        <div class="field">
+          <label for="order-total" class="field__label">Total (R$)</label>
+          <input id="order-total" class="field__input text-right" readonly />
         </div>
-        <div>
-          <label for="order-obs" class="block text-sm text-gray-600">Observações</label>
-          <textarea id="order-obs" class="w-full border rounded p-2" rows="3" disabled></textarea>
+        <div class="field">
+          <label for="order-obs" class="field__label">Observações</label>
+          <textarea id="order-obs" class="field__input" rows="3" readonly></textarea>
         </div>
       <div class="flex justify-end gap-2 pt-2">
         <button type="button" id="btn-order-save" class="hidden bg-[#6C9F3D] hover:bg-[#5A8733] text-white px-4 py-2 rounded">Salvar</button>
@@ -200,25 +200,27 @@
       </div>
       </form>
       <div id="order-tasks" class="mt-6">
-        <div class="flex justify-between items-center mb-2">
-          <h4 class="text-sm font-semibold">Tarefas desta ordem</h4>
-          <button id="btn-order-new-task" type="button" aria-label="Criar nova tarefa desta ordem" title="Criar nova tarefa desta ordem" class="btn-ghost text-sm text-blue-600 flex items-center gap-1"><i class="fas fa-plus"></i><span>Nova Tarefa</span></button>
+        <div class="section-header">
+          <h3>Tarefas desta ordem</h3>
+          <button id="btn-order-new-task" type="button" class="btn btn-ghost">+ Nova Tarefa</button>
         </div>
         <div class="mb-2">
           <div class="progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar" style="width:0%"></div></div>
           <div id="order-tasks-counter" class="text-xs text-gray-600 mt-1" aria-live="polite"></div>
         </div>
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-2 py-2 text-left">Título</th>
-              <th scope="col" class="px-2 py-2 text-left">Vencimento</th>
-              <th scope="col" class="px-2 py-2 text-left">Status</th>
-              <th scope="col" class="px-2 py-2 text-left">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="order-tasks-list"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-2 py-2 text-left">Título</th>
+                <th scope="col" class="px-2 py-2 text-left">Vencimento</th>
+                <th scope="col" class="px-2 py-2 text-left">Status</th>
+                <th scope="col" class="px-2 py-2 text-left">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="order-tasks-list"></tbody>
+          </table>
+        </div>
       </div>
       <div class="modal__body border-t pt-4 space-y-4">
         <div class="flex items-center gap-2">
