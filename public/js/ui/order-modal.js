@@ -8,6 +8,7 @@ import {
   onSnapshot,
   Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
 import { openTaskModal } from './task-modal.js';
 
 let overlay;
@@ -23,14 +24,21 @@ export function initOrderModal() {
   window.__orderModalInited = true;
   document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  document.getElementById('btn-order-new-task')?.addEventListener('click', () => {
+  document.getElementById('btn-order-new-task')?.addEventListener('click', async (e) => {
     if (!currentOrder) return;
-    openTaskModal(null, {
-      mode: 'create',
-      ordemId: currentOrder.id,
-      ordemCodigo: currentOrder.codigo,
-      prefill: { vencimento: currentOrder.prazo }
-    });
+    const btn = e.currentTarget;
+    if (btn.disabled) return;
+    btn.disabled = true;
+    try {
+      await openTaskModal(null, {
+        mode: 'create',
+        ordemId: currentOrder.id,
+        ordemCodigo: currentOrder.codigo,
+        prefill: { vencimento: currentOrder.prazo }
+      });
+    } finally {
+      btn.disabled = false;
+    }
   });
   document.getElementById('order-tasks-list')?.addEventListener('click', e => {
     const btn = e.target.closest('[data-action="view-task"]');
@@ -43,6 +51,10 @@ export function initOrderModal() {
 export async function openOrderModal(orderId) {
   initOrderModal();
   document.getElementById('task-modal-overlay')?.setAttribute('hidden','');
+  const drawer = document.querySelector('.drawer.is-open');
+  const overlayDrawer = document.querySelector('.drawer-overlay.is-open');
+  drawer?.classList.remove('is-open');
+  overlayDrawer?.classList.remove('is-open');
   if (!overlay) return;
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
   currentOrder = { id: orderId };
@@ -123,33 +135,8 @@ function renderTaskStatus(st) {
   return `<span class="${cls}">${st}</span>`;
 }
 
-function parseDateLocal(v) {
-  if (!v) return null;
-  if (v instanceof Timestamp) return v.toDate();
-  if (typeof v === 'string') {
-    const [y, m, d] = v.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-  return new Date(v);
-}
-
-function formatDDMMYYYY(d) {
-  return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-}
-
-function toYYYYMMDD(d){
-  const year=d.getFullYear();
-  const month=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
-  return `${year}-${month}-${day}`;
-}
-
 function nowLocal() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-}
-
-function endOfLocalDay(d) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 }
 
 window.openOrderModal = openOrderModal;

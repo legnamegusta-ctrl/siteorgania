@@ -12,6 +12,7 @@ import {
   limit,
   Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { parseDateLocal, formatDDMMYYYY } from '../lib/date-utils.js';
 
 let overlay;
 let currentTaskId = null;
@@ -52,6 +53,10 @@ export async function openTaskModal(taskId, opts = {}) {
   const { source = 'table', mode = taskId ? 'view' : 'create', ordemId, ordemCodigo, prefill = {} } = opts;
   currentSource = source;
   document.getElementById('order-modal-overlay')?.setAttribute('hidden','');
+  const drawer = document.querySelector('.drawer.is-open');
+  const overlayDrawer = document.querySelector('.drawer-overlay.is-open');
+  drawer?.classList.remove('is-open');
+  overlayDrawer?.classList.remove('is-open');
   const modalEl = overlay?.querySelector('.modal');
   if (!overlay || !modalEl) return;
   modalEl.dataset.mode = mode;
@@ -337,23 +342,3 @@ function formatDateTime(ts) {
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function parseDateLocal(v){
-  if(!v) return null;
-  if(v instanceof Timestamp) return v.toDate();
-  if(typeof v==='string'){
-    const [y,m,d]=v.split('-').map(Number);
-    return new Date(y,m-1,d);
-  }
-  return new Date(v);
-}
-
-function formatDDMMYYYY(d){
-  return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
-}
-
-function toYYYYMMDD(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}

@@ -1,6 +1,7 @@
 // service-worker.js
 
-const CACHE_NAME = 'organia-cache-v6'; // ATENÇÃO: Versão do cache atualizada para v6
+const CACHE_NAME = 'organia-cache-v7';
+const APP_VERSION = '1.0.1';
 const urlsToCache = [
   // Arquivos principais
   '/',
@@ -87,6 +88,15 @@ self.addEventListener('activate', event => {
           }
         })
       );
+    }).then(() => {
+      self.skipWaiting();
+      return self.clients.claim();
     })
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

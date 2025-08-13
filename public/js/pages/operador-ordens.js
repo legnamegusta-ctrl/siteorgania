@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc,
 import { showToast } from '../services/ui.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 import { initOrderModal, openOrderModal } from '../ui/order-modal.js';
+import { parseDateLocal, endOfLocalDay } from '../lib/date-utils.js';
 
 /* QA rápido:
    - Criar tarefa com vencimento amanhã → aparece como Pendente
@@ -53,6 +54,10 @@ function init() {
   modal = document.getElementById('order-modal');
   form = document.getElementById('order-form');
   commentList = document.getElementById('order-comments-list');
+  if (ordersTable && !ordersTable.__bound) {
+    ordersTable.addEventListener('click', handleRowAction);
+    ordersTable.__bound = true;
+  }
   render();
   initTaskModal();
   initOrderModal();
@@ -107,7 +112,7 @@ function render() {
       <td class="px-3 py-3 min-w-[96px] text-right">${o.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
       <td class="px-3 py-3">
         <div class="flex gap-2">
-          <button class="btn-ghost text-gray-600" title="Ver detalhes" data-action="view" data-id="${o.id}"><i class="fas fa-eye"></i></button>
+          <button class="btn-ghost text-gray-600" title="Ver detalhes" data-action="view-order" data-id="${o.id}"><i class="fas fa-eye"></i></button>
           <button class="btn-ghost text-gray-600" title="Duplicar" data-action="duplicate" data-id="${o.id}"><i class="fas fa-copy"></i></button>
           <button class="btn-ghost text-gray-600" title="Encerrar" data-action="done" data-id="${o.id}"><i class="fas fa-flag-checkered"></i></button>
           <button class="btn-ghost text-gray-600" title="Cancelar" data-action="cancel" data-id="${o.id}"><i class="fas fa-ban"></i></button>
@@ -119,9 +124,6 @@ function render() {
     fetchTasksStats(o.id).then(stats => updateTasksCell(tdTarefas, stats));
   });
 
-  ordersTable.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', handleRowAction);
-  });
 }
 
 async function fetchTasksStats(orderId) {
@@ -275,11 +277,13 @@ function getFilteredOrders(status, term) {
 }
 
 function handleRowAction(e) {
-  const id = e.currentTarget.dataset.id;
-  const action = e.currentTarget.dataset.action;
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const action = btn.dataset.action;
   const order = state.orders.find(o => o.id === id);
   if (!order) return;
-  if (action === 'view') {
+  if (action === 'view-order') {
     state.current = order;
     openOrderModal(id);
   } else if (action === 'done') {
@@ -495,39 +499,6 @@ function addComment() {
   state.current.comments.unshift({ author: 'Usuário', text: txt, date: new Date() });
   input.value = '';
   renderComments();
-}
-
-function parseDateLocal(v) {
-  if (!v) return null;
-  if (v instanceof Timestamp) return v.toDate();
-  if (typeof v === 'string') {
-    const [y, m, d] = v.split('-').map(Number);
-    return new Date(y, m - 1, d);
-  }
-  return new Date(v);
-}
-
-function formatDDMMYYYY(d){
-  return d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});
-}
-
-function toYYYYMMDD(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-
-function startOfLocalDay(d) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function endOfLocalDay(d) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-}
-
-function formatDDMMYYYY(d) {
-  return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 }
 
 function nowLocal() {

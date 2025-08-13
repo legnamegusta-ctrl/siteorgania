@@ -36,6 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/service-worker.js').then(registration => {
                 console.log('ServiceWorker registrado com sucesso: ', registration.scope);
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && registration.waiting) {
+                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
             }).catch(error => {
                 console.log('Falha no registro do ServiceWorker: ', error);
             });
