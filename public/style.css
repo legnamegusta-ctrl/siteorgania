@@ -813,6 +813,11 @@ body.sidebar-open {
     border: 1px solid #BFDBFE;
 }
 
+.order-chip:focus {
+    outline: 2px solid #1E40AF;
+    outline-offset: 2px;
+}
+
 /* Progresso de tarefas na tabela de ordens */
 .task-progress {
     width: 100%;

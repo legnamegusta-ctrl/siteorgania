@@ -5,6 +5,7 @@ import {
   getDocs,
   updateDoc,
   addDoc,
+  setDoc,
   collection,
   query,
   orderBy,
@@ -18,12 +19,19 @@ let original = null;
 let currentSource = null;
 let taskOrder = null;
 let returnOrderId = null;
+let taskModalInited = false;
+let creatingTask = false;
 
 export function initTaskModal() {
+  if (taskModalInited) return;
   const modal = document.getElementById('task-modal');
   if (!modal) return;
+  taskModalInited = true;
   document.getElementById('btn-edit')?.addEventListener('click', enterEditMode);
-  document.getElementById('btn-save')?.addEventListener('click', saveTaskEdits);
+  document.getElementById('task-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    saveTaskEdits();
+  });
   document.getElementById('btn-close')?.addEventListener('click', () => {
     modal.classList.add('hidden');
     exitEditMode();
@@ -85,7 +93,7 @@ export async function openTaskModal(taskId, opts = {}) {
   original = {
     titulo: data.title || '',
     talhao: data.talhao || data.plotName || '',
-    vencimento: data.dueDate ? new Date(data.dueDate).toISOString().split('T')[0] : '',
+    vencimento: data.dueDate || '',
     descricao: data.description || ''
   };
   document.getElementById('task-titulo').value = original.titulo;
@@ -137,6 +145,8 @@ export async function saveTaskEdits() {
   const vencimento = document.getElementById('task-vencimento').value;
   const descricao = document.getElementById('task-desc').value.trim();
   const saveBtn = document.getElementById('btn-save');
+  if (creatingTask) return;
+  creatingTask = true;
   saveBtn.disabled = true;
   saveBtn.textContent = 'Salvando...';
   try {
@@ -144,7 +154,8 @@ export async function saveTaskEdits() {
       const farmId = window.taskModalFarmId;
       const colRef = farmId ? collection(db, 'clients', farmId, 'tasks') : collection(db, 'tasks');
       const now = Timestamp.now();
-      const docRef = await addDoc(colRef, {
+      const requestId = crypto.randomUUID();
+      await setDoc(doc(colRef, requestId), {
         orderId: taskOrder?.id || '',
         title: titulo,
         talhao,
@@ -156,7 +167,8 @@ export async function saveTaskEdits() {
         criadoEm: now,
         atualizadoEm: now
       });
-      currentTaskId = docRef.id;
+      currentTaskId = requestId;
+      currentTaskRef = doc(colRef, requestId);
       if (taskOrder?.id) {
         const user = auth.currentUser;
         const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
@@ -226,6 +238,7 @@ export async function saveTaskEdits() {
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = 'Salvar';
+    creatingTask = false;
   }
 }
 

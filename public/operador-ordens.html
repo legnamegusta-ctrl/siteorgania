@@ -129,7 +129,7 @@
           <textarea id="task-desc" class="w-full border rounded p-2" rows="3" disabled></textarea>
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" id="btn-save" class="hidden bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+          <button type="submit" id="btn-save" class="hidden bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
           <button type="button" id="btn-complete" class="bg-blue-600 text-white px-4 py-2 rounded">Concluir</button>
         </div>
       </form>
@@ -149,6 +149,7 @@
       <div class="flex justify-between items-center mb-4">
         <h3 id="order-modal-title" class="text-lg font-semibold">Detalhes da Ordem</h3>
         <div class="flex items-center gap-2">
+          <button id="btn-order-duplicate" class="btn-ghost text-gray-600" title="Duplicar"><i class="fas fa-copy"></i></button>
           <button id="btn-order-edit" class="btn-ghost text-gray-600"><i class="fas fa-pen"></i></button>
           <button id="btn-order-close" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
         </div>

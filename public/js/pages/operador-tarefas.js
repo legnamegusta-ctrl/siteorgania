@@ -109,7 +109,7 @@ function applyFiltersAndRender() {
   if (filters.day) {
     tasks = tasks.filter(t => {
       if (!t.dueDate) return false;
-      const due = new Date(t.dueDate);
+      const due = parseDateLocal(t.dueDate);
       return due >= filters.day.start && due <= filters.day.end;
     });
   }
@@ -120,7 +120,7 @@ function applyFiltersAndRender() {
 function getStatus(t, now = new Date()) {
   if (t.isCompleted) return 'Concluída';
   if (t.dueDate) {
-    const due = new Date(t.dueDate);
+    const due = parseDateLocal(t.dueDate);
     if (due < now) return 'Atrasada';
   }
   return 'Pendente';
@@ -177,7 +177,7 @@ function renderList(tasks) {
 
     const tdVenc = document.createElement('td');
     tdVenc.className = 'px-4 py-2';
-    tdVenc.textContent = t.dueDate ? new Date(t.dueDate).toLocaleDateString('pt-BR') : '-';
+    tdVenc.textContent = t.dueDate ? formatDateLocal(t.dueDate) : '-';
 
     const tdStatus = document.createElement('td');
     tdStatus.className = 'px-4 py-2';
@@ -246,4 +246,13 @@ export async function openTaskModal(taskId, source = 'table') {
 }
 
 window.openTaskModal = openTaskModal;
+
+function parseDateLocal(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatDateLocal(str) {
+  return parseDateLocal(str).toLocaleDateString('pt-BR');
+}
 
