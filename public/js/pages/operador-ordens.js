@@ -3,6 +3,7 @@
 import { db, auth } from '../config/firebase.js';
 import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
+import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
 const state = {
   orders: [
@@ -45,6 +46,7 @@ function init() {
   form = document.getElementById('order-form');
   commentList = document.getElementById('order-comments-list');
   render();
+  initTaskModal();
   document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
@@ -60,7 +62,6 @@ function init() {
     else updateStatus('Cancelada');
   });
   document.getElementById('btn-order-add-comment')?.addEventListener('click', addComment);
-  document.getElementById('btn-order-new-task')?.addEventListener('click', () => openTaskModal(null, 'order'));
 
   ['order-cliente','order-propriedade','order-talhao','order-prazo','order-itens','order-obs'].forEach(id => {
     const el = document.getElementById(id);
@@ -194,13 +195,34 @@ function calculateTotal() {
   return total;
 }
 
-document.addEventListener('task-updated', () => {
-  if (state.current) {
-    loadTasksForModal(state.current.id);
-    if (ordersTable) {
-      const row = [...ordersTable.querySelectorAll('button[data-id]')].find(b => b.dataset.id === state.current.id)?.closest('tr');
-      if (row) fetchTasksStats(state.current.id).then(stats => updateTasksCell(row.children[5], stats));
+async function newTaskFromOrder(orderId) {
+  const btn = document.getElementById('btn-order-new-task');
+  if (!btn) return;
+  btn.disabled = true;
+  try {
+    if (!document.getElementById('task-modal')) {
+      console.error('Task modal not found');
+      showToast('Não foi possível abrir o formulário de nova tarefa', 'error');
+      return;
     }
+    const ordemCodigo = document.getElementById('order-codigo').value || orderId;
+    const prazo = document.getElementById('order-prazo').value || '';
+    modal.classList.add('hidden');
+    await openTaskModal(null, { source: 'order', mode: 'create', ordemId: orderId, ordemCodigo, prefill: { vencimento: prazo } });
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener('task-updated', e => {
+  const orderId = e.detail?.orderId || state.current?.id;
+  if (!orderId) return;
+  if (state.current && state.current.id === orderId) {
+    loadTasksForModal(orderId);
+  }
+  if (ordersTable) {
+    const row = [...ordersTable.querySelectorAll('button[data-id]')].find(b => b.dataset.id === orderId)?.closest('tr');
+    if (row) fetchTasksStats(orderId).then(stats => updateTasksCell(row.children[5], stats));
   }
 });
 
@@ -251,6 +273,7 @@ function openModal(order, mode = 'view') {
     toggleFormFields(false);
     document.getElementById('btn-order-save').classList.remove('hidden');
     document.getElementById('btn-order-conclude').classList.add('hidden');
+    document.getElementById('btn-order-cancel').classList.add('hidden');
     document.getElementById('btn-order-edit').classList.add('hidden');
     document.getElementById('order-modal-title').textContent = 'Nova Ordem';
     document.getElementById('order-tasks').classList.add('hidden');
@@ -260,12 +283,15 @@ function openModal(order, mode = 'view') {
     toggleFormFields(true);
     document.getElementById('btn-order-save').classList.add('hidden');
     document.getElementById('btn-order-conclude').classList.remove('hidden');
+     document.getElementById('btn-order-cancel').classList.remove('hidden');
     document.getElementById('btn-order-edit').classList.remove('hidden');
     document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
     document.getElementById('order-tasks').classList.remove('hidden');
     loadTasksForModal(order.id);
     document.getElementById('order-codigo').focus();
   }
+  const newTaskBtn = document.getElementById('btn-order-new-task');
+  if (newTaskBtn) newTaskBtn.onclick = () => newTaskFromOrder(order.id);
   state.editing = (mode === 'edit');
   modal.classList.remove('hidden');
 }
@@ -369,8 +395,8 @@ async function saveOrderCreate() {
     await setDoc(orderRef, orderData);
     const user = auth.currentUser;
     const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
-    const resumo = `🆕 Ordem criada por ${autor} — ${new Date().toLocaleString('pt-BR')} — #${codigo}`;
-    await addDoc(collection(orderRef, 'comentarios'), { tipo: 'criacao', resumo });
+    const resumo = `🆕 Ordem criada por ${autor} — #${codigo}`;
+    await addDoc(collection(orderRef, 'comentarios'), { tipo: 'criacao', resumo, criadoEm: Timestamp.now() });
     state.orders.unshift({
       id: codigo,
       cliente,
@@ -387,7 +413,7 @@ async function saveOrderCreate() {
     render();
     const firstRow = ordersTable.querySelector('tr');
     firstRow?.classList.add('highlight');
-    setTimeout(() => firstRow?.classList.remove('highlight'), 3000);
+    setTimeout(() => firstRow?.classList.remove('highlight'), 2000);
     showToast('Ordem criada com sucesso', 'success');
     closeModal(true);
   } catch (e) {

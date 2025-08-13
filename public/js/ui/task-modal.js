@@ -16,6 +16,8 @@ let currentTaskId = null;
 let currentTaskRef = null;
 let original = null;
 let currentSource = null;
+let taskOrder = null;
+let returnOrderId = null;
 
 export function initTaskModal() {
   const modal = document.getElementById('task-modal');
@@ -25,17 +27,58 @@ export function initTaskModal() {
   document.getElementById('btn-close')?.addEventListener('click', () => {
     modal.classList.add('hidden');
     exitEditMode();
+    if (returnOrderId) {
+      window.openOrderModal?.(returnOrderId);
+      returnOrderId = null;
+    }
   });
   document.getElementById('btn-complete')?.addEventListener('click', completeTask);
   document.getElementById('btn-add-comment')?.addEventListener('click', addComment);
 }
 
-export async function openTaskModal(taskId, source = 'table') {
-  const farmId = window.taskModalFarmId;
-  if (!farmId || !taskId) return;
-  currentTaskId = taskId;
+export async function openTaskModal(taskId, opts = {}) {
+  if (typeof opts === 'string') opts = { source: opts };
+  const { source = 'table', mode = taskId ? 'view' : 'create', ordemId, ordemCodigo, prefill = {} } = opts;
   currentSource = source;
-  currentTaskRef = doc(db, 'clients', farmId, 'tasks', taskId);
+  const modalEl = document.getElementById('task-modal');
+  if (!modalEl) return;
+  modalEl.dataset.mode = mode;
+  const chip = document.getElementById('task-order-chip');
+
+  if (mode === 'create') {
+    currentTaskId = null;
+    currentTaskRef = null;
+    original = null;
+    taskOrder = { id: ordemId, codigo: ordemCodigo };
+    returnOrderId = ordemId || null;
+    ['task-titulo', 'task-talhao', 'task-vencimento', 'task-desc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.disabled = false;
+      if (id === 'task-titulo') el.value = prefill.titulo || '';
+      else if (id === 'task-talhao') el.value = prefill.talhao || '';
+      else if (id === 'task-vencimento') el.value = prefill.vencimento || '';
+      else if (id === 'task-desc') el.value = prefill.descricao || '';
+    });
+    document.getElementById('task-form')?.classList.remove('modal-read');
+    document.getElementById('btn-edit')?.classList.add('hidden');
+    document.getElementById('btn-save')?.classList.remove('hidden');
+    document.getElementById('btn-complete')?.classList.add('hidden');
+    if (chip) {
+      chip.textContent = `#${ordemCodigo}`;
+      chip.title = `Ordem #${ordemCodigo}`;
+      chip.onclick = () => window.openOrderModal?.(ordemId);
+      chip.classList.remove('hidden');
+    }
+    document.getElementById('comments-list')?.replaceChildren();
+    modalEl.classList.remove('hidden');
+    document.getElementById('task-titulo')?.focus();
+    return;
+  }
+
+  const farmId = window.taskModalFarmId;
+  currentTaskId = taskId;
+  currentTaskRef = farmId ? doc(db, 'clients', farmId, 'tasks', taskId) : doc(db, 'tasks', taskId);
   const snap = await getDoc(currentTaskRef);
   if (!snap.exists()) return;
   const data = snap.data();
@@ -50,8 +93,20 @@ export async function openTaskModal(taskId, source = 'table') {
   document.getElementById('task-vencimento').value = original.vencimento;
   document.getElementById('task-desc').value = original.descricao;
   exitEditMode();
+  taskOrder = data.orderId ? { id: data.orderId, codigo: data.orderCode || data.orderId } : null;
+  returnOrderId = taskOrder?.id || null;
+  if (chip) {
+    if (taskOrder) {
+      chip.textContent = `#${taskOrder.codigo}`;
+      chip.title = `Ver ordem #${taskOrder.codigo}`;
+      chip.onclick = () => window.openOrderModal?.(taskOrder.id);
+      chip.classList.remove('hidden');
+    } else {
+      chip.classList.add('hidden');
+    }
+  }
   await loadComments(currentTaskRef);
-  document.getElementById('task-modal').classList.remove('hidden');
+  modalEl.classList.remove('hidden');
 }
 
 export function enterEditMode() {
@@ -77,58 +132,100 @@ export function exitEditMode() {
 }
 
 export async function saveTaskEdits() {
-  if (!currentTaskRef || !original) return;
   const titulo = document.getElementById('task-titulo').value.trim();
   const talhao = document.getElementById('task-talhao').value.trim();
   const vencimento = document.getElementById('task-vencimento').value;
   const descricao = document.getElementById('task-desc').value.trim();
-  const changes = [];
-  const updates = {};
-  if (titulo !== original.titulo) {
-    changes.push({ campo: 'titulo', de: original.titulo, para: titulo });
-    updates.title = titulo;
-  }
-  if (talhao !== original.talhao) {
-    changes.push({ campo: 'talhao', de: original.talhao, para: talhao });
-    updates.talhao = talhao;
-    updates.plotName = talhao;
-  }
-  if (vencimento !== original.vencimento) {
-    changes.push({ campo: 'vencimento', de: formatDate(original.vencimento), para: formatDate(vencimento) });
-    updates.dueDate = vencimento;
-  }
-  if (descricao !== original.descricao) {
-    changes.push({ campo: 'descricao', de: original.descricao, para: descricao });
-    updates.description = descricao;
-  }
-  if (!changes.length) {
+  const saveBtn = document.getElementById('btn-save');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Salvando...';
+  try {
+    if (!currentTaskRef) {
+      const farmId = window.taskModalFarmId;
+      const colRef = farmId ? collection(db, 'clients', farmId, 'tasks') : collection(db, 'tasks');
+      const now = Timestamp.now();
+      const docRef = await addDoc(colRef, {
+        orderId: taskOrder?.id || '',
+        title: titulo,
+        talhao,
+        plotName: talhao,
+        dueDate: vencimento,
+        description: descricao,
+        status: 'Pendente',
+        isCompleted: false,
+        criadoEm: now,
+        atualizadoEm: now
+      });
+      currentTaskId = docRef.id;
+      if (taskOrder?.id) {
+        const user = auth.currentUser;
+        const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
+        await addDoc(collection(doc(db, 'ordens', taskOrder.id), 'comentarios'), {
+          tipo: 'tarefa',
+          resumo: `🆕 Tarefa criada por ${autor} — "${titulo}"`,
+          criadoEm: now
+        });
+      }
+      document.getElementById('task-modal').classList.add('hidden');
+      document.dispatchEvent(new CustomEvent('task-updated', { detail: { orderId: taskOrder?.id } }));
+      if (returnOrderId) window.openOrderModal?.(returnOrderId);
+      taskOrder = null;
+      returnOrderId = null;
+      exitEditMode();
+      return;
+    }
+
+    const changes = [];
+    const updates = {};
+    if (titulo !== original.titulo) {
+      changes.push({ campo: 'titulo', de: original.titulo, para: titulo });
+      updates.title = titulo;
+    }
+    if (talhao !== original.talhao) {
+      changes.push({ campo: 'talhao', de: original.talhao, para: talhao });
+      updates.talhao = talhao;
+      updates.plotName = talhao;
+    }
+    if (vencimento !== original.vencimento) {
+      changes.push({ campo: 'vencimento', de: formatDate(original.vencimento), para: formatDate(vencimento) });
+      updates.dueDate = vencimento;
+    }
+    if (descricao !== original.descricao) {
+      changes.push({ campo: 'descricao', de: original.descricao, para: descricao });
+      updates.description = descricao;
+    }
+    if (!changes.length) {
+      exitEditMode();
+      return;
+    }
+    await updateDoc(currentTaskRef, updates);
+    const user = auth.currentUser;
+    const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
+    const now = Timestamp.now();
+    const resumoParts = changes.map(ch => {
+      if (ch.campo === 'descricao') return 'Descrição: alterada';
+      if (ch.campo === 'vencimento') return `Vencimento: ${ch.de} → ${ch.para}`;
+      const cap = ch.campo.charAt(0).toUpperCase() + ch.campo.slice(1);
+      return `${cap}: "${ch.de}" → "${ch.para}"`;
+    });
+    const resumo = `✏️ Edição por ${autor} — ${formatDateTime(now)} • ${resumoParts.join(' • ')}`;
+    await addDoc(collection(currentTaskRef, 'comentarios'), {
+      tipo: 'edicao',
+      autorUid: user?.uid || '',
+      autorNome: autor,
+      criadoEm: now,
+      mudancas: changes,
+      resumo
+    });
+    original = { titulo, talhao, vencimento, descricao };
     exitEditMode();
-    return;
-  }
-  await updateDoc(currentTaskRef, updates);
-  const user = auth.currentUser;
-  const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
-  const now = Timestamp.now();
-  const resumoParts = changes.map(ch => {
-    if (ch.campo === 'descricao') return 'Descrição: alterada';
-    if (ch.campo === 'vencimento') return `Vencimento: ${ch.de} → ${ch.para}`;
-    const cap = ch.campo.charAt(0).toUpperCase() + ch.campo.slice(1);
-    return `${cap}: "${ch.de}" → "${ch.para}"`;
-  });
-  const resumo = `✏️ Edição por ${autor} — ${formatDateTime(now)} • ${resumoParts.join(' • ')}`;
-  await addDoc(collection(currentTaskRef, 'comentarios'), {
-    tipo: 'edicao',
-    autorUid: user?.uid || '',
-    autorNome: autor,
-    criadoEm: now,
-    mudancas: changes,
-    resumo
-  });
-  original = { titulo, talhao, vencimento, descricao };
-  exitEditMode();
-  await loadComments(currentTaskRef);
-  if (currentSource === 'table') {
-    document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId } }));
+    await loadComments(currentTaskRef);
+    document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId, orderId: taskOrder?.id } }));
+  } catch (e) {
+    console.error(e);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Salvar';
   }
 }
 
@@ -151,8 +248,10 @@ export async function completeTask() {
   });
   document.getElementById('task-modal').classList.add('hidden');
   exitEditMode();
-  if (currentSource === 'table') {
-    document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId } }));
+  document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId, orderId: taskOrder?.id } }));
+  if (returnOrderId) {
+    window.openOrderModal?.(returnOrderId);
+    returnOrderId = null;
   }
 }
 

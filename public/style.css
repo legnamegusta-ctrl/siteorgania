@@ -751,7 +751,9 @@ body.sidebar-open {
 
 /* ----- Task modal ----- */
 #task-form.modal-read input[disabled],
-#task-form.modal-read textarea[disabled] {
+#task-form.modal-read textarea[disabled],
+#order-form.modal-read input[disabled],
+#order-form.modal-read textarea[disabled] {
     border: none;
     background: transparent;
     padding-left: 0;
