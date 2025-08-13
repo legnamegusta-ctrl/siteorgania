@@ -211,9 +211,9 @@ function renderMetrics() {
     const monthCompleted = state.allTasks.filter(t => t.isCompleted && sameMonth(t.completedAt)).length;
     const monthNew = state.allTasks.filter(t => sameMonth(t.createdAt)).length;
 
-    const totalPendingEl = document.getElementById('totalPending');
-    const totalDelayedEl = document.getElementById('totalDelayed');
-    const totalCompletedEl = document.getElementById('totalCompleted');
+    const totalPendingEl = document.getElementById('kpi-pendentes');
+    const totalDelayedEl = document.getElementById('kpi-atrasadas');
+    const totalCompletedEl = document.getElementById('kpi-concluidas');
     const monthCompletedEl = document.getElementById('monthCompleted');
     const monthNewEl = document.getElementById('monthNew');
 

@@ -50,7 +50,7 @@
 
     <!-- KPIS -->
       <section class="dashboard-section mb-6">
-        <div class="stats-grid">
+        <div class="stats-grid mb-6">
           <div class="dashboard-card flex items-center gap-3">
             <i class="fas fa-calendar-check text-[20px] text-gray-500"></i>
             <div class="flex flex-col">
@@ -65,25 +65,27 @@
               <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
             </div>
           </div>
-          <div class="dashboard-card flex items-center gap-3">
-            <i class="fas fa-circle-check text-[20px] text-gray-500"></i>
-            <div class="flex flex-col">
-              <p class="text-xs text-gray-500">Concluídas</p>
-              <p id="totalCompleted" class="kpi-value skeleton text-[28px] font-bold text-[#166534]"></p>
+        </div>
+        <div class="kpi-row" id="kpi-status-row">
+          <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-circle-check text-[20px] text-gray-500"></i></div>
+            <div class="kpi-text">
+              <span class="kpi-title">Concluídas</span>
+              <span id="kpi-concluidas" class="kpi-value skeleton text-[#166534]"></span>
             </div>
           </div>
-          <div class="dashboard-card flex items-center gap-3">
-            <i class="fas fa-clock text-[20px] text-gray-500"></i>
-            <div class="flex flex-col">
-              <p class="text-xs text-gray-500">Pendentes</p>
-              <p id="totalPending" class="kpi-value skeleton text-[28px] font-bold text-[#92400E]"></p>
+          <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-clock text-[20px] text-gray-500"></i></div>
+            <div class="kpi-text">
+              <span class="kpi-title">Pendentes</span>
+              <span id="kpi-pendentes" class="kpi-value skeleton text-[#92400E]"></span>
             </div>
           </div>
-          <div class="dashboard-card flex items-center gap-3">
-            <i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i>
-            <div class="flex flex-col">
-              <p class="text-xs text-gray-500">Atrasadas</p>
-              <p id="totalDelayed" class="kpi-value skeleton text-[28px] font-bold text-[#991B1B]"></p>
+          <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i></div>
+            <div class="kpi-text">
+              <span class="kpi-title">Atrasadas</span>
+              <span id="kpi-atrasadas" class="kpi-value skeleton text-[#991B1B]"></span>
             </div>
           </div>
         </div>
