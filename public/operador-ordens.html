@@ -207,23 +207,33 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h3 class="text-base font-semibold">Tarefas desta ordem</h3>
           <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap">0/0 abertas</span>
-            <div class="progress" style="--progress-width:128px" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar"></div></div>
+            <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap" aria-live="polite">0/0 abertas</span>
+            <div class="progress" style="--progress-width:160px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de tarefas" aria-live="polite"><div class="progress__bar"></div></div>
             <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap">+ Nova Tarefa</button>
           </div>
         </div>
-        <div class="table-responsive mt-2">
+        <div id="order-tasks-filters" class="flex flex-wrap gap-2 mt-3">
+          <button type="button" class="chip chip--filter filter-active" data-filter="all">Todas <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Pendente">Pendentes <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Atrasada">Atrasadas <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Concluída">Concluídas <span class="count">0</span></button>
+        </div>
+        <div id="order-tasks-table" class="table-responsive mt-4">
           <table class="w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-2 py-2 text-left">Título</th>
-                <th scope="col" class="px-2 py-2 text-left">Vencimento</th>
-                <th scope="col" class="px-2 py-2 text-left">Status</th>
+                <th scope="col" class="px-2 py-2 text-center">Vencimento</th>
+                <th scope="col" class="px-2 py-2 text-center">Status</th>
                 <th scope="col" class="px-2 py-2 text-right">Ações</th>
               </tr>
             </thead>
             <tbody id="order-tasks-list"></tbody>
           </table>
+        </div>
+        <div id="order-tasks-empty" class="hidden mt-4 text-sm text-gray-600 flex items-center gap-2">
+          Nenhuma tarefa nesta ordem ainda
+          <button type="button" id="btn-order-empty-create" class="btn btn-ghost whitespace-nowrap">+ Nova Tarefa</button>
         </div>
       </div>
       <div class="modal__body border-t pt-4 space-y-4">

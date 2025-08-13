@@ -84,7 +84,7 @@
 
 /* Tabela de tarefas dentro do modal responsiva */
 .table-responsive{overflow-x:auto;}
-.table-responsive table{min-width:600px;}
+.table-responsive table{min-width:700px;}
 @media (max-width:480px){.tasks-table td:last-child .btn{width:100%;height:44px;}}
 
 .btn{min-height:44px;}
@@ -153,6 +153,20 @@ a:focus {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
+
+/* Tabela de tarefas da ordem */
+#order-tasks table th:nth-child(1),
+#order-tasks table td:nth-child(1) {min-width:280px;}
+#order-tasks table th:nth-child(2),
+#order-tasks table td:nth-child(2) {width:120px;text-align:center;}
+#order-tasks table th:nth-child(3),
+#order-tasks table td:nth-child(3) {width:140px;text-align:center;}
+#order-tasks table th:nth-child(4),
+#order-tasks table td:nth-child(4) {width:160px;text-align:right;}
+#order-tasks-list tr:hover {background-color:#f9fafb;}
+
+
+.chip--filter {cursor:pointer;}
 
 /* Estilo para o botão de filtro ativo */
 .filter-active {
