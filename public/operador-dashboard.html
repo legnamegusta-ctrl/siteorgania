@@ -18,10 +18,10 @@
 <body class="min-h-screen bg-gray-50 text-gray-800">
   <div id="operador-dashboard-marker" class="hidden"></div>
 
-  <button id="sidebarToggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+  <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
 
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-logo">
@@ -30,8 +30,9 @@
     <!-- Links podem receber data-role para controle de acesso -->
     <nav class="sidebar-nav">
       <a href="operador-dashboard.html" class="sidebar-link"><i class="fas fa-home"></i><span>Dashboard</span></a>
-      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
+      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" data-badge="tarefas" class="sidebar-badge"></span></a>
       <div id="sidebarTasks" class="sidebar-submenu"></div>
+      <a href="operador-ordens.html" class="sidebar-link"><i class="fas fa-box"></i><span>Ordens</span><span id="ordersBadge" data-badge="ordens" class="sidebar-badge"></span></a>
       <a href="operador-agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
       <a href="operador-perfil.html" class="sidebar-link"><i class="fas fa-user"></i><span>Perfil</span></a>
     </nav>
@@ -39,10 +40,8 @@
 
     <main class="main-content">
       <header class="dashboard-header">
-        <div class="dashboard-container flex items-center justify-center h-full">
-          <h1 class="text-lg font-semibold text-center">Dashboard do Operador</h1>
-        </div>
-        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm absolute right-6 top-1/2 -translate-y-1/2"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
+        <h1 class="text-lg font-semibold">Dashboard do Operador</h1>
+        <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
       </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
