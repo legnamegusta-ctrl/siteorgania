@@ -181,7 +181,7 @@ function renderList(tasks) {
 
     const tdStatus = document.createElement('td');
     tdStatus.className = 'px-4 py-2';
-    tdStatus.textContent = getStatus(t, now);
+    tdStatus.innerHTML = renderStatusPill(getStatus(t, now));
 
     /* Chip ordem em tarefas */
     const tdOrder = document.createElement('td');
@@ -189,7 +189,7 @@ function renderList(tasks) {
     if (t.orderId) {
       const code = state.ordersMap[t.orderId]?.codigo || '...';
       const chip = document.createElement('button');
-      chip.className = 'order-chip';
+      chip.className = 'pill pill--info';
       chip.textContent = `#${code}`;
       chip.title = `Ver ordem #${code}`;
       chip.addEventListener('click', () => openOrderModal(t.orderId));
@@ -254,5 +254,14 @@ function parseDateLocal(str) {
 
 function formatDateLocal(str) {
   return parseDateLocal(str).toLocaleDateString('pt-BR');
+}
+
+function renderStatusPill(st){
+  const cls = st === 'Concluída'
+    ? 'pill pill--success'
+    : st === 'Atrasada'
+    ? 'pill pill--danger'
+    : 'pill pill--warn';
+  return `<span class="${cls}">${st}</span>`;
 }
 

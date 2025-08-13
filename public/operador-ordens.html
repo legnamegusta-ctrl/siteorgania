@@ -99,12 +99,12 @@
   </main>
 
   <!-- Modal tarefa reutilizado -->
-  <div id="task-modal" class="modal modal--task hidden" aria-modal="true" role="dialog">
-    <div class="modal__content">
+  <div class="modal-overlay" id="task-modal-overlay" hidden>
+    <div class="modal" id="task-modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       <header class="modal__header">
-        <div class="flex items-center gap-2">
-          <h3 class="modal__title">Detalhes da Tarefa</h3>
-          <button id="task-order-chip" class="chip hidden" title=""></button>
+        <div class="modal__title flex items-center gap-2">
+          <h3 id="task-modal-title">Detalhes da Tarefa</h3>
+          <button id="task-order-chip" class="pill pill--info hidden" title=""></button>
         </div>
         <div class="modal__actions">
           <button id="btn-edit" class="btn-ghost text-gray-600" aria-label="Editar"><i class="fas fa-pen"></i></button>
@@ -112,21 +112,21 @@
         </div>
       </header>
       <form id="task-form" class="modal__body space-y-4 modal-read">
-        <div>
-          <label class="block text-sm font-medium">Título</label>
-          <input id="task-titulo" class="w-full border rounded p-2" disabled />
+        <div class="field">
+          <label class="field__label" for="task-titulo">Título</label>
+          <input id="task-titulo" class="field__input" disabled />
         </div>
-        <div>
-          <label class="block text-sm font-medium">Talhão</label>
-          <input id="task-talhao" class="w-full border rounded p-2" disabled />
+        <div class="field">
+          <label class="field__label" for="task-talhao">Talhão</label>
+          <input id="task-talhao" class="field__input" disabled />
         </div>
-        <div>
-          <label class="block text-sm font-medium">Vencimento</label>
-          <input id="task-vencimento" type="date" class="w-full border rounded p-2" disabled />
+        <div class="field">
+          <label class="field__label" for="task-vencimento">Vencimento</label>
+          <input id="task-vencimento" type="date" class="field__input" disabled />
         </div>
-        <div>
-          <label class="block text-sm font-medium">Descrição</label>
-          <textarea id="task-desc" class="w-full border rounded p-2" rows="3" disabled></textarea>
+        <div class="field">
+          <label class="field__label" for="task-desc">Descrição</label>
+          <textarea id="task-desc" class="field__input" rows="3" disabled></textarea>
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="submit" id="btn-save" class="hidden bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
@@ -144,8 +144,8 @@
   </div>
 
   <!-- Modal ordem com comentários -->
-  <div id="order-modal" data-mode="view" class="modal modal--order hidden" aria-modal="true" role="dialog">
-    <div class="modal__content p-6">
+  <div class="modal-overlay" id="order-modal-overlay" hidden>
+    <div class="modal" id="order-modal" data-mode="view" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
       <header class="modal__header">
         <h3 id="order-modal-title" class="modal__title">Detalhes da Ordem</h3>
         <div class="modal__actions">
