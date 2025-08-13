@@ -19,14 +19,13 @@ let original = null;
 let currentSource = null;
 let taskOrder = null;
 let returnOrderId = null;
-let taskModalInited = false;
 let creatingTask = false;
 
 export function initTaskModal() {
-  if (taskModalInited) return;
+  if (window.__taskModalInited) return;
   const modal = document.getElementById('task-modal');
   if (!modal) return;
-  taskModalInited = true;
+  window.__taskModalInited = true;
   document.getElementById('btn-edit')?.addEventListener('click', enterEditMode);
   document.getElementById('task-form')?.addEventListener('submit', e => {
     e.preventDefault();
@@ -157,6 +156,7 @@ export async function saveTaskEdits() {
       const requestId = crypto.randomUUID();
       await setDoc(doc(colRef, requestId), {
         orderId: taskOrder?.id || '',
+        ordemId: taskOrder?.id || '',
         title: titulo,
         talhao,
         plotName: talhao,
