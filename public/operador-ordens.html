@@ -147,7 +147,11 @@
   <div class="modal-overlay" id="order-modal-overlay" hidden>
     <div class="modal" id="order-modal" data-mode="view" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
       <header class="modal__header">
-        <h3 id="order-modal-title" class="modal__title">Detalhes da Ordem</h3>
+        <div class="flex items-center gap-2">
+          <h3 id="order-modal-title" class="modal__title">Detalhes da Ordem</h3>
+          <span id="order-status-chip" class="pill"></span>
+          <span id="order-code-chip" class="pill pill--info"></span>
+        </div>
         <div class="modal__actions">
           <button id="btn-order-duplicate" class="btn-ghost text-gray-600" title="Duplicar"><i class="fas fa-copy"></i></button>
           <button id="btn-order-edit" class="btn-ghost text-gray-600" aria-label="Editar"><i class="fas fa-pen"></i></button>
@@ -178,7 +182,7 @@
           </div>
           <div class="field">
             <label for="order-prazo" class="field__label">Prazo</label>
-            <input id="order-prazo" type="date" class="field__input" readonly />
+            <input id="order-prazo" class="field__input" readonly />
           </div>
         </div>
         <div class="field">
@@ -200,22 +204,22 @@
       </div>
       </form>
       <div id="order-tasks" class="mt-6">
-        <div class="section-header">
-          <h3>Tarefas desta ordem</h3>
-          <button id="btn-order-new-task" type="button" class="btn btn-ghost">+ Nova Tarefa</button>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="text-base font-semibold">Tarefas desta ordem</h3>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap">0/0 abertas</span>
+            <div class="progress" style="--progress-width:128px" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar"></div></div>
+            <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap">+ Nova Tarefa</button>
+          </div>
         </div>
-        <div class="mb-2">
-          <div class="progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar" style="width:0%"></div></div>
-          <div id="order-tasks-counter" class="text-xs text-gray-600 mt-1" aria-live="polite"></div>
-        </div>
-        <div class="table-responsive">
+        <div class="table-responsive mt-2">
           <table class="w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-2 py-2 text-left">Título</th>
                 <th scope="col" class="px-2 py-2 text-left">Vencimento</th>
                 <th scope="col" class="px-2 py-2 text-left">Status</th>
-                <th scope="col" class="px-2 py-2 text-left">Ações</th>
+                <th scope="col" class="px-2 py-2 text-right">Ações</th>
               </tr>
             </thead>
             <tbody id="order-tasks-list"></tbody>
