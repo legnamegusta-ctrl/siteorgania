@@ -8,6 +8,7 @@ import {
   getDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { initTaskModal, openTaskModal as openTaskModalBase } from '../ui/task-modal.js';
+import { parseDateLocal, formatDDMMYYYY } from '../lib/date-utils.js';
 
 const state = { farmClientId: null, allTasks: [], ordersMap: {} };
 const filters = parseFiltersFromURL();
@@ -247,13 +248,9 @@ export async function openTaskModal(taskId, source = 'table') {
 
 window.openTaskModal = openTaskModal;
 
-function parseDateLocal(str) {
-  const [y, m, d] = str.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
 function formatDateLocal(str) {
-  return parseDateLocal(str).toLocaleDateString('pt-BR');
+  const d = parseDateLocal(str);
+  return d ? formatDDMMYYYY(d) : '-';
 }
 
 function renderStatusPill(st){

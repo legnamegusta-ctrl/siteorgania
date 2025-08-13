@@ -16,7 +16,6 @@ export function initSidebar() {
 
   if (!sidebar || !toggle || !backdrop) return;
 
-  const body = document.body;
   let focusable = [];
   let firstFocusable;
   let lastFocusable;
@@ -45,24 +44,24 @@ export function initSidebar() {
   };
 
   const open = () => {
-    body.classList.add('sidebar-open');
+    sidebar.classList.add('is-open');
+    backdrop.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
-    backdrop.setAttribute('aria-hidden', 'false');
     setFocusables();
     firstFocusable && firstFocusable.focus();
     document.addEventListener('keydown', handleKeydown);
   };
 
   const close = () => {
-    body.classList.remove('sidebar-open');
+    sidebar.classList.remove('is-open');
+    backdrop.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
-    backdrop.setAttribute('aria-hidden', 'true');
     document.removeEventListener('keydown', handleKeydown);
     toggle.focus();
   };
 
   toggle.addEventListener('click', () => {
-    body.classList.contains('sidebar-open') ? close() : open();
+    sidebar.classList.contains('is-open') ? close() : open();
   });
 
   backdrop.addEventListener('click', close);
