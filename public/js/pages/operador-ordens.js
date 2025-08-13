@@ -313,9 +313,9 @@ function renderStatus(status) {
 
 function openModal(order, mode = 'view') {
   state.current = order;
-  fillForm(order);
-  renderComments();
   modal.dataset.mode = mode;
+  fillForm(order, mode);
+  renderComments();
   form.dataset.dirty = 'false';
   if (mode === 'create') {
     form.classList.remove('modal-read');
@@ -333,7 +333,7 @@ function openModal(order, mode = 'view') {
     toggleFormFields(true);
     document.getElementById('btn-order-save').classList.add('hidden');
     document.getElementById('btn-order-conclude').classList.remove('hidden');
-     document.getElementById('btn-order-cancel').classList.remove('hidden');
+    document.getElementById('btn-order-cancel').classList.remove('hidden');
     document.getElementById('btn-order-edit').classList.remove('hidden');
     document.getElementById('btn-order-duplicate').classList.remove('hidden');
     document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
@@ -522,19 +522,44 @@ function renderComments() {
   });
 }
 
-function fillForm(o) {
-  document.getElementById('order-codigo').value = o.id || '';
-  document.getElementById('order-cliente').value = o.cliente || '';
-  document.getElementById('order-propriedade').value = o.propriedade || '';
-  document.getElementById('order-talhao').value = o.talhao || '';
-  document.getElementById('order-abertura').value = o.abertura || '';
-  document.getElementById('order-prazo').value = o.prazo || '';
-  document.getElementById('order-itens').value = o.itens || '';
+function fillForm(o, mode = 'view') {
+  const codeChip = document.getElementById('order-code-chip');
+  if (codeChip) {
+    codeChip.textContent = o.id || '';
+    codeChip.classList.toggle('hidden', !o.id);
+  }
+  const statusChip = document.getElementById('order-status-chip');
+  if (statusChip) {
+    const st = o.status || '';
+    statusChip.textContent = st || '—';
+    const cls = st
+      ? st === 'Concluída'
+        ? 'pill pill--success'
+        : st === 'Cancelada'
+          ? 'pill pill--danger'
+          : st === 'Em andamento'
+            ? 'pill pill--warn'
+            : 'pill pill--info'
+      : 'pill';
+    statusChip.className = cls;
+  }
+  document.getElementById('order-codigo').value = o.id || '—';
+  document.getElementById('order-cliente').value = o.cliente || (mode === 'view' ? '—' : '');
+  document.getElementById('order-propriedade').value = o.propriedade || (mode === 'view' ? '—' : '');
+  document.getElementById('order-talhao').value = o.talhao || (mode === 'view' ? '—' : '');
+  const aberturaEl = document.getElementById('order-abertura');
+  aberturaEl.type = 'text';
+  aberturaEl.value = o.abertura || '—';
+  const prazoEl = document.getElementById('order-prazo');
+  prazoEl.type = mode === 'view' ? 'text' : 'date';
+  prazoEl.value = o.prazo || '';
+  document.getElementById('order-itens').value = o.itens || (mode === 'view' ? '—' : '');
   document.getElementById('order-total').value = (o.total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  document.getElementById('order-obs').value = o.obs || '';
+  document.getElementById('order-obs').value = o.obs || (mode === 'view' ? '—' : '');
   document.getElementById('order-total').disabled = true;
-  toggleFormFields(true);
-  document.getElementById('btn-order-save').classList.add('hidden');
+  toggleFormFields(mode === 'view');
+  if (mode !== 'view') document.getElementById('btn-order-save').classList.remove('hidden');
+  else document.getElementById('btn-order-save').classList.add('hidden');
 }
 
 function toggleFormFields(disabled) {

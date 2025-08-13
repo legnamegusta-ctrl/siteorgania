@@ -93,15 +93,17 @@ function loadTasks(orderId) {
         <td>${data.title || d.id}</td>
         <td>${dueDate ? formatDDMMYYYY(dueDate) : '-'}</td>
         <td>${renderTaskStatus(status)}</td>
-        <td><button type="button" class="btn-ghost text-blue-700" data-action="view-task" data-task-id="${d.id}">Ver detalhes</button></td>`;
+        <td class="text-right"><button type="button" class="btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${d.id}">Ver detalhes</button></td>`;
       frag.appendChild(tr);
     });
     list?.replaceChildren(frag);
     const counter = document.getElementById('order-tasks-counter');
     if (counter) counter.textContent = `${open}/${total} abertas`;
-    const bar = document.querySelector('#order-tasks .progress__bar');
+    const bar = document.querySelector('#order-tasks .progress');
+    const barFill = bar?.querySelector('.progress__bar');
     const percent = total ? (completed / total) * 100 : 0;
-    if (bar) bar.style.width = `${percent}%`;
+    if (barFill) barFill.style.width = `${percent}%`;
+    if (bar) bar.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
   });
 }
 
@@ -135,17 +137,41 @@ function nowLocal() {
 }
 
 function fillOrderForm(order) {
-  document.getElementById('order-codigo').value = order.codigo || '';
-  document.getElementById('order-cliente').value = order.cliente || '';
-  document.getElementById('order-propriedade').value = order.propriedade || '';
-  document.getElementById('order-talhao').value = order.talhao || '';
+  const codeEl = document.getElementById('order-code-chip');
+  if (codeEl) {
+    codeEl.textContent = order.codigo || order.id || '';
+    codeEl.classList.toggle('hidden', !(order.codigo || order.id));
+  }
+  const statusEl = document.getElementById('order-status-chip');
+  if (statusEl) {
+    const st = order.status || '';
+    statusEl.textContent = st || '—';
+    const cls = st
+      ? st === 'Concluída'
+        ? 'pill pill--success'
+        : st === 'Cancelada'
+          ? 'pill pill--danger'
+          : st === 'Em andamento'
+            ? 'pill pill--warn'
+            : 'pill pill--info'
+      : 'pill';
+    statusEl.className = cls;
+  }
+  document.getElementById('order-codigo').value = order.codigo || order.id || '—';
+  document.getElementById('order-cliente').value = order.cliente || '—';
+  document.getElementById('order-propriedade').value = order.propriedade || '—';
+  document.getElementById('order-talhao').value = order.talhao || '—';
   const ab = document.getElementById('order-abertura');
-  ab.value = order.abertura ? toYYYYMMDD(parseDateLocal(order.abertura)) : '';
+  ab.type = 'text';
+  ab.value = order.abertura ? formatDDMMYYYY(parseDateLocal(order.abertura)) : '—';
   const prazo = document.getElementById('order-prazo');
-  prazo.value = order.prazo ? toYYYYMMDD(parseDateLocal(order.prazo)) : '';
-  document.getElementById('order-itens').value = order.itens || '';
-  document.getElementById('order-total').value = order.total || '';
-  document.getElementById('order-obs').value = order.obs || '';
+  prazo.type = 'text';
+  prazo.value = order.prazo ? formatDDMMYYYY(parseDateLocal(order.prazo)) : '—';
+  document.getElementById('order-itens').value = order.itens || '—';
+  document.getElementById('order-total').value = typeof order.total === 'number'
+    ? order.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    : '—';
+  document.getElementById('order-obs').value = order.obs || '—';
 }
 
 window.openOrderModal = openOrderModal;
