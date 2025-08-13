@@ -266,6 +266,38 @@ function renderMetrics() {
   }
 }
 
+// Helpers de data em fuso local (America/Sao_Paulo)
+function startOfLocalDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function parseVencimentoLocal(v) {
+  if (!v) return null;
+  if (typeof v === 'object' && typeof v.toDate === 'function') {
+    return v.toDate();
+  }
+  if (typeof v === 'string') {
+    const [datePart, timePart] = v.split('T');
+    const [y, m, d] = datePart.split('-').map(Number);
+    if (timePart) {
+      const [hh, mm] = timePart.split(':').map(Number);
+      return new Date(y, m - 1, d, hh || 0, mm || 0);
+    }
+    return new Date(y, m - 1, d);
+  }
+  return new Date(v);
+}
+
+function formatDDMM(d) {
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}`;
+}
+
+function weekdayPt(d) {
+  return ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][d.getDay()];
+}
+
 function render7DaysChart() {
   if (!window.Chart) return;
   const loadingEl = document.getElementById('card-7dias-loading');
@@ -280,38 +312,41 @@ function render7DaysChart() {
   canvas.classList.add('hidden');
 
   const now = new Date();
-  const start = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-  start.setHours(0, 0, 0, 0);
+  const hoje0 = startOfLocalDay(now);
+  const fimJanela = new Date(hoje0);
+  fimJanela.setDate(fimJanela.getDate() + 7);
+  fimJanela.setMilliseconds(fimJanela.getMilliseconds() - 1);
 
   const labels = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    if (i === 0) labels.push(`Hoje ${dateStr}`);
-    else if (i === 1) labels.push(`Amanhã ${dateStr}`);
-    else labels.push(`D+${i} ${dateStr}`);
+    const d = new Date(hoje0);
+    d.setDate(hoje0.getDate() + i);
+    const ddmm = formatDDMM(d);
+    if (i === 0) labels.push(`Hoje ${ddmm}`);
+    else if (i === 1) labels.push(`Amanhã ${ddmm}`);
+    else labels.push(`D+${i} ${ddmm}`);
   }
 
-  const counts = Array(7).fill(0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 6);
-  end.setHours(23, 59, 59, 999);
+  const totais = Array(7).fill(0);
+  const pendentes = Array(7).fill(0);
+  const atrasadas = Array(7).fill(0);
 
   state.allTasks.forEach(t => {
-    if (t.isCompleted) return;
-    const status = normalizeStatus(t.status || (new Date(t.dueDate) < now ? 'Atrasada' : 'Pendente'));
+    const status = normalizeStatus(
+      t.status || (t.isCompleted ? 'Concluída' : (new Date(t.dueDate) < now ? 'Atrasada' : 'Pendente'))
+    );
     if (status !== 'pendente' && status !== 'atrasada') return;
-    const raw = parseDate(t.vencimento || t.dueDate);
-    if (!raw) return;
-    const due = new Date(raw.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-    if (due < start || due > end) return;
-    const diff = Math.floor((due - start) / (1000 * 60 * 60 * 24));
-    if (diff >= 0 && diff < 7) counts[diff]++;
+    const dv = parseVencimentoLocal(t.vencimento || t.dueDate);
+    if (!dv) return;
+    const dv0 = startOfLocalDay(dv);
+    const idx = Math.floor((dv0 - hoje0) / 86_400_000);
+    if (idx < 0 || idx > 6) return;
+    totais[idx]++;
+    if (status === 'pendente') pendentes[idx]++; else atrasadas[idx]++;
   });
 
   loadingEl.classList.add('hidden');
-  const total = counts.reduce((a, b) => a + b, 0);
+  const total = totais.reduce((a, b) => a + b, 0);
   if (!total) {
     emptyEl.classList.remove('hidden');
     if (state.sevenChart) {
@@ -321,57 +356,54 @@ function render7DaysChart() {
     return;
   }
 
-  const bgColors = counts.map((v, i) => {
-    if (v > 0) {
-      if (i === 0) return '#EF4444';
-      if (i === 1) return '#F59E0B';
-      if (i === 2) return '#FACC15';
-    }
+  const bgColors = labels.map((_, i) => {
+    if (i === 0) return '#EF4444';
+    if (i === 1) return '#F59E0B';
+    if (i === 2) return '#FACC15';
     return '#93C5FD';
   });
-  const borderColors = counts.map((v, i) => {
-    if (v > 0) {
-      if (i === 0) return '#DC2626';
-      if (i === 1) return '#D97706';
-      if (i === 2) return '#EAB308';
-    }
+  const borderColors = labels.map((_, i) => {
+    if (i === 0) return '#DC2626';
+    if (i === 1) return '#D97706';
+    if (i === 2) return '#EAB308';
     return '#60A5FA';
   });
 
   chartWrap.classList.remove('hidden');
   canvas.classList.remove('hidden');
   const ctx = canvas.getContext('2d');
-  const maxVal = Math.max(...counts);
+  const maxVal = Math.max(...totais);
 
   const tooltipLabel = ctx => {
     const idx = ctx.dataIndex;
-    const d = new Date(start);
-    d.setDate(start.getDate() + idx);
-    const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    const dayName = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-    const nameCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
-    return `${dateStr} (${nameCap}): ${ctx.parsed.y} tarefa${ctx.parsed.y === 1 ? '' : 's'}`;
+    const base = new Date(hoje0);
+    base.setDate(hoje0.getDate() + idx);
+    const ddmm = formatDDMM(base);
+    const wday = weekdayPt(base);
+    return `${ddmm} (${wday}): Total ${totais[idx]} · Pendentes ${pendentes[idx]} · Atrasadas ${atrasadas[idx]}`;
+  };
+
+  const onClickBar = (evt, elements) => {
+    if (elements.length) {
+      const idx = elements[0].index;
+      const d = new Date(hoje0);
+      d.setDate(hoje0.getDate() + idx);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      window.location.href = `operador-tarefas.html?dia=${y}-${m}-${day}&status=abertas`;
+    }
   };
 
   if (state.sevenChart) {
     state.sevenChart.data.labels = labels;
-    state.sevenChart.data.datasets[0].data = counts;
+    state.sevenChart.data.datasets[0].data = totais;
     state.sevenChart.data.datasets[0].backgroundColor = bgColors;
     state.sevenChart.data.datasets[0].borderColor = borderColors;
     state.sevenChart.options.scales.y.suggestedMax = maxVal + 1;
     state.sevenChart.options.plugins.tooltip.callbacks.label = tooltipLabel;
     state.sevenChart.options.plugins.tooltip.callbacks.title = () => '';
-    state.sevenChart.options.onClick = (evt, elements) => {
-      if (elements.length) {
-        const idx = elements[0].index;
-        const d = new Date(start);
-        d.setDate(start.getDate() + idx);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        window.location.href = `operador-tarefas.html?dia=${y}-${m}-${day}&status=abertas`;
-      }
-    };
+    state.sevenChart.options.onClick = onClickBar;
     state.sevenChart.update();
   } else {
     state.sevenChart = new Chart(ctx, {
@@ -379,7 +411,7 @@ function render7DaysChart() {
       data: {
         labels,
         datasets: [{
-          data: counts,
+          data: totais,
           backgroundColor: bgColors,
           borderColor: borderColors,
           borderWidth: 1
@@ -388,17 +420,7 @@ function render7DaysChart() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        onClick: (evt, elements) => {
-          if (elements.length) {
-            const idx = elements[0].index;
-            const d = new Date(start);
-            d.setDate(start.getDate() + idx);
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            window.location.href = `operador-tarefas.html?dia=${y}-${m}-${day}&status=abertas`;
-          }
-        },
+        onClick: onClickBar,
         scales: {
           y: {
             beginAtZero: true,
@@ -419,11 +441,6 @@ function render7DaysChart() {
       }
     });
   }
-}
-
-function parseDate(value) {
-  if (!value) return null;
-  return typeof value === 'string' ? new Date(value) : value.toDate?.() || new Date(value);
 }
 
 function normalizeStatus(str) {
@@ -491,3 +508,12 @@ async function createTask(e) {
   showModal(false);
   await fetchAndRenderTasks();
 }
+
+/*
+Testes rápidos (America/Sao_Paulo):
+- "2025-08-12" (hoje) -> bucket 0.
+- "2025-08-13" (amanhã) -> bucket 1.
+- Timestamp hoje às 23:59 -> bucket 0.
+- Timestamp amanhã às 00:01 -> bucket 1.
+- "2025-08-19" -> bucket 7 → ignorado.
+*/
