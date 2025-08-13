@@ -1,9 +1,10 @@
 /* Ordens: filtros + tabela harmonizada */
 
 import { db, auth } from '../config/firebase.js';
-import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
+import { initOrderModal, openOrderModal } from '../ui/order-modal.js';
 
 /* QA rápido:
    - Criar tarefa com vencimento amanhã → aparece como Pendente
@@ -46,7 +47,6 @@ const state = {
 };
 
 let ordersTable, modal, form, commentList;
-let unsubscribeOrderTasks = null;
 
 function init() {
   ordersTable = document.getElementById('orders-table');
@@ -55,6 +55,7 @@ function init() {
   commentList = document.getElementById('order-comments-list');
   render();
   initTaskModal();
+  initOrderModal();
   document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
@@ -83,13 +84,6 @@ function init() {
   });
 
   modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-
-  document.getElementById('order-tasks-list')?.addEventListener('click', e => {
-    const btn = e.target.closest('[data-action="view-task"]');
-    if (!btn) return;
-    modal.classList.add('hidden');
-    openTaskModal(btn.dataset.taskId, { mode: 'view' });
-  });
 }
 
 function render() {
@@ -109,7 +103,7 @@ function render() {
       <td class="px-3 py-3">${o.talhao}</td>
       <td class="px-3 py-3 min-w-[112px]">${o.prazo}</td>
       <td class="px-3 py-3 min-w-[120px]">${renderStatus(o.status)}</td>
-      <td class="px-3 py-3 w-32"><div class="text-sm"><span class="open-count">0</span>/<span class="total-count">0</span></div><div class="task-progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div style="width:0%"></div></div></td>
+      <td class="px-3 py-3 w-32"><div class="text-sm"><span class="open-count">0</span>/<span class="total-count">0</span></div><div class="progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar" style="width:0%"></div></div></td>
       <td class="px-3 py-3 min-w-[96px] text-right">${o.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
       <td class="px-3 py-3">
         <div class="flex gap-2">
@@ -159,8 +153,8 @@ function updateTasksCell(td, stats) {
   td.querySelector('.open-count').textContent = stats.open;
   td.querySelector('.total-count').textContent = stats.total;
   const percent = stats.total ? (stats.completed / stats.total) * 100 : 0;
-  td.querySelector('.task-progress div').style.width = `${percent}%`;
-  td.querySelector('.task-progress').setAttribute('aria-label', `Progresso de tarefas: ${stats.completed} de ${stats.total} concluídas`);
+  td.querySelector('.progress__bar').style.width = `${percent}%`;
+  td.querySelector('.progress').setAttribute('aria-label', `Progresso de tarefas: ${stats.completed} de ${stats.total} concluídas`);
 }
 
 async function generateOrderCode() {
@@ -286,6 +280,7 @@ function handleRowAction(e) {
   const order = state.orders.find(o => o.id === id);
   if (!order) return;
   if (action === 'view') {
+    state.current = order;
     openOrderModal(id);
   } else if (action === 'done') {
     state.current = order;
@@ -299,13 +294,17 @@ function handleRowAction(e) {
 }
 
 function renderStatus(status) {
-  const cls = {
-    'aberta': 'aberta',
-    'em andamento': 'em-andamento',
-    'concluída': 'concluida',
-    'cancelada': 'cancelada'
-  }[normalize(status)] || 'default';
-  return `<span class="status-pill ${cls}">${status}</span>`;
+  const norm = normalize(status);
+  const cls = norm === 'aberta'
+    ? 'pill pill--info'
+    : norm === 'em andamento'
+    ? 'pill pill--warn'
+    : norm === 'concluída' || norm === 'concluida'
+    ? 'pill pill--success'
+    : norm === 'cancelada'
+    ? 'pill pill--danger'
+    : 'pill';
+  return `<span class="${cls}">${status}</span>`;
 }
 
 function openModal(order, mode = 'view') {
@@ -494,15 +493,6 @@ function addComment() {
   renderComments();
 }
 
-function renderTaskStatus(st) {
-  const cls = st === 'Concluída'
-    ? 'bg-green-100 text-green-800'
-    : st === 'Atrasada'
-    ? 'bg-red-100 text-red-800'
-    : 'bg-yellow-100 text-yellow-800';
-  return `<span class="px-2 py-1 rounded-full text-xs font-semibold ${cls}">${st}</span>`;
-}
-
 function parseDateLocal(v) {
   if (!v) return null;
   if (v instanceof Timestamp) return v.toDate();
@@ -529,48 +519,6 @@ function nowLocal() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
 }
 
-export function openOrderModal(orderId) {
-  document.getElementById('task-modal')?.classList.add('hidden');
-  if (unsubscribeOrderTasks) {
-    unsubscribeOrderTasks();
-    unsubscribeOrderTasks = null;
-  }
-  const list = document.getElementById('order-tasks-list');
-  if (list) list.innerHTML = '';
-  const order = state.orders.find(o => o.id === orderId);
-  if (order) openModal(order);
-  const q = query(collection(db, 'tasks'), where('ordemId', '==', orderId));
-  unsubscribeOrderTasks = onSnapshot(q, snap => {
-    const frag = document.createDocumentFragment();
-    let total = 0, completed = 0, open = 0;
-    snap.forEach(d => {
-      const data = d.data();
-      const status = taskStatus(data);
-      total++;
-      if (status === 'Concluída') completed++;
-      if (status === 'Pendente' || status === 'Atrasada') open++;
-      const dueRaw = data.dueDate || data.vencimento;
-      const dueDate = dueRaw ? parseDateLocal(dueRaw) : null;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="px-2 py-2">${data.title || d.id}</td>
-        <td class="px-2 py-2">${dueDate ? formatDDMMYYYY(dueDate) : '-'}</td>
-        <td class="px-2 py-2">${renderTaskStatus(status)}</td>
-        <td class="px-2 py-2"><button type="button" class="text-blue-700 underline text-sm" data-action="view-task" data-task-id="${d.id}" title="Ver detalhes da tarefa" aria-label="Ver detalhes da tarefa">Ver detalhes</button></td>`;
-      frag.appendChild(tr);
-    });
-    list?.replaceChildren(frag);
-    const counter = document.getElementById('order-tasks-counter');
-    if (counter) counter.textContent = `${open}/${total} abertas`;
-    const progress = document.querySelector('#order-tasks .task-progress div');
-    const wrapper = document.querySelector('#order-tasks .task-progress');
-    const percent = total ? (completed / total) * 100 : 0;
-    if (progress) progress.style.width = `${percent}%`;
-    wrapper?.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
-  });
-}
-
-window.openOrderModal = openOrderModal;
 
 function renderComments() {
   if (!state.current) return;

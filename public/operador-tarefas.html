@@ -61,19 +61,19 @@
   </main>
 
   <!-- Modal Detalhes da Tarefa -->
-  <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden" aria-modal="true" role="dialog">
-    <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center p-4 border-b">
+  <div id="task-modal" class="modal modal--task hidden" aria-modal="true" role="dialog">
+    <div class="modal__content">
+      <header class="modal__header">
         <div class="flex items-center gap-2">
-          <h3 class="text-lg font-semibold">Detalhes da Tarefa</h3>
-          <button id="task-order-chip" class="order-chip hidden" title=""></button>
+          <h3 class="modal__title">Detalhes da Tarefa</h3>
+          <button id="task-order-chip" class="chip hidden" title=""></button>
         </div>
-        <div class="flex items-center gap-2">
-          <button id="btn-edit" class="btn-ghost text-gray-600"><i class="fas fa-pen"></i></button>
-          <button id="btn-close" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
+        <div class="modal__actions">
+          <button id="btn-edit" class="btn-ghost text-gray-600" aria-label="Editar"><i class="fas fa-pen"></i></button>
+          <button id="btn-close" class="text-gray-600 hover:text-gray-800" aria-label="Fechar"><i class="fas fa-times"></i></button>
         </div>
-      </div>
-      <form id="task-form" class="p-4 space-y-4 modal-read">
+      </header>
+      <form id="task-form" class="modal__body space-y-4 modal-read">
         <div>
           <label class="block text-sm font-medium">Título</label>
           <input id="task-titulo" class="w-full border rounded p-2" disabled />
@@ -95,7 +95,7 @@
           <button type="button" id="btn-complete" class="bg-blue-600 text-white px-4 py-2 rounded">Concluir</button>
         </div>
       </form>
-      <div class="p-4 border-t space-y-4">
+      <div class="modal__body border-t space-y-4">
         <div class="flex items-center gap-2">
           <input id="comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." />
           <button id="btn-add-comment" class="text-green-700"><i class="fas fa-paper-plane"></i></button>
@@ -105,16 +105,16 @@
     </div>
   </div>
   <!-- Modal ordem reutilizado -->
-  <div id="order-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden" aria-modal="true" role="dialog">
-    <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Detalhes da Ordem</h3>
-        <div class="flex items-center gap-2">
-          <button id="btn-order-edit" class="btn-ghost text-gray-600"><i class="fas fa-pen"></i></button>
-          <button id="btn-order-close" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
+  <div id="order-modal" class="modal modal--order hidden" aria-modal="true" role="dialog">
+    <div class="modal__content p-6">
+      <header class="modal__header">
+        <h3 class="modal__title">Detalhes da Ordem</h3>
+        <div class="modal__actions">
+          <button id="btn-order-edit" class="btn-ghost text-gray-600" aria-label="Editar"><i class="fas fa-pen"></i></button>
+          <button id="btn-order-close" class="text-gray-600 hover:text-gray-800" aria-label="Fechar"><i class="fas fa-times"></i></button>
         </div>
-      </div>
-      <form id="order-form" class="space-y-4 modal-read">
+      </header>
+      <form id="order-form" class="modal__body space-y-4 modal-read">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="order-codigo" class="block text-sm text-gray-600">Código</label>
@@ -161,7 +161,7 @@
           <button id="btn-order-new-task" class="btn-ghost text-sm text-blue-600 flex items-center gap-1"><i class="fas fa-plus"></i><span>Nova Tarefa</span></button>
         </div>
         <div class="mb-2">
-          <div class="task-progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div style="width:0%"></div></div>
+          <div class="progress" aria-label="Progresso de tarefas: 0 de 0 concluídas"><div class="progress__bar" style="width:0%"></div></div>
           <div id="order-tasks-counter" class="text-xs text-gray-600 mt-1"></div>
         </div>
         <table class="w-full text-sm">
@@ -176,7 +176,7 @@
           <tbody id="order-tasks-list"></tbody>
         </table>
       </div>
-      <div class="mt-4 space-y-4 border-t pt-4">
+      <div class="modal__body border-t pt-4 space-y-4">
         <div class="flex items-center gap-2">
           <input id="order-comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." />
           <button id="btn-order-add-comment" class="text-green-700"><i class="fas fa-paper-plane"></i></button>
@@ -186,7 +186,7 @@
     </div>
   </div>
   <script type="module" src="js/ui/sidebar.js"></script>
-  <script type="module" src="js/pages/operador-ordens.js"></script>
+  <script type="module" src="js/ui/order-modal.js"></script>
   <script type="module" src="js/pages/operador-tarefas.js"></script>
   <script type="module" src="js/services/auth.js"></script>
 </body>
