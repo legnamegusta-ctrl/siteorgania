@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perfil do Operador</title>
+  <title>Ordens do Operador</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
   <link rel="icon" href="favicon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen bg-gray-100">
-  <div id="operador-perfil-marker" class="hidden"></div>
+  <div id="operador-ordens-marker" class="hidden"></div>
 
   <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
     <i class="fas fa-bars"></i>
@@ -21,7 +21,6 @@
     <div class="sidebar-logo">
       <img src="logo.png" alt="Orgânia" />
     </div>
-    <!-- Links podem receber data-role para controle de acesso -->
     <nav class="sidebar-nav">
       <a href="operador-dashboard.html" class="sidebar-link"><i class="fas fa-home"></i><span>Dashboard</span></a>
       <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" data-badge="tarefas" class="sidebar-badge"></span></a>
@@ -33,16 +32,14 @@
 
   <main class="main-content flex flex-col overflow-hidden">
     <header class="dashboard-header">
-      <h1 class="text-lg font-bold text-green-700">Perfil</h1>
+      <h1 class="text-lg font-bold text-green-700">Ordens</h1>
       <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold"><span>Sair</span></button>
     </header>
 
     <section class="flex-1 overflow-y-auto p-4">
-      <div class="bg-white rounded-lg shadow-lg p-4 max-w-md">
-        <h2 class="text-lg font-bold mb-4">Informações do Usuário</h2>
-        <p><span class="font-semibold">Nome:</span> <span id="profileName"></span></p>
-        <p><span class="font-semibold">Email:</span> <span id="profileEmail"></span></p>
-        <p><span class="font-semibold">Papel:</span> <span id="profileRole"></span></p>
+      <div class="bg-white rounded-lg shadow-lg p-4">
+        <h2 class="text-lg font-bold mb-4">Minhas Ordens</h2>
+        <p class="text-sm text-gray-600">Em breve...</p>
       </div>
     </section>
   </main>
@@ -51,3 +48,4 @@
   <script type="module" src="js/services/auth.js"></script>
 </body>
 </html>
+

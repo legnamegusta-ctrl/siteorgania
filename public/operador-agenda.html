@@ -12,10 +12,10 @@
 <body class="min-h-screen bg-gray-100">
   <div id="operador-agenda-marker" class="hidden"></div>
 
-  <button id="sidebarToggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+  <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
 
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-logo">
@@ -24,18 +24,17 @@
     <!-- Links podem receber data-role para controle de acesso -->
     <nav class="sidebar-nav">
       <a href="operador-dashboard.html" class="sidebar-link"><i class="fas fa-home"></i><span>Dashboard</span></a>
-      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
+      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" data-badge="tarefas" class="sidebar-badge"></span></a>
+      <a href="operador-ordens.html" class="sidebar-link"><i class="fas fa-box"></i><span>Ordens</span><span id="ordersBadge" data-badge="ordens" class="sidebar-badge"></span></a>
       <a href="operador-agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
       <a href="operador-perfil.html" class="sidebar-link"><i class="fas fa-user"></i><span>Perfil</span></a>
     </nav>
   </aside>
 
   <main class="main-content flex flex-col overflow-hidden">
-    <header class="bg-white border-b">
-      <div class="flex items-center justify-between px-4 py-2">
-        <h1 class="text-lg font-bold text-green-700">Agenda</h1>
-        <button onclick="logout()" class="text-red-600 font-semibold">Sair</button>
-      </div>
+    <header class="dashboard-header">
+      <h1 class="text-lg font-bold text-green-700">Agenda</h1>
+      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold"><span>Sair</span></button>
     </header>
 
     <section class="flex-1 overflow-y-auto p-4">
