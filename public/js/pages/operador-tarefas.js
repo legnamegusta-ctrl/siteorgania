@@ -9,12 +9,14 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
-const state = { farmClientId: null };
+const state = { farmClientId: null, allTasks: [] };
+const filters = parseFiltersFromURL();
 
 export async function initOperadorTarefas(userId, userRole) {
   await loadFarmId(userId);
   window.taskModalFarmId = state.farmClientId;
   initTaskModal();
+  syncFilterControls();
   loadTasks();
 }
 
@@ -27,23 +29,118 @@ async function loadFarmId(userId) {
   }
 }
 
+function parseFiltersFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const f = { day: null, dayStr: null, status: null };
+  const dia = params.get('dia');
+  if (dia) {
+    const [y, m, d] = dia.split('-').map(Number);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      f.day = {
+        start: new Date(y, m - 1, d, 0, 0, 0, 0),
+        end: new Date(y, m - 1, d, 23, 59, 59, 999)
+      };
+      f.dayStr = dia;
+    }
+  }
+  const status = params.get('status');
+  if (status) {
+    const norm = status
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    if (norm === 'abertas') f.status = 'abertas';
+  }
+  return f;
+}
+
+function syncFilterControls() {
+  const dateInput = document.getElementById('filter-date');
+  if (dateInput) dateInput.value = filters.dayStr || '';
+  const statusSelect = document.getElementById('filter-status');
+  if (statusSelect) statusSelect.value = filters.status || 'todas';
+}
+
 function loadTasks() {
   if (!state.farmClientId) {
-    renderList([]);
+    state.allTasks = [];
+    applyFiltersAndRender();
     return;
   }
   const q = collection(db, 'clients', state.farmClientId, 'tasks');
   onSnapshot(
     q,
     snap => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderList(data);
+      state.allTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      applyFiltersAndRender();
     },
     err => {
       console.error('Erro ao carregar tarefas', err);
-      renderList([]);
+      state.allTasks = [];
+      applyFiltersAndRender();
     }
   );
+}
+
+function applyFiltersAndRender() {
+  const now = new Date();
+  let tasks = state.allTasks.slice();
+  if (filters.status === 'abertas') {
+    tasks = tasks.filter(t => {
+      const st = getStatus(t, now);
+      return st === 'Pendente' || st === 'Atrasada';
+      });
+  }
+  if (filters.day) {
+    tasks = tasks.filter(t => {
+      if (!t.dueDate) return false;
+      const due = new Date(t.dueDate);
+      return due >= filters.day.start && due <= filters.day.end;
+    });
+  }
+  renderList(tasks);
+  renderActiveFiltersChip();
+}
+
+function getStatus(t, now = new Date()) {
+  if (t.isCompleted) return 'Concluída';
+  if (t.dueDate) {
+    const due = new Date(t.dueDate);
+    if (due < now) return 'Atrasada';
+  }
+  return 'Pendente';
+}
+
+function renderActiveFiltersChip() {
+  const container = document.getElementById('activeFilters');
+  if (!container) return;
+  const parts = [];
+  if (filters.day) {
+    parts.push(`Dia: ${filters.day.start.toLocaleDateString('pt-BR')}`);
+  }
+  if (filters.status === 'abertas') {
+    parts.push('Status: Abertas');
+  }
+  if (!parts.length) {
+    container.classList.add('hidden');
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = `<div class="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">${parts.join(' • ')} <button id="clearFilters" class="ml-2 underline">Limpar</button></div>`;
+  container.classList.remove('hidden');
+  document.getElementById('clearFilters').addEventListener('click', clearFilters);
+}
+
+function clearFilters() {
+  filters.day = null;
+  filters.dayStr = null;
+  filters.status = null;
+  const url = new URL(window.location);
+  url.searchParams.delete('dia');
+  url.searchParams.delete('status');
+  window.history.replaceState({}, '', url.pathname + url.search);
+  applyFiltersAndRender();
+  syncFilterControls();
 }
 
 function renderList(tasks) {
@@ -69,10 +166,7 @@ function renderList(tasks) {
 
     const tdStatus = document.createElement('td');
     tdStatus.className = 'px-4 py-2';
-    let statusText = 'Pendente';
-    if (t.isCompleted) statusText = 'Concluída';
-    else if (t.dueDate && new Date(t.dueDate) < now) statusText = 'Atrasada';
-    tdStatus.textContent = statusText;
+    tdStatus.textContent = getStatus(t, now);
 
     const tdAction = document.createElement('td');
     tdAction.className = 'px-4 py-2';
