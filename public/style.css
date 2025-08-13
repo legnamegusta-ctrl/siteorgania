@@ -199,6 +199,16 @@ button:active, .btn:active {
     max-width: 90%;
 }
 
+/* Destaque temporário para novas linhas */
+@keyframes row-highlight {
+    from { background-color: #fef3c7; }
+    to { background-color: transparent; }
+}
+
+.highlight {
+    animation: row-highlight 3s ease-out forwards;
+}
+
 .toast {
     display: flex;
     align-items: start;

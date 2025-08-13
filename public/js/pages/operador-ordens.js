@@ -1,7 +1,8 @@
 /* Ordens: filtros + tabela harmonizada */
 
-import { db } from '../config/firebase.js';
-import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { db, auth } from '../config/firebase.js';
+import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { showToast } from '../services/ui.js';
 
 const state = {
   orders: [
@@ -44,15 +45,32 @@ function init() {
   form = document.getElementById('order-form');
   commentList = document.getElementById('order-comments-list');
   render();
+  document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
   document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
   document.getElementById('btn-order-edit')?.addEventListener('click', enableEdit);
-  document.getElementById('btn-order-save')?.addEventListener('click', saveEdit);
+  document.getElementById('btn-order-save')?.addEventListener('click', () => {
+    if (modal.dataset.mode === 'create') saveOrderCreate();
+    else saveEdit();
+  });
   document.getElementById('btn-order-conclude')?.addEventListener('click', () => updateStatus('Concluída'));
-  document.getElementById('btn-order-cancel')?.addEventListener('click', () => updateStatus('Cancelada'));
+  document.getElementById('btn-order-cancel')?.addEventListener('click', () => {
+    if (modal.dataset.mode === 'create') closeModal();
+    else updateStatus('Cancelada');
+  });
   document.getElementById('btn-order-add-comment')?.addEventListener('click', addComment);
   document.getElementById('btn-order-new-task')?.addEventListener('click', () => openTaskModal(null, 'order'));
+
+  ['order-cliente','order-propriedade','order-talhao','order-prazo','order-itens','order-obs'].forEach(id => {
+    const el = document.getElementById(id);
+    el?.addEventListener('input', () => {
+      form.dataset.dirty = 'true';
+      if (id === 'order-itens') calculateTotal();
+    });
+  });
+
+  modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 }
 
 function render() {
@@ -119,6 +137,63 @@ function updateTasksCell(td, stats) {
   td.querySelector('.task-progress').setAttribute('aria-label', `Progresso de tarefas: ${stats.completed} de ${stats.total} concluídas`);
 }
 
+async function generateOrderCode() {
+  const counterRef = doc(db, 'meta', 'ordens');
+  try {
+    const seq = await runTransaction(db, async tx => {
+      const snap = await tx.get(counterRef);
+      let current = 0;
+      if (!snap.exists()) {
+        tx.set(counterRef, { seq: 1 });
+        current = 1;
+      } else {
+        current = (snap.data().seq || 0) + 1;
+        tx.update(counterRef, { seq: current });
+      }
+      return current;
+    });
+    return `ORD-${String(seq).padStart(4, '0')}`;
+  } catch (e) {
+    console.warn('Counter unavailable, using fallback', e);
+    return `ORD-${Date.now()}`;
+  }
+}
+
+async function openOrderCreateModal() {
+  const codigo = await generateOrderCode();
+  const now = Timestamp.now();
+  const blank = {
+    id: codigo,
+    codigo,
+    cliente: '',
+    propriedade: '',
+    talhao: '',
+    abertura: formatDate(now.toDate()),
+    prazo: '',
+    itens: '',
+    obs: '',
+    status: 'Aberta',
+    total: 0,
+    comments: []
+  };
+  openModal(blank, 'create');
+  calculateTotal();
+}
+
+function parseItems(text) {
+  return text.split('\n').map(l => {
+    const [descricao, qtd, un, custo] = l.split(',').map(p => p?.trim());
+    return { descricao, qtd: Number(qtd) || 0, un: un || '', custo: Number(custo) || 0 };
+  }).filter(i => i.descricao);
+}
+
+function calculateTotal() {
+  const items = parseItems(document.getElementById('order-itens').value || '');
+  const total = items.reduce((sum, i) => sum + (i.qtd * i.custo), 0);
+  document.getElementById('order-total').value = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return total;
+}
+
 document.addEventListener('task-updated', () => {
   if (state.current) {
     loadTasksForModal(state.current.id);
@@ -165,24 +240,48 @@ function renderStatus(status) {
   return `<span class="status-pill ${cls}">${status}</span>`;
 }
 
-function openModal(order) {
+function openModal(order, mode = 'view') {
   state.current = order;
-  form.classList.add('modal-read');
-  state.editing = false;
   fillForm(order);
   renderComments();
+  modal.dataset.mode = mode;
+  form.dataset.dirty = 'false';
+  if (mode === 'create') {
+    form.classList.remove('modal-read');
+    toggleFormFields(false);
+    document.getElementById('btn-order-save').classList.remove('hidden');
+    document.getElementById('btn-order-conclude').classList.add('hidden');
+    document.getElementById('btn-order-edit').classList.add('hidden');
+    document.getElementById('order-modal-title').textContent = 'Nova Ordem';
+    document.getElementById('order-tasks').classList.add('hidden');
+    document.getElementById('order-cliente').focus();
+  } else {
+    form.classList.add('modal-read');
+    toggleFormFields(true);
+    document.getElementById('btn-order-save').classList.add('hidden');
+    document.getElementById('btn-order-conclude').classList.remove('hidden');
+    document.getElementById('btn-order-edit').classList.remove('hidden');
+    document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
+    document.getElementById('order-tasks').classList.remove('hidden');
+    loadTasksForModal(order.id);
+    document.getElementById('order-codigo').focus();
+  }
+  state.editing = (mode === 'edit');
   modal.classList.remove('hidden');
-  loadTasksForModal(order.id);
-  document.getElementById('order-codigo').focus();
 }
 
-function closeModal() {
+function closeModal(force = false) {
+  if (!force && (modal.dataset.mode === 'create' || modal.dataset.mode === 'edit') && form.dataset.dirty === 'true') {
+    if (!confirm('Descartar alterações?')) return;
+  }
   modal.classList.add('hidden');
+  modal.dataset.mode = 'view';
 }
 
 function enableEdit() {
   if (!state.current) return;
   state.editing = true;
+  modal.dataset.mode = 'edit';
   form.classList.remove('modal-read');
   toggleFormFields(false);
   document.getElementById('btn-order-save').classList.remove('hidden');
@@ -218,9 +317,86 @@ function saveEdit() {
     render();
   }
   state.editing = false;
+  modal.dataset.mode = 'view';
   form.classList.add('modal-read');
   toggleFormFields(true);
   document.getElementById('btn-order-save').classList.add('hidden');
+  form.dataset.dirty = 'false';
+}
+
+async function saveOrderCreate() {
+  const required = ['order-cliente','order-propriedade','order-talhao','order-prazo'];
+  let valid = true;
+  required.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) {
+      el.setAttribute('aria-invalid','true');
+      valid = false;
+    } else {
+      el.removeAttribute('aria-invalid');
+    }
+  });
+  if (!valid) {
+    showToast('Preencha os campos obrigatórios', 'error');
+    return;
+  }
+  const saveBtn = document.getElementById('btn-order-save');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Salvando...';
+  try {
+    const codigo = document.getElementById('order-codigo').value;
+    const cliente = document.getElementById('order-cliente').value.trim();
+    const propriedade = document.getElementById('order-propriedade').value.trim();
+    const talhao = document.getElementById('order-talhao').value.trim();
+    const prazo = document.getElementById('order-prazo').value;
+    const itensText = document.getElementById('order-itens').value;
+    const itens = parseItems(itensText);
+    const total = calculateTotal();
+    const obs = document.getElementById('order-obs').value.trim();
+    const orderData = {
+      codigo,
+      cliente,
+      propriedade,
+      talhao,
+      abertura: serverTimestamp(),
+      prazo,
+      status: 'Aberta',
+      itens,
+      total,
+      observacoes: obs
+    };
+    const orderRef = doc(db, 'ordens', codigo);
+    await setDoc(orderRef, orderData);
+    const user = auth.currentUser;
+    const autor = user?.displayName || user?.email || user?.uid || 'Anônimo';
+    const resumo = `🆕 Ordem criada por ${autor} — ${new Date().toLocaleString('pt-BR')} — #${codigo}`;
+    await addDoc(collection(orderRef, 'comentarios'), { tipo: 'criacao', resumo });
+    state.orders.unshift({
+      id: codigo,
+      cliente,
+      propriedade,
+      talhao,
+      abertura: new Date().toISOString().split('T')[0],
+      prazo,
+      status: 'Aberta',
+      total,
+      itens: itensText,
+      obs,
+      comments: []
+    });
+    render();
+    const firstRow = ordersTable.querySelector('tr');
+    firstRow?.classList.add('highlight');
+    setTimeout(() => firstRow?.classList.remove('highlight'), 3000);
+    showToast('Ordem criada com sucesso', 'success');
+    closeModal(true);
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao salvar ordem', 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Salvar';
+  }
 }
 
 function updateStatus(newStatus) {
@@ -320,7 +496,9 @@ function fillForm(o) {
   document.getElementById('order-abertura').value = o.abertura || '';
   document.getElementById('order-prazo').value = o.prazo || '';
   document.getElementById('order-itens').value = o.itens || '';
+  document.getElementById('order-total').value = (o.total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   document.getElementById('order-obs').value = o.obs || '';
+  document.getElementById('order-total').disabled = true;
   toggleFormFields(true);
   document.getElementById('btn-order-save').classList.add('hidden');
 }
