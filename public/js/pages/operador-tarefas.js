@@ -7,9 +7,9 @@ import {
   doc,
   getDoc
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
+import { initTaskModal, openTaskModal as openTaskModalBase } from '../ui/task-modal.js';
 
-const state = { farmClientId: null, allTasks: [] };
+const state = { farmClientId: null, allTasks: [], ordersMap: {} };
 const filters = parseFiltersFromURL();
 
 export async function initOperadorTarefas(userId, userRole) {
@@ -72,13 +72,28 @@ function loadTasks() {
     q,
     snap => {
       state.allTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      applyFiltersAndRender();
+      loadOrderCodes().then(applyFiltersAndRender);
     },
     err => {
       console.error('Erro ao carregar tarefas', err);
       state.allTasks = [];
       applyFiltersAndRender();
     }
+  );
+}
+
+async function loadOrderCodes() {
+  const ids = [...new Set(state.allTasks.filter(t => t.orderId).map(t => t.orderId))];
+  await Promise.all(
+    ids.map(async id => {
+      if (state.ordersMap[id]) return;
+      try {
+        const snap = await getDoc(doc(db, 'clients', state.farmClientId, 'orders', id));
+        state.ordersMap[id] = { codigo: snap.data()?.codigo || id };
+      } catch (e) {
+        console.error('Erro ao carregar ordem', e);
+      }
+    })
   );
 }
 
@@ -168,6 +183,21 @@ function renderList(tasks) {
     tdStatus.className = 'px-4 py-2';
     tdStatus.textContent = getStatus(t, now);
 
+    /* Chip ordem em tarefas */
+    const tdOrder = document.createElement('td');
+    tdOrder.className = 'px-4 py-2';
+    if (t.orderId) {
+      const code = state.ordersMap[t.orderId]?.codigo || '...';
+      const chip = document.createElement('button');
+      chip.className = 'order-chip';
+      chip.textContent = `#${code}`;
+      chip.title = `Ver ordem #${code}`;
+      chip.addEventListener('click', () => openOrderModal(t.orderId));
+      tdOrder.appendChild(chip);
+    } else {
+      tdOrder.textContent = '-';
+    }
+
     const tdAction = document.createElement('td');
     tdAction.className = 'px-4 py-2';
     const btn = document.createElement('button');
@@ -180,8 +210,40 @@ function renderList(tasks) {
     tr.appendChild(tdTipo);
     tr.appendChild(tdVenc);
     tr.appendChild(tdStatus);
+    tr.appendChild(tdOrder);
     tr.appendChild(tdAction);
     tbody.appendChild(tr);
   });
 }
+
+export async function openTaskModal(taskId, source = 'table') {
+  if (source === 'order') {
+    document.getElementById('order-modal')?.classList.add('hidden');
+  }
+  await openTaskModalBase(taskId, source === 'order' ? 'table' : source);
+  const chip = document.getElementById('task-order-chip');
+  if (!chip) return;
+  chip.classList.add('hidden');
+  if (!taskId) return;
+  try {
+    const snap = await getDoc(doc(db, 'clients', state.farmClientId, 'tasks', taskId));
+    const data = snap.data();
+    if (data?.orderId) {
+      let code = state.ordersMap[data.orderId]?.codigo;
+      if (!code) {
+        const oSnap = await getDoc(doc(db, 'clients', state.farmClientId, 'orders', data.orderId));
+        code = oSnap.data()?.codigo || data.orderId;
+        state.ordersMap[data.orderId] = { codigo: code };
+      }
+      chip.textContent = `#${code}`;
+      chip.title = `Ver ordem #${code}`;
+      chip.onclick = () => openOrderModal(data.orderId);
+      chip.classList.remove('hidden');
+    }
+  } catch (e) {
+    console.error('Erro ao carregar tarefa', e);
+  }
+}
+
+window.openTaskModal = openTaskModal;
 

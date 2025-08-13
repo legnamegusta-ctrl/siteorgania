@@ -788,3 +788,30 @@ body.sidebar-open {
 .btn-ghost:hover {
     background-color: #f3f4f6;
 }
+
+/* Chip ordem em tarefas */
+.order-chip {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background-color: #DBEAFE;
+    color: #1E40AF;
+    border: 1px solid #BFDBFE;
+}
+
+/* Progresso de tarefas na tabela de ordens */
+.task-progress {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: #E5E7EB;
+    overflow: hidden;
+}
+
+.task-progress > div {
+    height: 100%;
+    background-color: #86EFAC;
+    border-radius: 9999px;
+}
