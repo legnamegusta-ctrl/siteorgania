@@ -87,6 +87,11 @@ a:focus {
     border-color: #6C9F3D !important;
 }
 
+#order-tasks-list [data-action="view-task"]:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
 /* Estilo para o botão de filtro ativo */
 .filter-active {
     background-color: var(--brand-green) !important;

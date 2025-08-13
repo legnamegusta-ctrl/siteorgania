@@ -1,10 +1,17 @@
 /* Ordens: filtros + tabela harmonizada */
 
 import { db, auth } from '../config/firebase.js';
-import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
+/* QA rápido:
+   - Criar tarefa com vencimento amanhã → aparece como Pendente
+   - Editar para ontem → visualmente Atrasada sem alterar no banco
+   - Concluir tarefa → vira Concluída e progresso atualiza
+   - Reabrir modal da ordem repetidas vezes → lista não duplica
+   - "Ver detalhes" abre sempre a tarefa correta
+*/
 const state = {
   orders: [
     {
@@ -39,6 +46,7 @@ const state = {
 };
 
 let ordersTable, modal, form, commentList;
+let unsubscribeOrderTasks = null;
 
 function init() {
   ordersTable = document.getElementById('orders-table');
@@ -75,6 +83,13 @@ function init() {
   });
 
   modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  document.getElementById('order-tasks-list')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-action="view-task"]');
+    if (!btn) return;
+    modal.classList.add('hidden');
+    openTaskModal(btn.dataset.taskId, { mode: 'view' });
+  });
 }
 
 function render() {
@@ -116,7 +131,7 @@ function render() {
 }
 
 async function fetchTasksStats(orderId) {
-  const q = query(collection(db, 'tasks'), where('orderId', '==', orderId));
+  const q = query(collection(db, 'tasks'), where('ordemId', '==', orderId));
   const snap = await getDocs(q);
   let total = 0, completed = 0, open = 0;
   snap.forEach(d => {
@@ -129,8 +144,14 @@ async function fetchTasksStats(orderId) {
 }
 
 function taskStatus(t) {
-  if (t.isCompleted || t.status === 'Concluída') return 'Concluída';
-  if (t.dueDate && new Date(t.dueDate) < new Date()) return 'Atrasada';
+  const s = normalize(t.status || '');
+  if (s === 'concluida' || t.isCompleted) return 'Concluída';
+  if (s === 'atrasada') return 'Atrasada';
+  const due = t.dueDate || t.vencimento;
+  if (due) {
+    const d = parseDateLocal(due);
+    if (endOfLocalDay(d) < nowLocal()) return 'Atrasada';
+  }
   return 'Pendente';
 }
 
@@ -243,9 +264,6 @@ async function newTaskFromOrder(orderId) {
 document.addEventListener('task-updated', e => {
   const orderId = e.detail?.orderId || state.current?.id;
   if (!orderId) return;
-  if (state.current && state.current.id === orderId) {
-    loadTasksForModal(orderId);
-  }
   if (ordersTable) {
     const row = [...ordersTable.querySelectorAll('button[data-id]')].find(b => b.dataset.id === orderId)?.closest('tr');
     if (row) fetchTasksStats(orderId).then(stats => updateTasksCell(row.children[5], stats));
@@ -268,7 +286,7 @@ function handleRowAction(e) {
   const order = state.orders.find(o => o.id === id);
   if (!order) return;
   if (action === 'view') {
-    openModal(order);
+    openOrderModal(id);
   } else if (action === 'done') {
     state.current = order;
     updateStatus('Concluída');
@@ -317,7 +335,6 @@ function openModal(order, mode = 'view') {
     document.getElementById('btn-order-duplicate').classList.remove('hidden');
     document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
     document.getElementById('order-tasks').classList.remove('hidden');
-    loadTasksForModal(order.id);
     document.getElementById('order-codigo').focus();
   }
   const newTaskBtn = document.getElementById('btn-order-new-task');
@@ -477,40 +494,6 @@ function addComment() {
   renderComments();
 }
 
-/* Lista de tarefas no modal de ordem */
-async function loadTasksForModal(orderId) {
-  const list = document.getElementById('order-tasks-list');
-  if (!list) return;
-  list.innerHTML = '';
-  const q = query(collection(db, 'tasks'), where('orderId', '==', orderId));
-  const snap = await getDocs(q);
-  let total = 0, completed = 0, open = 0;
-  snap.forEach(d => {
-    const data = d.data();
-    const status = taskStatus(data);
-    total++;
-    if (status === 'Concluída') completed++;
-    if (status === 'Pendente' || status === 'Atrasada') open++;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="px-2 py-2">${data.title || d.id}</td>
-      <td class="px-2 py-2">${data.dueDate ? formatDateLocal(data.dueDate) : '-'}</td>
-      <td class="px-2 py-2">${renderTaskStatus(status)}</td>
-      <td class="px-2 py-2"><button class="text-blue-700 underline text-sm" data-task="${d.id}">Ver detalhes</button></td>`;
-    list.appendChild(tr);
-  });
-  list.querySelectorAll('button[data-task]').forEach(btn => {
-    btn.addEventListener('click', e => openTaskModal(e.currentTarget.dataset.task, 'order'));
-  });
-  const counter = document.getElementById('order-tasks-counter');
-  if (counter) counter.textContent = `${open}/${total} abertas`;
-  const progress = document.querySelector('#order-tasks .task-progress div');
-  const wrapper = document.querySelector('#order-tasks .task-progress');
-  const percent = total ? (completed / total) * 100 : 0;
-  if (progress) progress.style.width = `${percent}%`;
-  wrapper?.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
-}
-
 function renderTaskStatus(st) {
   const cls = st === 'Concluída'
     ? 'bg-green-100 text-green-800'
@@ -520,15 +503,71 @@ function renderTaskStatus(st) {
   return `<span class="px-2 py-1 rounded-full text-xs font-semibold ${cls}">${st}</span>`;
 }
 
-function formatDateLocal(str) {
-  const [y, m, d] = str.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('pt-BR');
+function parseDateLocal(v) {
+  if (!v) return null;
+  if (v instanceof Timestamp) return v.toDate();
+  if (typeof v === 'string') {
+    const [y, m, d] = v.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(v);
+}
+
+function startOfLocalDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function endOfLocalDay(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+}
+
+function formatDDMMYYYY(d) {
+  return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+}
+
+function nowLocal() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
 }
 
 export function openOrderModal(orderId) {
   document.getElementById('task-modal')?.classList.add('hidden');
+  if (unsubscribeOrderTasks) {
+    unsubscribeOrderTasks();
+    unsubscribeOrderTasks = null;
+  }
+  const list = document.getElementById('order-tasks-list');
+  if (list) list.innerHTML = '';
   const order = state.orders.find(o => o.id === orderId);
   if (order) openModal(order);
+  const q = query(collection(db, 'tasks'), where('ordemId', '==', orderId));
+  unsubscribeOrderTasks = onSnapshot(q, snap => {
+    const frag = document.createDocumentFragment();
+    let total = 0, completed = 0, open = 0;
+    snap.forEach(d => {
+      const data = d.data();
+      const status = taskStatus(data);
+      total++;
+      if (status === 'Concluída') completed++;
+      if (status === 'Pendente' || status === 'Atrasada') open++;
+      const dueRaw = data.dueDate || data.vencimento;
+      const dueDate = dueRaw ? parseDateLocal(dueRaw) : null;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-2 py-2">${data.title || d.id}</td>
+        <td class="px-2 py-2">${dueDate ? formatDDMMYYYY(dueDate) : '-'}</td>
+        <td class="px-2 py-2">${renderTaskStatus(status)}</td>
+        <td class="px-2 py-2"><button type="button" class="text-blue-700 underline text-sm" data-action="view-task" data-task-id="${d.id}" title="Ver detalhes da tarefa" aria-label="Ver detalhes da tarefa">Ver detalhes</button></td>`;
+      frag.appendChild(tr);
+    });
+    list?.replaceChildren(frag);
+    const counter = document.getElementById('order-tasks-counter');
+    if (counter) counter.textContent = `${open}/${total} abertas`;
+    const progress = document.querySelector('#order-tasks .task-progress div');
+    const wrapper = document.querySelector('#order-tasks .task-progress');
+    const percent = total ? (completed / total) * 100 : 0;
+    if (progress) progress.style.width = `${percent}%`;
+    wrapper?.setAttribute('aria-label', `Progresso de tarefas: ${completed} de ${total} concluídas`);
+  });
 }
 
 window.openOrderModal = openOrderModal;
