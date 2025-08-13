@@ -48,8 +48,24 @@ if (window.Chart) {
   Chart.register(barValuePlugin);
 }
 
-export async function initOperadorDashboard(userId) {
+document.addEventListener('DOMContentLoaded', () => {
   initTaskModal();
+  const tbl = document.getElementById('dashboard-tasks-table');
+  if (tbl && !tbl.__bound) {
+    tbl.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action="view-task"], .js-view-task');
+      if (!btn) return;
+      e.preventDefault();
+      const taskId = btn.dataset.taskId || btn.dataset.id;
+      if (!taskId) return;
+      document.body.classList.remove('drawer-open');
+      openTaskModal(taskId, { mode: 'view' });
+    });
+    tbl.__bound = true;
+  }
+});
+
+export async function initOperadorDashboard(userId) {
   await loadFarmId(userId);
   window.taskModalFarmId = state.farmClientId;
   bindUI();
@@ -171,19 +187,12 @@ function renderTable() {
       <td class="px-3 py-3 h-12 min-w-[112px]">${formatDate(t.dueDate)}</td>
       <td class="px-3 py-3 h-12 min-w-[120px]">${statusHtml}</td>
       <td class="px-3 py-3 h-12">
-        <button class="details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1" data-id="${t.id}">
+        <button type="button" class="details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1 js-view-task" data-action="view-task" data-task-id="${t.id}">
           <i class="fas fa-eye"></i><span>Ver detalhes</span>
         </button>
       </td>
     `;
     tbody.appendChild(tr);
-  });
-
-  tbody.querySelectorAll('.details-btn').forEach(btn => {
-    btn.onclick = e => {
-      const id = e.currentTarget.getAttribute('data-id');
-      openTaskModal(id, 'table');
-    };
   });
 }
 

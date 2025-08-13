@@ -25,10 +25,10 @@ let creatingTask = false;
 
 export function initTaskModal() {
   if (window.__taskModalInited) return;
+  window.__taskModalInited = true;
   overlay = document.getElementById('task-modal-overlay');
   const modal = overlay?.querySelector('.modal');
   if (!overlay || !modal) return;
-  window.__taskModalInited = true;
   document.getElementById('btn-edit')?.addEventListener('click', enterEditMode);
   document.getElementById('task-form')?.addEventListener('submit', e => {
     e.preventDefault();
