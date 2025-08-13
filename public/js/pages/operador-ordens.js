@@ -52,6 +52,9 @@ function init() {
   document.getElementById('filter-search')?.addEventListener('input', render);
   document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
   document.getElementById('btn-order-edit')?.addEventListener('click', enableEdit);
+  document.getElementById('btn-order-duplicate')?.addEventListener('click', () => {
+    if (state.current) duplicateOrder(state.current.id);
+  });
   document.getElementById('btn-order-save')?.addEventListener('click', () => {
     if (modal.dataset.mode === 'create') saveOrderCreate();
     else saveEdit();
@@ -96,6 +99,7 @@ function render() {
       <td class="px-3 py-3">
         <div class="flex gap-2">
           <button class="btn-ghost text-gray-600" title="Ver detalhes" data-action="view" data-id="${o.id}"><i class="fas fa-eye"></i></button>
+          <button class="btn-ghost text-gray-600" title="Duplicar" data-action="duplicate" data-id="${o.id}"><i class="fas fa-copy"></i></button>
           <button class="btn-ghost text-gray-600" title="Encerrar" data-action="done" data-id="${o.id}"><i class="fas fa-flag-checkered"></i></button>
           <button class="btn-ghost text-gray-600" title="Cancelar" data-action="cancel" data-id="${o.id}"><i class="fas fa-ban"></i></button>
         </div>
@@ -181,6 +185,28 @@ async function openOrderCreateModal() {
   calculateTotal();
 }
 
+async function duplicateOrder(orderId) {
+  const original = state.orders.find(o => o.id === orderId);
+  if (!original) return;
+  const codigo = await generateOrderCode();
+  const dup = {
+    id: codigo,
+    codigo,
+    cliente: original.cliente,
+    propriedade: original.propriedade,
+    talhao: original.talhao,
+    abertura: formatDate(new Date()),
+    prazo: original.prazo,
+    itens: original.itens,
+    obs: original.obs,
+    status: 'Aberta',
+    total: original.total,
+    comments: []
+  };
+  openModal(dup, 'create');
+  calculateTotal();
+}
+
 function parseItems(text) {
   return text.split('\n').map(l => {
     const [descricao, qtd, un, custo] = l.split(',').map(p => p?.trim());
@@ -249,6 +275,8 @@ function handleRowAction(e) {
   } else if (action === 'cancel') {
     state.current = order;
     updateStatus('Cancelada');
+  } else if (action === 'duplicate') {
+    duplicateOrder(id);
   }
 }
 
@@ -275,6 +303,7 @@ function openModal(order, mode = 'view') {
     document.getElementById('btn-order-conclude').classList.add('hidden');
     document.getElementById('btn-order-cancel').classList.add('hidden');
     document.getElementById('btn-order-edit').classList.add('hidden');
+    document.getElementById('btn-order-duplicate').classList.add('hidden');
     document.getElementById('order-modal-title').textContent = 'Nova Ordem';
     document.getElementById('order-tasks').classList.add('hidden');
     document.getElementById('order-cliente').focus();
@@ -285,6 +314,7 @@ function openModal(order, mode = 'view') {
     document.getElementById('btn-order-conclude').classList.remove('hidden');
      document.getElementById('btn-order-cancel').classList.remove('hidden');
     document.getElementById('btn-order-edit').classList.remove('hidden');
+    document.getElementById('btn-order-duplicate').classList.remove('hidden');
     document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
     document.getElementById('order-tasks').classList.remove('hidden');
     loadTasksForModal(order.id);
@@ -464,7 +494,7 @@ async function loadTasksForModal(orderId) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="px-2 py-2">${data.title || d.id}</td>
-      <td class="px-2 py-2">${data.dueDate ? new Date(data.dueDate).toLocaleDateString('pt-BR') : '-'}</td>
+      <td class="px-2 py-2">${data.dueDate ? formatDateLocal(data.dueDate) : '-'}</td>
       <td class="px-2 py-2">${renderTaskStatus(status)}</td>
       <td class="px-2 py-2"><button class="text-blue-700 underline text-sm" data-task="${d.id}">Ver detalhes</button></td>`;
     list.appendChild(tr);
@@ -488,6 +518,11 @@ function renderTaskStatus(st) {
     ? 'bg-red-100 text-red-800'
     : 'bg-yellow-100 text-yellow-800';
   return `<span class="px-2 py-1 rounded-full text-xs font-semibold ${cls}">${st}</span>`;
+}
+
+function formatDateLocal(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('pt-BR');
 }
 
 export function openOrderModal(orderId) {
