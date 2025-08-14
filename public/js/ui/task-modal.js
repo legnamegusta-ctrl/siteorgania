@@ -39,7 +39,7 @@ export function initTaskModal() {
     document.body.classList.remove('has-modal');
     exitEditMode();
     if (returnOrderId) {
-      window.openOrderModal?.(returnOrderId);
+      window.location.hash = `order/${returnOrderId}`;
       returnOrderId = null;
     }
   });

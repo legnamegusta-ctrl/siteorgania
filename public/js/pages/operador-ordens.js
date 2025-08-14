@@ -51,7 +51,7 @@ let ordersTable, modal, form, commentList;
 
 function init() {
   ordersTable = document.getElementById('orders-table');
-  modal = document.getElementById('order-modal');
+  modal = document.getElementById('order-view');
   form = document.getElementById('order-form');
   commentList = document.getElementById('order-comments-list');
   if (ordersTable && !ordersTable.__bound) {
@@ -64,7 +64,6 @@ function init() {
   document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
-  document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
   document.getElementById('btn-order-edit')?.addEventListener('click', enableEdit);
   document.getElementById('btn-order-duplicate')?.addEventListener('click', () => {
     if (state.current) duplicateOrder(state.current.id);
@@ -75,7 +74,7 @@ function init() {
   });
   document.getElementById('btn-order-conclude')?.addEventListener('click', () => updateStatus('Concluída'));
   document.getElementById('btn-order-cancel')?.addEventListener('click', () => {
-    if (modal.dataset.mode === 'create') closeModal();
+    if (modal.dataset.mode === 'create') history.back();
     else updateStatus('Cancelada');
   });
   document.getElementById('btn-order-add-comment')?.addEventListener('click', addComment);
@@ -88,7 +87,8 @@ function init() {
     });
   });
 
-  modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange();
 }
 
 function render() {
@@ -285,7 +285,7 @@ function handleRowAction(e) {
   if (!order) return;
   if (action === 'view-order') {
     state.current = order;
-    openOrderModal(id);
+    window.location.hash = `order/${id}`;
   } else if (action === 'done') {
     state.current = order;
     updateStatus('Concluída');
@@ -294,6 +294,16 @@ function handleRowAction(e) {
     updateStatus('Cancelada');
   } else if (action === 'duplicate') {
     duplicateOrder(id);
+  }
+}
+
+function handleHashChange() {
+  const hash = window.location.hash.slice(1);
+  if (hash.startsWith('order/')) {
+    const id = hash.split('/')[1];
+    if (id) openOrderModal(id);
+  } else {
+    closeModal(true);
   }
 }
 
@@ -343,18 +353,17 @@ function openModal(order, mode = 'view') {
   const newTaskBtn = document.getElementById('btn-order-new-task');
   if (newTaskBtn) newTaskBtn.onclick = () => newTaskFromOrder(order.id);
   state.editing = (mode === 'edit');
-  document.getElementById('order-modal-overlay').hidden = false;
-  modal.classList.remove('hidden');
-  document.body.classList.add('has-modal');
+  document.getElementById('orders-section')?.classList.add('hidden');
+  document.getElementById('order-view').hidden = false;
+  window.location.hash = `order/${order.id}`;
 }
 
 function closeModal(force = false) {
   if (!force && (modal.dataset.mode === 'create' || modal.dataset.mode === 'edit') && form.dataset.dirty === 'true') {
     if (!confirm('Descartar alterações?')) return;
   }
-  document.getElementById('order-modal-overlay').setAttribute('hidden','');
-  document.body.classList.remove('has-modal');
-  modal.classList.add('hidden');
+  document.getElementById('order-view').hidden = true;
+  document.getElementById('orders-section')?.classList.remove('hidden');
   modal.dataset.mode = 'view';
 }
 
