@@ -85,7 +85,7 @@ export async function openTaskModal(taskId, opts = {}) {
       chip.textContent = `#${ordemCodigo}`;
       chip.title = `Ordem #${ordemCodigo}`;
       chip.onclick = () => {
-        window.location.href = `order-details.html?id=${ordemId}`;
+        window.location.href = `order-details.html#order/${ordemId}`;
       };
       chip.classList.remove('hidden');
     }
@@ -120,7 +120,7 @@ export async function openTaskModal(taskId, opts = {}) {
       chip.textContent = `#${taskOrder.codigo}`;
       chip.title = `Ver ordem #${taskOrder.codigo}`;
       chip.onclick = () => {
-        window.location.href = `order-details.html?id=${taskOrder.id}`;
+        window.location.href = `order-details.html#order/${taskOrder.id}`;
       };
       chip.classList.remove('hidden');
     } else {
@@ -197,7 +197,7 @@ export async function saveTaskEdits() {
       document.getElementById('task-modal').classList.add('hidden');
       document.dispatchEvent(new CustomEvent('task-updated', { detail: { orderId: taskOrder?.id } }));
       if (returnOrderId) {
-        window.location.href = `order-details.html?id=${returnOrderId}`;
+        window.location.href = `order-details.html#order/${returnOrderId}`;
       }
       taskOrder = null;
       returnOrderId = null;
@@ -281,7 +281,7 @@ export async function completeTask() {
   exitEditMode();
   document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId, orderId: taskOrder?.id } }));
   if (returnOrderId) {
-    window.location.href = `order-details.html?id=${returnOrderId}`;
+    window.location.href = `order-details.html#order/${returnOrderId}`;
     returnOrderId = null;
   }
 }

@@ -282,7 +282,7 @@ function handleRowAction(e) {
   const order = state.orders.find(o => o.id === id);
   if (!order) return;
   if (action === 'view-order') {
-    window.location.href = `order-details.html?id=${id}`;
+    window.location.href = `order-details.html#order/${id}`;
   } else if (action === 'done') {
     state.current = order;
     updateStatus('Concluída');

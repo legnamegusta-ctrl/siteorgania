@@ -16,6 +16,10 @@ let unsubscribeTasks = null;
 let currentFilter = 'all';
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') history.back();
+  });
+
   document.getElementById('btn-order-back')?.addEventListener('click', () => history.back());
   document.getElementById('btn-order-new-task')?.addEventListener('click', async e => {
     if (!currentOrder) return;
@@ -54,8 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-order-new-task')?.click();
   });
 
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+  window.addEventListener('hashchange', () => {
+    const hashId = location.hash.split('/')[1];
+    if (hashId) openOrder(hashId);
+  });
+
+  let id = new URLSearchParams(window.location.search).get('id');
+  if (!id && location.hash.startsWith('#order/')) {
+    id = location.hash.split('/')[1];
+  }
   if (id) openOrder(id);
 });
 
@@ -75,6 +86,7 @@ async function openOrder(orderId) {
     .forEach(ch => ch.classList.remove('filter-active'));
   document.querySelector('#order-tasks-filters [data-filter="all"]')?.classList.add('filter-active');
   loadTasks(orderId);
+  document.getElementById('order-modal-title')?.focus();
 }
 
 function loadTasks(orderId) {
