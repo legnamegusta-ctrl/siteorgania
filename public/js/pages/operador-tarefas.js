@@ -193,7 +193,9 @@ function renderList(tasks) {
       chip.className = 'pill pill--info';
       chip.textContent = `#${code}`;
       chip.title = `Ver ordem #${code}`;
-      chip.addEventListener('click', () => openOrderModal(t.orderId));
+      chip.addEventListener('click', () => {
+        window.location.href = `order-details.html?id=${t.orderId}`;
+      });
       tdOrder.appendChild(chip);
     } else {
       tdOrder.textContent = '-';
@@ -238,7 +240,9 @@ export async function openTaskModal(taskId, source = 'table') {
       }
       chip.textContent = `#${code}`;
       chip.title = `Ver ordem #${code}`;
-      chip.onclick = () => openOrderModal(data.orderId);
+      chip.onclick = () => {
+        window.location.href = `order-details.html?id=${data.orderId}`;
+      };
       chip.classList.remove('hidden');
     }
   } catch (e) {

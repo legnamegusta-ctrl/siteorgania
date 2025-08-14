@@ -4,7 +4,6 @@ import { db, auth } from '../config/firebase.js';
 import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
-import { initOrderModal, openOrderModal } from '../ui/order-modal.js';
 import { parseDateLocal, endOfLocalDay } from '../lib/date-utils.js';
 
 /* QA rápido:
@@ -60,7 +59,6 @@ function init() {
   }
   render();
   initTaskModal();
-  initOrderModal();
   document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
@@ -284,8 +282,7 @@ function handleRowAction(e) {
   const order = state.orders.find(o => o.id === id);
   if (!order) return;
   if (action === 'view-order') {
-    state.current = order;
-    window.location.hash = `order/${id}`;
+    window.location.href = `order-details.html?id=${id}`;
   } else if (action === 'done') {
     state.current = order;
     updateStatus('Concluída');
@@ -299,10 +296,7 @@ function handleRowAction(e) {
 
 function handleHashChange() {
   const hash = window.location.hash.slice(1);
-  if (hash.startsWith('order/')) {
-    const id = hash.split('/')[1];
-    if (id) openOrderModal(id);
-  } else {
+  if (!hash.startsWith('order/')) {
     closeModal(true);
   }
 }

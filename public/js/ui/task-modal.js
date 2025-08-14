@@ -84,7 +84,9 @@ export async function openTaskModal(taskId, opts = {}) {
     if (chip) {
       chip.textContent = `#${ordemCodigo}`;
       chip.title = `Ordem #${ordemCodigo}`;
-      chip.onclick = () => window.openOrderModal?.(ordemId);
+      chip.onclick = () => {
+        window.location.href = `order-details.html?id=${ordemId}`;
+      };
       chip.classList.remove('hidden');
     }
     document.getElementById('comments-list')?.replaceChildren();
@@ -117,7 +119,9 @@ export async function openTaskModal(taskId, opts = {}) {
     if (taskOrder) {
       chip.textContent = `#${taskOrder.codigo}`;
       chip.title = `Ver ordem #${taskOrder.codigo}`;
-      chip.onclick = () => window.openOrderModal?.(taskOrder.id);
+      chip.onclick = () => {
+        window.location.href = `order-details.html?id=${taskOrder.id}`;
+      };
       chip.classList.remove('hidden');
     } else {
       chip.classList.add('hidden');
@@ -192,7 +196,9 @@ export async function saveTaskEdits() {
       }
       document.getElementById('task-modal').classList.add('hidden');
       document.dispatchEvent(new CustomEvent('task-updated', { detail: { orderId: taskOrder?.id } }));
-      if (returnOrderId) window.openOrderModal?.(returnOrderId);
+      if (returnOrderId) {
+        window.location.href = `order-details.html?id=${returnOrderId}`;
+      }
       taskOrder = null;
       returnOrderId = null;
       exitEditMode();
@@ -275,7 +281,7 @@ export async function completeTask() {
   exitEditMode();
   document.dispatchEvent(new CustomEvent('task-updated', { detail: { id: currentTaskId, orderId: taskOrder?.id } }));
   if (returnOrderId) {
-    window.openOrderModal?.(returnOrderId);
+    window.location.href = `order-details.html?id=${returnOrderId}`;
     returnOrderId = null;
   }
 }
