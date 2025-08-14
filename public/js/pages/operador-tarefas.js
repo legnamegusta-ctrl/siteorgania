@@ -194,7 +194,7 @@ function renderList(tasks) {
       chip.textContent = `#${code}`;
       chip.title = `Ver ordem #${code}`;
       chip.addEventListener('click', () => {
-        window.location.href = `order-details.html?id=${t.orderId}`;
+        window.location.href = `order-details.html#order/${t.orderId}`;
       });
       tdOrder.appendChild(chip);
     } else {
@@ -241,7 +241,7 @@ export async function openTaskModal(taskId, source = 'table') {
       chip.textContent = `#${code}`;
       chip.title = `Ver ordem #${code}`;
       chip.onclick = () => {
-        window.location.href = `order-details.html?id=${data.orderId}`;
+        window.location.href = `order-details.html#order/${data.orderId}`;
       };
       chip.classList.remove('hidden');
     }
