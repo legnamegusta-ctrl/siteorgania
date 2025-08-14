@@ -75,7 +75,7 @@ export async function openOrderModal(orderId) {
   if (!overlay) return;
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
   currentOrder = { id: orderId };
-  const orderRef = doc(db, 'orders', orderId);
+  const orderRef = doc(db, 'ordens', orderId);
   const snap = await getDoc(orderRef);
   if (snap.exists()) {
     const data = snap.data();

@@ -333,8 +333,8 @@ function openModal(order, mode = 'view') {
     document.getElementById('btn-order-save').classList.remove('hidden');
     document.getElementById('btn-order-conclude').classList.add('hidden');
     document.getElementById('btn-order-cancel').classList.add('hidden');
-    document.getElementById('btn-order-edit').classList.add('hidden');
-    document.getElementById('btn-order-duplicate').classList.add('hidden');
+    document.getElementById('btn-order-edit')?.classList.add('hidden');
+    document.getElementById('btn-order-duplicate')?.classList.add('hidden');
     document.getElementById('order-modal-title').textContent = 'Nova Ordem';
     document.getElementById('order-tasks').classList.add('hidden');
     document.getElementById('order-cliente').focus();
@@ -344,8 +344,8 @@ function openModal(order, mode = 'view') {
     document.getElementById('btn-order-save').classList.add('hidden');
     document.getElementById('btn-order-conclude').classList.remove('hidden');
     document.getElementById('btn-order-cancel').classList.remove('hidden');
-    document.getElementById('btn-order-edit').classList.remove('hidden');
-    document.getElementById('btn-order-duplicate').classList.remove('hidden');
+    document.getElementById('btn-order-edit')?.classList.remove('hidden');
+    document.getElementById('btn-order-duplicate')?.classList.remove('hidden');
     document.getElementById('order-modal-title').textContent = 'Detalhes da Ordem';
     document.getElementById('order-tasks').classList.remove('hidden');
     document.getElementById('order-codigo').focus();
