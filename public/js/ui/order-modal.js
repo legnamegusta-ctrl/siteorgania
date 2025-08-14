@@ -19,12 +19,11 @@ let currentFilter = 'all';
 
 export function initOrderModal() {
   if (window.__orderModalInited) return;
-  overlay = document.getElementById('order-modal-overlay');
+  overlay = document.getElementById('order-view');
   if (!overlay) return;
-  modal = overlay.querySelector('.modal');
+  modal = overlay; // section acts as container
   window.__orderModalInited = true;
-  document.getElementById('btn-order-close')?.addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.getElementById('btn-order-back')?.addEventListener('click', () => history.back());
   document.getElementById('btn-order-new-task')?.addEventListener('click', async (e) => {
     if (!currentOrder) return;
     const btn = e.currentTarget;
@@ -61,6 +60,9 @@ export function initOrderModal() {
   document.getElementById('btn-order-empty-create')?.addEventListener('click', () => {
     document.getElementById('btn-order-new-task')?.click();
   });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !overlay.hidden) history.back();
+  });
 }
 
 export async function openOrderModal(orderId) {
@@ -89,7 +91,8 @@ export async function openOrderModal(orderId) {
   document.querySelector('#order-tasks-filters [data-filter="all"]')?.classList.add('filter-active');
   loadTasks(orderId);
   overlay.hidden = false;
-  document.body.classList.add('has-modal');
+  document.getElementById('orders-section')?.classList.add('hidden');
+  document.getElementById('order-modal-title')?.focus();
 }
 
 function loadTasks(orderId) {
@@ -174,7 +177,7 @@ function renderTaskList() {
 
 function closeModal() {
   overlay?.setAttribute('hidden','');
-  document.body.classList.remove('has-modal');
+  document.getElementById('orders-section')?.classList.remove('hidden');
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
 }
 
