@@ -159,10 +159,10 @@ function renderTaskList() {
     const tr = document.createElement('tr');
     const dueText = t.dueDate ? formatDDMMYYYY(t.dueDate) : '-';
     tr.innerHTML = `
-      <td>${t.title}</td>
-      <td>${dueText}</td>
-      <td>${renderTaskStatus(t.status)}</td>
-      <td class="text-right"><button type="button" class="btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${t.id}">Ver detalhes</button></td>`;
+      <td class="min-w-[280px]">${t.title}</td>
+      <td class="text-center min-w-[120px] whitespace-nowrap">${dueText}</td>
+      <td class="text-center min-w-[140px]">${renderTaskStatus(t.status)}</td>
+      <td class="text-right min-w-[160px]"><button type="button" class="btn btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${t.id}">Ver detalhes</button></td>`;
     frag.appendChild(tr);
   });
   list.replaceChildren(frag);
