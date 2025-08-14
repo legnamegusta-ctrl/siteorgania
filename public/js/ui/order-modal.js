@@ -157,12 +157,13 @@ function renderTaskList() {
   const frag = document.createDocumentFragment();
   tasks.filter(t => currentFilter === 'all' || t.status === currentFilter).forEach(t => {
     const tr = document.createElement('tr');
+    tr.className = 'h-11';
     const dueText = t.dueDate ? formatDDMMYYYY(t.dueDate) : '-';
     tr.innerHTML = `
-      <td class="min-w-[280px]">${t.title}</td>
-      <td class="text-center min-w-[120px] whitespace-nowrap">${dueText}</td>
-      <td class="text-center min-w-[140px]">${renderTaskStatus(t.status)}</td>
-      <td class="text-right min-w-[160px]"><button type="button" class="btn btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${t.id}">Ver detalhes</button></td>`;
+      <td class="px-2 py-2 align-middle min-w-[280px]">${t.title}</td>
+      <td class="px-2 py-2 text-center align-middle min-w-[120px] whitespace-nowrap">${dueText}</td>
+      <td class="px-2 py-2 text-center align-middle min-w-[140px]">${renderTaskStatus(t.status)}</td>
+      <td class="px-2 py-2 text-right align-middle min-w-[160px]"><button type="button" class="btn btn-ghost text-blue-700 whitespace-nowrap" data-action="view-task" data-task-id="${t.id}">Ver detalhes</button></td>`;
     frag.appendChild(tr);
   });
   list.replaceChildren(frag);
