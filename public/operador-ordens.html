@@ -204,12 +204,14 @@
       </div>
       </form>
       <div id="order-tasks" class="mt-6">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h3 class="text-base font-semibold">Tarefas desta ordem</h3>
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap" aria-live="polite">0/0 abertas</span>
-            <div class="progress" style="--progress-width:160px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de tarefas" aria-live="polite"><div class="progress__bar"></div></div>
-            <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap">+ Nova Tarefa</button>
+        <div class="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:gap-4 lg:flex-nowrap lg:items-center lg:justify-between">
+          <h3 class="text-base font-semibold md:w-full lg:w-auto">Tarefas desta ordem</h3>
+          <div class="flex flex-col gap-4 md:flex-row md:flex-nowrap md:items-center md:justify-end md:gap-4">
+            <div class="flex items-center gap-3">
+              <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap" aria-live="polite">0/0 abertas</span>
+              <div class="progress" style="--progress-width:160px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de tarefas" aria-live="polite"><div class="progress__bar"></div></div>
+            </div>
+            <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap w-full md:w-auto">+ Nova Tarefa</button>
           </div>
         </div>
         <div id="order-tasks-filters" class="flex flex-wrap gap-2 mt-3">
@@ -218,14 +220,14 @@
           <button type="button" class="chip chip--filter" data-filter="Atrasada">Atrasadas <span class="count">0</span></button>
           <button type="button" class="chip chip--filter" data-filter="Concluída">Concluídas <span class="count">0</span></button>
         </div>
-        <div id="order-tasks-table" class="table-responsive mt-4">
+        <div id="order-tasks-table" class="table-responsive w-full mt-2">
           <table class="w-full text-sm">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-2 py-2 text-left">Título</th>
-                <th scope="col" class="px-2 py-2 text-center">Vencimento</th>
-                <th scope="col" class="px-2 py-2 text-center">Status</th>
-                <th scope="col" class="px-2 py-2 text-right">Ações</th>
+                <th scope="col" class="px-2 py-2 text-left min-w-[280px]">Título</th>
+                <th scope="col" class="px-2 py-2 text-center min-w-[120px]">Vencimento</th>
+                <th scope="col" class="px-2 py-2 text-center min-w-[140px]">Status</th>
+                <th scope="col" class="px-2 py-2 text-right min-w-[160px]">Ações</th>
               </tr>
             </thead>
             <tbody id="order-tasks-list"></tbody>
@@ -233,7 +235,7 @@
         </div>
         <div id="order-tasks-empty" class="hidden mt-4 text-sm text-gray-600 flex items-center gap-2">
           Nenhuma tarefa nesta ordem ainda
-          <button type="button" id="btn-order-empty-create" class="btn btn-ghost whitespace-nowrap">+ Nova Tarefa</button>
+          <button type="button" id="btn-order-empty-create" class="btn btn-ghost whitespace-nowrap w-full md:w-auto">+ Nova Tarefa</button>
         </div>
       </div>
       <div class="modal__body border-t pt-4 space-y-4">
