@@ -89,6 +89,7 @@
 
 .btn{min-height:44px;}
 .select,.input{height:var(--input-h);}
+.details-btn{white-space:nowrap;}
 
 [data-theme="dark"] {
     --text-dark: #f7fafc;

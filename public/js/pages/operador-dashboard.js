@@ -3,12 +3,9 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
-  addDoc,
-  updateDoc,
-  Timestamp
+  getDocs
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
-import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
+import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
 
 let state = {
   farmClientId: null,
@@ -49,7 +46,7 @@ if (window.Chart) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initTaskModal();
+  initTaskDetail();
   const tbl = document.getElementById('dashboard-tasks-table');
   if (tbl && !tbl.__bound) {
     tbl.addEventListener('click', (e) => {
@@ -59,10 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const taskId = btn.dataset.taskId || btn.dataset.id;
       if (!taskId) return;
       document.body.classList.remove('drawer-open');
-      openTaskModal(taskId, { mode: 'view' });
+      window.taskOriginHash = window.location.hash.slice(1);
+      window.location.hash = `task/${taskId}`;
     });
     tbl.__bound = true;
   }
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange();
 });
 
 export async function initOperadorDashboard(userId) {
@@ -72,6 +72,21 @@ export async function initOperadorDashboard(userId) {
   await loadPlots();
   await fetchAndRenderTasks();
   document.addEventListener('task-updated', () => fetchAndRenderTasks());
+}
+
+function handleHashChange() {
+  const hash = window.location.hash.slice(1);
+  const wrapper = document.querySelector('.page-container');
+  if (hash.startsWith('task/')) {
+    const id = hash.split('/')[1];
+    wrapper?.classList.add('hidden');
+    openTaskDetail(id === 'new' ? null : id);
+    document.getElementById('task-view').hidden = false;
+    return;
+  }
+  hideTaskDetail();
+  document.getElementById('task-view').hidden = true;
+  wrapper?.classList.remove('hidden');
 }
 
 async function loadFarmId(userId) {
@@ -126,9 +141,11 @@ function bindUI() {
       renderTable();
     }
   });
-  document.getElementById('createTaskBtn')?.addEventListener('click', () => showModal(true));
-  document.getElementById('cancelTaskBtn')?.addEventListener('click', () => showModal(false));
-  document.getElementById('taskForm')?.addEventListener('submit', createTask);
+  document.getElementById('createTaskBtn')?.addEventListener('click', () => {
+    window.taskOriginHash = window.location.hash.slice(1);
+    openTaskDetail(null, { mode: 'create' });
+    window.location.hash = 'task/new';
+  });
 }
 
 async function fetchAndRenderTasks() {
@@ -484,38 +501,6 @@ function formatDateTime(ts) {
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
     ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function showModal(show) {
-  document.getElementById('taskModal').classList.toggle('hidden', !show);
-}
-
-async function createTask(e) {
-  e.preventDefault();
-  const title  = document.getElementById('taskTitle').value;
-  const plotSelect = document.getElementById('taskTalhao');
-  const selectedOption = plotSelect.options[plotSelect.selectedIndex];
-  const plotPath = plotSelect.value;
-  const plotName = selectedOption?.text || '';
-  const propertyId = selectedOption?.dataset.propertyId || null;
-  const plotId = selectedOption?.dataset.plotId || null;
-  const description = document.getElementById('taskDescription').value;
-  const dueDate = document.getElementById('taskDate').value;
-
-  await addDoc(collection(db, 'clients', state.farmClientId, 'tasks'), {
-    title,
-    description,
-    plotPath,
-    plotName,
-     propertyId,
-    plotId,
-    dueDate,
-    isCompleted: false,
-    createdAt: new Date()
-  });
-
-  showModal(false);
-  await fetchAndRenderTasks();
 }
 
 /*
