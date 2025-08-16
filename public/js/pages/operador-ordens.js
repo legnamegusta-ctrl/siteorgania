@@ -3,7 +3,7 @@
 import { db, auth } from '../config/firebase.js';
 import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
-import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
+import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
 import { parseDateLocal, endOfLocalDay } from '../lib/date-utils.js';
 
 /* QA rápido:
@@ -58,7 +58,7 @@ function init() {
     ordersTable.__bound = true;
   }
   render();
-  initTaskModal();
+  initTaskDetail();
   document.getElementById('btn-new-order')?.addEventListener('click', openOrderCreateModal);
   document.getElementById('filter-status')?.addEventListener('change', render);
   document.getElementById('filter-search')?.addEventListener('input', render);
@@ -241,15 +241,11 @@ async function newTaskFromOrder(orderId) {
   if (!btn) return;
   btn.disabled = true;
   try {
-    if (!document.getElementById('task-modal')) {
-      console.error('Task modal not found');
-      showToast('Não foi possível abrir o formulário de nova tarefa', 'error');
-      return;
-    }
     const ordemCodigo = document.getElementById('order-codigo').value || orderId;
     const prazo = document.getElementById('order-prazo').value || '';
-    modal.classList.add('hidden');
-    await openTaskModal(null, { source: 'order', mode: 'create', ordemId: orderId, ordemCodigo, prefill: { vencimento: prazo } });
+    window.taskOriginHash = `order/${orderId}`;
+    openTaskDetail(null, { mode: 'create', ordemId: orderId, ordemCodigo, prefill: { vencimento: prazo } });
+    window.location.hash = `task/new`;
   } finally {
     btn.disabled = false;
   }
@@ -296,6 +292,16 @@ function handleRowAction(e) {
 
 function handleHashChange() {
   const hash = window.location.hash.slice(1);
+  if (hash.startsWith('task/')) {
+    const id = hash.split('/')[1];
+    document.getElementById('orders-section')?.classList.add('hidden');
+    document.getElementById('order-view').hidden = true;
+    openTaskDetail(id === 'new' ? null : id);
+    document.getElementById('task-view').hidden = false;
+    return;
+  }
+  hideTaskDetail();
+  document.getElementById('task-view').hidden = true;
   if (!hash.startsWith('order/')) {
     closeModal(true);
   }

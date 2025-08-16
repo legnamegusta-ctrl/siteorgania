@@ -155,77 +155,46 @@
     </section>
     </div>
   </div>
-  </main>
-
-    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
-      <div class="bg-white rounded-lg shadow-lg p-6 w-80">
-        <h4 class="text-xl font-semibold mb-4">Criar Nova Tarefa</h4>
-      <form id="taskForm" class="space-y-4">
-        <div>
-          <label>Título</label>
-          <input id="taskTitle" required class="w-full border rounded p-2"/>
+  <section id="task-view" class="flex-1 overflow-y-auto hidden">
+    <header class="sticky top-0 bg-white border-b flex items-center justify-between p-4 md:px-6">
+      <button id="btn-task-back" class="btn btn-ghost flex items-center gap-2"><i class="fas fa-arrow-left"></i><span>Voltar</span></button>
+      <h3 class="text-lg font-semibold">Detalhes da Tarefa</h3>
+      <span id="task-status-chip" class="pill"></span>
+    </header>
+    <div class="max-w-[1200px] mx-auto px-4 md:px-6 py-6">
+      <form id="task-form" class="space-y-4 modal-read">
+        <div class="field">
+          <label class="field__label" for="task-titulo">Título</label>
+          <input id="task-titulo" class="field__input" disabled />
         </div>
-        <div>
-          <label>Talhão</label>
-          <select id="taskTalhao" required class="w-full border rounded p-2"></select>
+        <div class="field">
+          <label class="field__label" for="task-talhao">Talhão</label>
+          <input id="task-talhao" class="field__input" disabled />
         </div>
-        <div>
-          <label>Descrição</label>
-          <textarea id="taskDescription" class="w-full border rounded p-2" rows="3"></textarea>
+        <div class="field">
+          <label class="field__label" for="task-vencimento">Vencimento</label>
+          <input id="task-vencimento" type="date" class="field__input" disabled />
         </div>
-        <div>
-          <label>Data (YYYY-MM-DD)</label>
-          <input id="taskDate" type="date" required class="w-full border rounded p-2"/>
+        <div class="field">
+          <label class="field__label" for="task-desc">Descrição</label>
+          <textarea id="task-desc" class="field__input" rows="3" disabled></textarea>
         </div>
-        <div class="flex justify-end space-x-2">
-          <button type="button" id="cancelTaskBtn" class="px-4 py-2">Cancelar</button>
-          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="btn-edit" class="btn-ghost text-gray-600">Editar</button>
+          <button type="submit" id="btn-save" class="hidden bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+          <button type="button" id="btn-complete" class="bg-blue-600 text-white px-4 py-2 rounded">Concluir</button>
         </div>
       </form>
+      <div class="border-t pt-4 space-y-4">
+        <div class="flex items-center gap-2">
+          <input id="comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." />
+          <button id="btn-add-comment" class="text-green-700"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <div id="comments-list" class="space-y-3"></div>
       </div>
     </div>
-
-    <!-- Modal Detalhes da Tarefa -->
-    <div id="task-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden" aria-modal="true" role="dialog">
-      <div class="bg-white rounded-lg shadow-lg w-11/12 max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center p-4 border-b">
-          <h3 class="text-lg font-semibold">Detalhes da Tarefa</h3>
-          <div class="flex items-center gap-2">
-            <button id="btn-edit" class="btn-ghost text-gray-600"><i class="fas fa-pen"></i></button>
-            <button id="btn-close" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
-          </div>
-        </div>
-        <form id="task-form" class="p-4 space-y-4 modal-read">
-          <div>
-            <label class="block text-sm font-medium">Título</label>
-            <input id="task-titulo" class="w-full border rounded p-2" disabled />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Talhão</label>
-            <input id="task-talhao" class="w-full border rounded p-2" disabled />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Vencimento</label>
-            <input id="task-vencimento" type="date" class="w-full border rounded p-2" disabled />
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Descrição</label>
-            <textarea id="task-desc" class="w-full border rounded p-2" rows="3" disabled></textarea>
-          </div>
-          <div class="flex justify-end gap-2 pt-2">
-            <button type="button" id="btn-save" class="hidden bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
-            <button type="button" id="btn-complete" class="bg-blue-600 text-white px-4 py-2 rounded">Concluir</button>
-          </div>
-        </form>
-        <div class="p-4 border-t space-y-4">
-          <div class="flex items-center gap-2">
-            <input id="comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." />
-            <button id="btn-add-comment" class="text-green-700"><i class="fas fa-paper-plane"></i></button>
-          </div>
-          <div id="comments-list" class="space-y-3"></div>
-        </div>
-      </div>
-    </div>
+  </section>
+  </main>
 
   <script type="module" src="js/ui/sidebar.js"></script>
 </body>
