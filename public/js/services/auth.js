@@ -32,39 +32,6 @@ import { showLoader, hideLoader } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // CÓDIGO PARA REGISTRAR O SERVICE WORKER (FUNCIONALIDADE PWA)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker
-                .register('/service-worker.js')
-                .then(registration => {
-                    console.log('ServiceWorker registrado com sucesso: ', registration.scope);
-
-                    let refreshing = false;
-                    navigator.serviceWorker.addEventListener('controllerchange', () => {
-                        if (refreshing) return;
-                        refreshing = true;
-                        window.location.reload();
-                    });
-
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        if (!newWorker) return;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                if (confirm('Uma nova versão está disponível. Recarregar agora?')) {
-                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                }
-                            }
-                        });
-                    });
-                })
-                .catch(error => {
-                    console.log('Falha no registro do ServiceWorker: ', error);
-                });
-        });
-    }
-
       async function handleLogin(e) {
           e.preventDefault();
           const loginForm = document.getElementById('loginForm');
