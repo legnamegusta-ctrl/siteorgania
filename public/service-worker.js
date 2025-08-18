@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'organia-cache-v7';
+const CACHE_NAME = 'organia-v3';
 const APP_VERSION = '1.0.1';
 const urlsToCache = [
   // Arquivos principais
@@ -50,6 +50,7 @@ const urlsToCache = [
 
 // Evento de Instalação: Salva os arquivos essenciais no cache.
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {

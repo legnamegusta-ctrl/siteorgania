@@ -28,6 +28,7 @@ import { initActivityDetails } from '../pages/activity-details.js';
 import { initOperadorTarefas } from '../pages/operador-tarefas.js';
 import { initOperadorAgenda } from '../pages/operador-agenda.js';
 import { initOperadorPerfil } from '../pages/operador-perfil.js';
+import { showLoader, hideLoader } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -39,14 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(registration => {
                     console.log('ServiceWorker registrado com sucesso: ', registration.scope);
 
-                    // A atualização do Service Worker será aplicada na próxima navegação.
-                    // Isso evita loops de recarregamento quando um novo SW é baixado a cada request.
+                    let refreshing = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (refreshing) return;
+                        refreshing = true;
+                        window.location.reload();
+                    });
+
                     registration.addEventListener('updatefound', () => {
                         const newWorker = registration.installing;
                         if (!newWorker) return;
                         newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed') {
-                                console.log('Nova versão do ServiceWorker instalada. Será utilizada após recarregar a página.');
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                if (confirm('Uma nova versão está disponível. Recarregar agora?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                }
                             }
                         });
                     });
@@ -57,38 +65,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function handleLogin(e) {
-        e.preventDefault();
-        const loginForm = document.getElementById('loginForm');
-        const loginError = document.getElementById('loginError');
-        const email = loginForm.email.value;
-        const password = loginForm.password.value;
+      async function handleLogin(e) {
+          e.preventDefault();
+          const loginForm = document.getElementById('loginForm');
+          const loginError = document.getElementById('loginError');
+          const email = loginForm.email.value;
+          const password = loginForm.password.value;
 
-        try {
-            loginError.classList.add('hidden');
-            // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error) {
-            console.error("Erro de login detalhado:", error);
+          try {
+              showLoader();
+              loginError.classList.add('hidden');
+              // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
+              await signInWithEmailAndPassword(auth, email, password);
+          } catch (error) {
+              console.error("Erro de login detalhado:", error);
 
-            if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                loginError.textContent = 'Email ou senha incorretos.';
-            } else {
-                loginError.textContent = 'Ocorreu um erro. Tente novamente.';
-            }
-            loginError.classList.remove('hidden');
-        }
-    }
+              if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                  loginError.textContent = 'Email ou senha incorretos.';
+              } else {
+                  loginError.textContent = 'Ocorreu um erro. Tente novamente.';
+              }
+              loginError.classList.remove('hidden');
+          } finally {
+              hideLoader();
+          }
+      }
 
-    const logout = async () => {
-        try {
-            // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
-            await signOut(auth);
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
-        }
-    };
+      const logout = async () => {
+          try {
+              showLoader();
+              // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
+              await signOut(auth);
+              window.location.href = 'index.html';
+          } catch (error) {
+              console.error('Erro ao fazer logout:', error);
+          } finally {
+              hideLoader();
+          }
+      };
 
     window.logout = logout;
 
