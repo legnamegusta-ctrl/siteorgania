@@ -49,7 +49,7 @@ if (window.Chart) {
   Chart.register(barValuePlugin);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   initTaskDetail();
   const tbl = document.getElementById('dashboard-tasks-table');
   if (tbl && !tbl.__bound) {
@@ -68,7 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange();
-});
+}
+
+if (document.readyState !== 'loading') {
+  init();
+} else {
+  document.addEventListener('DOMContentLoaded', init);
+}
 
 export async function initOperadorDashboard(userId) {
   await loadFarmId(userId);
