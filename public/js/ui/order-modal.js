@@ -8,7 +8,7 @@ import {
   onSnapshot
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
-import { openTaskModal } from './task-modal.js';
+import { initTaskModal, openTaskModal } from './task-modal.js';
 
 let overlay;
 let modal;
@@ -18,6 +18,7 @@ let tasks = [];
 let currentFilter = 'all';
 
 export function initOrderModal() {
+  initTaskModal();
   if (window.__orderModalInited) return;
   overlay = document.getElementById('order-view');
   if (!overlay) return;

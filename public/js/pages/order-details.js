@@ -8,14 +8,15 @@ import {
   onSnapshot
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
-import { openTaskModal } from '../ui/task-modal.js';
+import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 
 let currentOrder = null;
 let tasks = [];
 let unsubscribeTasks = null;
 let currentFilter = 'all';
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
+  initTaskModal();
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') history.back();
   });
@@ -68,7 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
     id = location.hash.split('/')[1];
   }
   if (id) openOrder(id);
-});
+}
+
+if (document.readyState !== 'loading') {
+  init();
+} else {
+  document.addEventListener('DOMContentLoaded', init);
+}
 
 async function openOrder(orderId) {
   if (unsubscribeTasks) { unsubscribeTasks(); unsubscribeTasks = null; }
