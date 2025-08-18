@@ -121,14 +121,23 @@
       <section class="dashboard-card flex flex-col p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Tarefas</h3>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-wrap justify-end">
+            <input id="searchInput" type="text" placeholder="Buscar..." class="h-11 border border-gray-300 rounded px-3 focus:outline-none" />
             <div class="flex items-center">
-              <label for="filterSelect" class="mr-2 text-sm text-gray-700">Filtrar:</label>
+              <label for="filterSelect" class="mr-2 text-sm text-gray-700">Status:</label>
               <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
                 <option value="todas">Todas</option>
                 <option value="pendentes">Pendentes</option>
                 <option value="concluidas">Concluídas</option>
                 <option value="atrasadas">Atrasadas</option>
+              </select>
+            </div>
+            <div class="flex items-center">
+              <label for="sourceSelect" class="mr-2 text-sm text-gray-700">Origem:</label>
+              <select id="sourceSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
+                <option value="todas">Todas</option>
+                <option value="ordem">De Ordens</option>
+                <option value="isoladas">Isoladas</option>
               </select>
             </div>
             <button id="createTaskBtn" class="flex items-center gap-2 bg-[#6C9F3D] text-white px-4 h-11 rounded hover:bg-[#5A8733] transition">
@@ -142,6 +151,7 @@
               <tr>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Título</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[72px]">Talhão</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[96px] hidden sm:table-cell">Ordem</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[112px]">Data</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[120px]">Status</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Ações</th>

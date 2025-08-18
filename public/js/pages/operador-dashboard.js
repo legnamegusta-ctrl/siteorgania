@@ -3,7 +3,9 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
 import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
 
@@ -13,6 +15,8 @@ let state = {
   allTasks: [],
   filteredTasks: [],
   filter: 'todas',
+  source: 'todas',
+  search: '',
   currentPage: 1,
   pageSize: 8,
   chart: null,
@@ -55,9 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const taskId = btn.dataset.taskId || btn.dataset.id;
       if (!taskId) return;
+      const orderId = btn.dataset.orderId;
       document.body.classList.remove('drawer-open');
       window.taskOriginHash = window.location.hash.slice(1);
-      window.location.hash = `task/${taskId}`;
+      window.location.hash = orderId ? `order/${orderId}/task/${taskId}` : `task/${taskId}`;
     });
     tbl.__bound = true;
   }
@@ -81,6 +86,13 @@ function handleHashChange() {
     const id = hash.split('/')[1];
     wrapper?.classList.add('hidden');
     openTaskDetail(id === 'new' ? null : id);
+    document.getElementById('task-view').hidden = false;
+    return;
+  } else if (hash.startsWith('order/') && hash.includes('/task/')) {
+    const parts = hash.split('/');
+    const taskId = parts[3];
+    wrapper?.classList.add('hidden');
+    openTaskDetail(taskId);
     document.getElementById('task-view').hidden = false;
     return;
   }
@@ -128,6 +140,16 @@ function bindUI() {
     state.currentPage = 1;
     filterAndRender();
   });
+  document.getElementById('sourceSelect')?.addEventListener('change', e => {
+    state.source = e.target.value;
+    state.currentPage = 1;
+    filterAndRender();
+  });
+  document.getElementById('searchInput')?.addEventListener('input', e => {
+    state.search = e.target.value.toLowerCase();
+    state.currentPage = 1;
+    filterAndRender();
+  });
   document.getElementById('prevPageBtn')?.addEventListener('click', () => {
     if (state.currentPage > 1) {
       state.currentPage--;
@@ -150,12 +172,35 @@ function bindUI() {
 
 async function fetchAndRenderTasks() {
   if (!state.farmClientId) return;
-  const snap = await getDocs(collection(db, 'clients', state.farmClientId, 'tasks'));
-  state.allTasks = snap.docs.map(d => ({
+  const [isolatedSnap, orderSnap] = await Promise.all([
+    getDocs(collection(db, 'clients', state.farmClientId, 'tasks')),
+    getDocs(query(collection(db, 'tasks'), where('ordemId', '!=', '')))
+  ]);
+  const isolated = isolatedSnap.docs.map(d => ({
     id: d.id,
     ...d.data(),
+    isCompleted: d.data().isCompleted || ((d.data().status||'').toLowerCase().includes('conclu')),
+    source: 'isoladas',
     _ref: d.ref
   }));
+  const orderTasks = orderSnap.docs.map(d => {
+    const data = d.data();
+    const statusNorm = (data.status || '').toLowerCase();
+    const isCompleted = data.isCompleted || statusNorm.includes('conclu');
+    return {
+      id: d.id,
+      ...data,
+      source: 'ordem',
+      orderId: data.orderId || data.ordemId || '',
+      orderCode: data.orderCode || data.ordemCodigo || data.ordemId || '',
+       isCompleted,
+      _ref: d.ref
+    };
+  });
+  const map = {};
+  isolated.forEach(t => { map[t.id] = t; });
+  orderTasks.forEach(t => { map[t.id] = t; });
+  state.allTasks = Object.values(map);
   filterAndRender();
 }
 
@@ -163,10 +208,16 @@ async function fetchAndRenderTasks() {
     const now = new Date();
     state.filteredTasks = state.allTasks.filter(t => {
       const isCompleted = !!t.isCompleted;
-      const due = new Date(t.dueDate);
-      if (state.filter === 'pendentes') return !isCompleted && due >= now;
-      if (state.filter === 'concluidas') return isCompleted;
-      if (state.filter === 'atrasadas') return !isCompleted && due < now;
+      const due = new Date(t.dueDate || t.vencimento);
+      if (state.filter === 'pendentes' && (isCompleted || due < now)) return false;
+      if (state.filter === 'concluidas' && !isCompleted) return false;
+      if (state.filter === 'atrasadas' && (isCompleted || due >= now)) return false;
+      if (state.source === 'ordem' && t.source !== 'ordem') return false;
+      if (state.source === 'isoladas' && t.source === 'ordem') return false;
+      if (state.search) {
+        const hay = `${t.title||''} ${t.description||''} ${t.plotName||''} ${t.talhao||''} ${t.orderCode||''}`.toLowerCase();
+        if (!hay.includes(state.search)) return false;
+      }
       return true;
     });
     state.currentPage = 1;
@@ -193,18 +244,25 @@ function renderTable() {
 
   const now = new Date();
   pageItems.forEach(t => {
-    const due = new Date(t.dueDate);
+    const due = new Date(t.dueDate || t.vencimento);
     const status = t.isCompleted ? 'Concluída' : (due < now ? 'Atrasada' : 'Pendente');
     const statusHtml = createStatusPill(status);
+    const orderHtml = t.source === 'ordem'
+      ? `<a href="#order/${t.orderId}" class="order-chip" title="Abrir ordem">#${t.orderCode}</a>`
+      : '—';
     const tr = document.createElement('tr');
     tr.className = 'border-b border-gray-200 hover:bg-gray-100';
     tr.innerHTML = `
-      <td class="px-3 py-3 h-12 max-w-[160px] truncate">${t.title || t.description || '(Sem título)'}</td>
+      <td class="px-3 py-3 h-12 max-w-[160px] truncate">
+        ${t.title || t.description || '(Sem título)'}
+        ${t.source === 'ordem' ? `<div class="block sm:hidden text-xs text-gray-500">Ordem: <a href=\"#order/${t.orderId}\" class=\"order-chip\">#${t.orderCode}</a></div>` : ''}
+      </td>
       <td class="px-3 py-3 h-12 max-w-[160px] truncate min-w-[72px]">${t.plotName || t.talhao || t.plotId || '-'}</td>
-      <td class="px-3 py-3 h-12 min-w-[112px]">${formatDate(t.dueDate)}</td>
+      <td class="px-3 py-3 h-12 min-w-[96px] hidden sm:table-cell">${orderHtml}</td>
+      <td class="px-3 py-3 h-12 min-w-[112px]">${formatDate(t.dueDate || t.vencimento)}</td>
       <td class="px-3 py-3 h-12 min-w-[120px]">${statusHtml}</td>
       <td class="px-3 py-3 h-12">
-        <button type="button" class="details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1 js-view-task" data-action="view-task" data-task-id="${t.id}">
+        <button type="button" class="details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1 js-view-task" data-action="view-task" data-task-id="${t.id}" data-order-id="${t.source === 'ordem' ? t.orderId : ''}">
           <i class="fas fa-eye"></i><span>Ver detalhes</span>
         </button>
       </td>
@@ -215,8 +273,8 @@ function renderTable() {
 
 function renderMetrics() {
     const now = new Date();
-    const pending = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
-    const delayed = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
+    const pending = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate || t.vencimento) >= now).length;
+    const delayed = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate || t.vencimento) < now).length;
     const completed = state.allTasks.filter(t => t.isCompleted).length;
 
     const sameMonth = d => {
@@ -251,9 +309,9 @@ function renderMetrics() {
   if (!window.Chart) return;
   const ctx = document.getElementById('tasksChart').getContext('2d');
     const now = new Date();
-    const pendentes = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) >= now).length;
+    const pendentes = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate || t.vencimento) >= now).length;
     const concluidas = state.allTasks.filter(t => t.isCompleted).length;
-    const atrasadas = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate) < now).length;
+    const atrasadas = state.allTasks.filter(t => !t.isCompleted && new Date(t.dueDate || t.vencimento) < now).length;
     const colors = ['#FEF08A', '#86EFAC', '#FCA5A5'];
     if (state.chart) {
       state.chart.data.labels = ['Pendentes', 'Concluídas', 'Atrasadas'];
@@ -359,7 +417,7 @@ function render7DaysChart() {
 
   state.allTasks.forEach(t => {
     const status = normalizeStatus(
-      t.status || (t.isCompleted ? 'Concluída' : (new Date(t.dueDate) < now ? 'Atrasada' : 'Pendente'))
+      t.status || (t.isCompleted ? 'Concluída' : (new Date(t.dueDate || t.vencimento) < now ? 'Atrasada' : 'Pendente'))
     );
     if (status !== 'pendente' && status !== 'atrasada') return;
     const dv = parseVencimentoLocal(t.vencimento || t.dueDate);
