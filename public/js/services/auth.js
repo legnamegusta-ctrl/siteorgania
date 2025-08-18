@@ -142,9 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         agronomo: 'dashboard-agronomo.html',
                         cliente: 'dashboard-cliente.html',
                         // NOVO: Adiciona o roteamento para o papel 'operador'
-                        operador: 'operador-dashboard.html' 
+                        operador: 'operador-dashboard.html'
                     };
-                    window.location.href = roleToDashboard[userRole] || 'index.html';
+
+                    const destination = roleToDashboard[userRole];
+                    if (destination) {
+                        window.location.href = destination;
+                    } else {
+                        console.error(`Papel de usuário desconhecido: ${userRole}`);
+                        await logout();
+                    }
                 } else {
                     initializePage(user, userRole);
                 }
