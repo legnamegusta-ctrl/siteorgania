@@ -10,6 +10,40 @@ export function showFormError(formElement, message) {
 }
 
 /**
+ * Exibe um overlay de carregamento global.
+ */
+export function showLoader() {
+    let loader = document.getElementById('global-loader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'global-loader';
+        loader.innerHTML = '<div class="loading-spinner"></div>';
+        loader.style.position = 'fixed';
+        loader.style.top = '0';
+        loader.style.left = '0';
+        loader.style.width = '100%';
+        loader.style.height = '100%';
+        loader.style.display = 'flex';
+        loader.style.alignItems = 'center';
+        loader.style.justifyContent = 'center';
+        loader.style.background = 'rgba(255,255,255,0.8)';
+        loader.style.zIndex = '9999';
+        document.body.appendChild(loader);
+    }
+    loader.style.display = 'flex';
+}
+
+/**
+ * Remove o overlay de carregamento global.
+ */
+export function hideLoader() {
+    const loader = document.getElementById('global-loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+}
+
+/**
  * Limpa um container e exibe um spinner de carregamento.
  * @param {HTMLElement} container - O elemento container.
  */
