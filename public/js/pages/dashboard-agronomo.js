@@ -1,6 +1,18 @@
 // js/pages/dashboard-agronomo.js
 // Dashboard do agrônomo com suporte a leads, clientes e uso offline
 
+// Importa configuração do Firebase e métodos necessários
+import { db, auth } from '../config/firebase.js';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
+
 // Wrapper simples para IndexedDB com fallback em localStorage
 const crmStore = (() => {
   const DB_NAME = 'crm';
@@ -125,11 +137,10 @@ function setupOfflineIndicator() {
 
 async function syncPending() {
   if (!navigator.onLine) return;
-  const fs = firebase.firestore();
   const leads = await crmStore.getAll('leads');
   for (const l of leads.filter((x) => x.syncFlag === 'local-only')) {
     try {
-      await fs.collection('leads').doc(l.id).set({ ...l, syncFlag: 'synced' });
+      await setDoc(doc(db, 'leads', l.id), { ...l, syncFlag: 'synced' });
       l.syncFlag = 'synced';
       await crmStore.upsert('leads', l);
     } catch (err) {
@@ -141,15 +152,15 @@ async function syncPending() {
 function renderClients(userId) {
   const clientList = document.getElementById('clientList');
   clientList.innerHTML = '';
-  const fs = firebase.firestore();
-  fs.collection('clients').where('agronomistId', '==', userId).get().then((snap) => {
-    snap.forEach((doc) => {
-      const data = doc.data();
+  const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
+  getDocs(q).then((snap) => {
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
       const card = document.createElement('div');
       card.className = 'bg-white p-4 rounded-lg shadow flex flex-col';
       card.innerHTML = `<h3 class="text-lg font-semibold mb-4">${data.name || 'Cliente'}</h3><button class="mt-auto px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Abrir</button>`;
       card.querySelector('button').addEventListener('click', () => {
-        window.location.href = `client-details.html?clientId=${doc.id}&from=agronomo`;
+        window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
       });
       clientList.appendChild(card);
     });
@@ -200,7 +211,7 @@ function initLeadModal() {
     await crmStore.insert('leads', lead);
     if (navigator.onLine) {
       try {
-        await firebase.firestore().collection('leads').doc(lead.id).set(lead);
+        await setDoc(doc(db, 'leads', lead.id), lead);
       } catch (err) {
         lead.syncFlag = 'local-only';
         await crmStore.upsert('leads', lead);
@@ -258,7 +269,7 @@ function initAgronomoDashboard() {
   if (currentUserId) renderClients(currentUserId);
 }
 
-firebase.auth().onAuthStateChanged((user) => {
+onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUserId = user.uid;
     initAgronomoDashboard();
