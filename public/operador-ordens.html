@@ -12,12 +12,12 @@
 <body class="min-h-screen bg-[#F9FAFB]">
   <div id="operador-ordens-marker" class="hidden"></div>
 
-  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" data-test="btn-hamburguer">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true"></div>
+  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true" data-test="drawer-overlay"></div>
 
-  <aside id="sidebar" class="drawer">
+  <aside id="sidebar" class="drawer" data-test="drawer">
     <div class="sidebar-logo">
       <img src="logo.png" alt="Orgânia" />
     </div>
@@ -33,7 +33,7 @@
   <main class="main-content flex flex-col overflow-hidden">
     <header class="dashboard-header">
       <h1 class="text-lg font-bold text-green-700">Ordens</h1>
-      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold"><span>Sair</span></button>
+      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold" data-test="btn-sair"><span>Sair</span></button>
     </header>
 
     <section id="orders-section" class="flex-1 overflow-y-auto py-6">
@@ -77,7 +77,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full table-auto">
+            <table class="w-full table-auto" data-test="tbl-ordens">
               <thead class="bg-gray-50">
                 <tr class="text-left text-[13px] font-semibold text-gray-700 h-10">
                   <th scope="col" class="px-3">Código</th>
@@ -139,7 +139,7 @@
     </div>
   </section>
 
-  <section id="order-view" class="flex-1 overflow-y-auto hidden">
+  <section id="order-view" class="flex-1 overflow-y-auto hidden" data-test="order-view">
     <header class="sticky top-0 bg-white border-b flex items-center justify-between p-4 md:px-6">
       <button id="btn-order-back" class="btn btn-ghost flex items-center gap-2"><i class="fas fa-arrow-left"></i><span>Voltar</span></button>
       <h3 id="order-modal-title" class="text-lg font-semibold">Detalhes da Ordem</h3>
@@ -199,20 +199,20 @@
           <h3 class="text-base font-semibold md:w-full lg:w-auto">Tarefas desta ordem</h3>
           <div class="flex flex-col gap-3 md:flex-row md:flex-nowrap md:items-center md:gap-4 md:ml-auto">
             <div class="flex items-center gap-3">
-              <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap" aria-live="polite">0/0 abertas</span>
-              <div class="progress min-w-[140px]" style="--progress-width:180px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de tarefas" aria-live="polite"><div class="progress__bar"></div></div>
+              <span id="order-tasks-counter" class="text-sm text-gray-600 whitespace-nowrap" aria-live="polite" data-test="ordem-counter">0/0 abertas</span>
+              <div class="progress min-w-[140px]" style="--progress-width:180px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso de tarefas" aria-live="polite" data-test="ordem-progress"><div class="progress__bar"></div></div>
             </div>
-            <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap w-full md:w-auto">+ Nova Tarefa</button>
+            <button id="btn-order-new-task" type="button" class="btn btn-ghost whitespace-nowrap w-full md:w-auto" data-test="btn-ordem-nova-tarefa">+ Nova Tarefa</button>
           </div>
         </div>
         <div id="order-tasks-filters" class="flex flex-wrap gap-2 mt-3">
-          <button type="button" class="chip chip--filter filter-active" data-filter="all">Todas <span class="count">0</span></button>
-          <button type="button" class="chip chip--filter" data-filter="Pendente">Pendentes <span class="count">0</span></button>
-          <button type="button" class="chip chip--filter" data-filter="Atrasada">Atrasadas <span class="count">0</span></button>
-          <button type="button" class="chip chip--filter" data-filter="Concluída">Concluídas <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter filter-active" data-filter="all" data-test="chip-filtro-tarefas">Todas <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Pendente" data-test="chip-filtro-tarefas">Pendentes <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Atrasada" data-test="chip-filtro-tarefas">Atrasadas <span class="count">0</span></button>
+          <button type="button" class="chip chip--filter" data-filter="Concluída" data-test="chip-filtro-tarefas">Concluídas <span class="count">0</span></button>
         </div>
         <div id="order-tasks-table" class="table-responsive w-full mt-2">
-          <table class="w-full text-sm">
+          <table class="w-full text-sm" data-test="tbl-ordem-tarefas">
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-2 py-2 text-left min-w-[280px]">Título</th>
