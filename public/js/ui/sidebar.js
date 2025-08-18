@@ -1,3 +1,12 @@
+  const nav = sidebar.querySelector('.sidebar-nav');
+  if (nav && !nav.querySelector('[href="agronomo-dashboard.html"]')) {
+    const link = document.createElement('a');
+    link.href = 'agronomo-dashboard.html';
+    link.className = 'sidebar-link';
+    link.innerHTML = '<i class="fas fa-seedling"></i><span>Agrônomo</span>';
+    nav.appendChild(link);
+  }
+
 // public/js/ui/sidebar.js
 // Sidebar: off-canvas mobile + counters realtime
 import { db } from '../config/firebase.js';
@@ -15,6 +24,15 @@ export function initSidebar() {
   const backdrop = document.getElementById('sidebar-backdrop');
 
   if (!sidebar || !toggle || !backdrop) return;
+  const nav = sidebar.querySelector('.sidebar-nav');
+  if (nav && !nav.querySelector('[href="agronomo-dashboard.html"]')) {
+    const link = document.createElement('a');
+    link.href = 'agronomo-dashboard.html';
+    link.className = 'sidebar-link';
+    link.innerHTML = '<i class="fas fa-seedling"></i><span>Agrônomo</span>';
+    nav.appendChild(link);
+  }
+
 
   let focusable = [];
   let firstFocusable;
