@@ -12,12 +12,12 @@
 <body class="min-h-screen bg-gray-100">
   <div id="operador-perfil-marker" class="hidden"></div>
 
-  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" data-test="btn-hamburguer">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true"></div>
+  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true" data-test="drawer-overlay"></div>
 
-  <aside id="sidebar" class="drawer">
+  <aside id="sidebar" class="drawer" data-test="drawer">
     <div class="sidebar-logo">
       <img src="logo.png" alt="Orgânia" />
     </div>
@@ -34,7 +34,7 @@
   <main class="main-content flex flex-col overflow-hidden">
     <header class="dashboard-header">
       <h1 class="text-lg font-bold text-green-700">Perfil</h1>
-      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold"><span>Sair</span></button>
+      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold" data-test="btn-sair"><span>Sair</span></button>
     </header>
 
     <section class="flex-1 overflow-y-auto p-4">

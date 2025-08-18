@@ -18,12 +18,12 @@
 <body class="min-h-screen bg-gray-50 text-gray-800">
   <div id="operador-dashboard-marker" class="hidden"></div>
 
-  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" data-test="btn-hamburguer">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true"></div>
+  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true" data-test="drawer-overlay"></div>
 
-  <aside id="sidebar" class="drawer">
+  <aside id="sidebar" class="drawer" data-test="drawer">
     <div class="sidebar-logo">
       <img src="logo.png" alt="Orgânia" />
     </div>
@@ -42,7 +42,7 @@
       <div class="page-container">
         <header class="dashboard-header">
           <h1 class="text-lg font-semibold">Dashboard do Operador</h1>
-          <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
+          <button id="logoutBtn" class="dashboard-btn flex items-center gap-2 text-sm" data-test="btn-sair"><i class="fas fa-sign-out-alt"></i><span>Sair</span></button>
         </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -55,14 +55,14 @@
             <i class="fas fa-calendar-check text-[20px] text-gray-500"></i>
             <div class="flex flex-col">
               <p class="text-xs text-gray-500">Concluídas mês</p>
-              <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+              <p id="monthCompleted" class="kpi-value skeleton text-[28px] font-bold text-gray-800" data-test="kpi-concluidas-mes"></p>
             </div>
           </div>
           <div class="dashboard-card flex items-center gap-3">
             <i class="fas fa-circle-plus text-[20px] text-gray-500"></i>
             <div class="flex flex-col">
               <p class="text-xs text-gray-500">Novas mês</p>
-              <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800"></p>
+              <p id="monthNew" class="kpi-value skeleton text-[28px] font-bold text-gray-800" data-test="kpi-novas-mes"></p>
             </div>
           </div>
         </div>
@@ -71,21 +71,21 @@
             <div class="kpi-icon"><i class="fas fa-circle-check text-[20px] text-gray-500"></i></div>
             <div class="kpi-text">
               <span class="kpi-title">Concluídas</span>
-              <span id="kpi-concluidas" class="kpi-value skeleton text-[#166534]"></span>
+              <span id="kpi-concluidas" class="kpi-value skeleton text-[#166534]" data-test="kpi-concluidas"></span>
             </div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icon"><i class="fas fa-clock text-[20px] text-gray-500"></i></div>
             <div class="kpi-text">
               <span class="kpi-title">Pendentes</span>
-              <span id="kpi-pendentes" class="kpi-value skeleton text-[#92400E]"></span>
+              <span id="kpi-pendentes" class="kpi-value skeleton text-[#92400E]" data-test="kpi-pendentes"></span>
             </div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icon"><i class="fas fa-triangle-exclamation text-[20px] text-gray-500"></i></div>
             <div class="kpi-text">
               <span class="kpi-title">Atrasadas</span>
-              <span id="kpi-atrasadas" class="kpi-value skeleton text-[#991B1B]"></span>
+              <span id="kpi-atrasadas" class="kpi-value skeleton text-[#991B1B]" data-test="kpi-atrasadas"></span>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@
       <section class="dashboard-card flex flex-col p-5 min-w-0">
         <h3 class="text-lg font-semibold mb-4">Resumo de Tarefas</h3>
         <div class="flex items-center justify-center w-full h-[260px] sm:h-[300px]">
-          <canvas id="tasksChart" class="w-full h-full"></canvas>
+          <canvas id="tasksChart" class="w-full h-full" data-test="chart-pizza"></canvas>
         </div>
       </section>
 
@@ -111,7 +111,7 @@
           <span>Nada vencendo nos próximos 7 dias</span>
         </div>
         <div id="card-7dias-chart" class="flex items-center justify-center w-full h-[280px] sm:h-[300px] max-w-full">
-          <canvas id="chart-7dias" class="w-full h-full hidden cursor-pointer"></canvas>
+          <canvas id="chart-7dias" class="w-full h-full hidden cursor-pointer" data-test="chart-7dias"></canvas>
         </div>
       </section>
     </section>
@@ -122,10 +122,10 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Tarefas</h3>
           <div class="flex items-center gap-3 flex-wrap justify-end">
-            <input id="searchInput" type="text" placeholder="Buscar..." class="h-11 border border-gray-300 rounded px-3 focus:outline-none" />
+            <input id="searchInput" type="text" placeholder="Buscar..." class="h-11 border border-gray-300 rounded px-3 focus:outline-none" data-test="busca-tarefas" />
             <div class="flex items-center">
               <label for="filterSelect" class="mr-2 text-sm text-gray-700">Status:</label>
-              <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
+              <select id="filterSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none" data-test="filtro-status">
                 <option value="todas">Todas</option>
                 <option value="pendentes">Pendentes</option>
                 <option value="concluidas">Concluídas</option>
@@ -134,7 +134,7 @@
             </div>
             <div class="flex items-center">
               <label for="sourceSelect" class="mr-2 text-sm text-gray-700">Origem:</label>
-              <select id="sourceSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none">
+              <select id="sourceSelect" class="h-11 border border-gray-300 rounded px-3 focus:outline-none" data-test="filtro-origem">
                 <option value="todas">Todas</option>
                 <option value="ordem">De Ordens</option>
                 <option value="isoladas">Isoladas</option>
@@ -146,12 +146,12 @@
           </div>
         </div>
         <div class="table-responsive">
-          <table id="dashboard-tasks-table" class="tasks-table w-full table-auto text-left text-sm">
+          <table id="dashboard-tasks-table" class="tasks-table w-full table-auto text-left text-sm" data-test="tbl-dashboard-tarefas">
             <thead class="bg-gray-50">
               <tr>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Título</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[72px]">Talhão</th>
-                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[96px] hidden sm:table-cell">Ordem</th>
+                <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[96px] hidden sm:table-cell" data-test="col-ordem">Ordem</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[112px]">Data</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700 min-w-[120px]">Status</th>
                 <th scope="col" class="px-3 h-11 text-xs font-semibold text-gray-700">Ações</th>

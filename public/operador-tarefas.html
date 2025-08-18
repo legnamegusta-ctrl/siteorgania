@@ -12,12 +12,12 @@
 <body class="min-h-screen bg-gray-100">
   <div id="operador-tarefas-marker" class="hidden"></div>
 
-  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
+  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" data-test="btn-hamburguer">
     <i class="fas fa-bars"></i>
   </button>
-  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true"></div>
+  <div id="sidebar-backdrop" class="drawer-overlay" aria-hidden="true" data-test="drawer-overlay"></div>
 
-  <aside id="sidebar" class="drawer">
+  <aside id="sidebar" class="drawer" data-test="drawer">
     <div class="sidebar-logo">
       <img src="logo.png" alt="Orgânia" />
     </div>
@@ -34,7 +34,7 @@
   <main class="main-content flex flex-col overflow-hidden">
     <header class="dashboard-header">
       <h1 class="text-lg font-bold text-green-700">Tarefas</h1>
-      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold"><span>Sair</span></button>
+      <button id="logoutBtn" onclick="logout()" class="dashboard-btn text-red-600 font-semibold" data-test="btn-sair"><span>Sair</span></button>
     </header>
 
     <section class="flex-1 overflow-y-auto p-4">
@@ -42,7 +42,7 @@
         <h2 class="text-lg font-bold mb-4">Minhas Tarefas</h2>
         <div id="activeFilters" class="mb-4 hidden"></div>
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
+          <table class="min-w-full divide-y divide-gray-200" data-test="tbl-tarefas">
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Talhão</th>
@@ -73,7 +73,7 @@
           <button id="btn-close" class="text-gray-600 hover:text-gray-800" aria-label="Fechar"><i class="fas fa-times"></i></button>
         </div>
       </header>
-      <form id="task-form" class="modal__body space-y-4 modal-read">
+      <form id="task-form" class="modal__body space-y-4 modal-read" data-test="form-tarefa">
         <div class="field">
           <label class="field__label" for="task-titulo">Título</label>
           <input id="task-titulo" class="field__input" disabled />
@@ -97,10 +97,10 @@
       </form>
       <div class="modal__body border-t space-y-4">
         <div class="flex items-center gap-2">
-          <input id="comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." />
-          <button id="btn-add-comment" class="text-green-700"><i class="fas fa-paper-plane"></i></button>
+          <input id="comment-input" class="flex-1 border rounded p-2" placeholder="Adicionar comentário..." data-test="input-comentario" />
+          <button id="btn-add-comment" class="text-green-700" data-test="btn-comentar"><i class="fas fa-paper-plane"></i></button>
         </div>
-        <div id="comments-list" class="space-y-3"></div>
+        <div id="comments-list" class="space-y-3" data-test="list-comentarios"></div>
       </div>
     </div>
   </div>
