@@ -82,22 +82,23 @@ export async function initOperadorDashboard(userId) {
 function handleHashChange() {
   const hash = window.location.hash.slice(1);
   const wrapper = document.querySelector('.page-container');
+  const taskView = document.getElementById('task-view');
   if (hash.startsWith('task/')) {
     const id = hash.split('/')[1];
     wrapper?.classList.add('hidden');
     openTaskDetail(id === 'new' ? null : id);
-    document.getElementById('task-view').hidden = false;
+    if (taskView) taskView.hidden = false;
     return;
   } else if (hash.startsWith('order/') && hash.includes('/task/')) {
     const parts = hash.split('/');
     const taskId = parts[3];
     wrapper?.classList.add('hidden');
     openTaskDetail(taskId);
-    document.getElementById('task-view').hidden = false;
+    if (taskView) taskView.hidden = false;
     return;
   }
   hideTaskDetail();
-  document.getElementById('task-view').hidden = true;
+  if (taskView) taskView.hidden = true;
   wrapper?.classList.remove('hidden');
 }
 
