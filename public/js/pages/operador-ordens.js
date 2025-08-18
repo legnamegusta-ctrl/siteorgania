@@ -110,10 +110,10 @@ function render() {
       <td class="px-3 py-3 min-w-[96px] text-right">${o.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
       <td class="px-3 py-3">
         <div class="flex gap-2">
-          <button class="btn-ghost text-gray-600" title="Ver detalhes" data-action="view-order" data-id="${o.id}"><i class="fas fa-eye"></i></button>
-          <button class="btn-ghost text-gray-600" title="Duplicar" data-action="duplicate" data-id="${o.id}"><i class="fas fa-copy"></i></button>
-          <button class="btn-ghost text-gray-600" title="Encerrar" data-action="done" data-id="${o.id}"><i class="fas fa-flag-checkered"></i></button>
-          <button class="btn-ghost text-gray-600" title="Cancelar" data-action="cancel" data-id="${o.id}"><i class="fas fa-ban"></i></button>
+          <button type="button" class="btn-ghost text-gray-600" title="Ver detalhes" data-action="view-order" data-id="${o.id}"><i class="fas fa-eye"></i></button>
+          <button type="button" class="btn-ghost text-gray-600" title="Duplicar" data-action="duplicate" data-id="${o.id}"><i class="fas fa-copy"></i></button>
+          <button type="button" class="btn-ghost text-gray-600" title="Encerrar" data-action="done" data-id="${o.id}"><i class="fas fa-flag-checkered"></i></button>
+          <button type="button" class="btn-ghost text-gray-600" title="Cancelar" data-action="cancel" data-id="${o.id}"><i class="fas fa-ban"></i></button>
         </div>
       </td>`;
 

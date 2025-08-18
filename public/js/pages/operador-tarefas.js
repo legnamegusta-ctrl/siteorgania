@@ -204,6 +204,7 @@ function renderList(tasks) {
     const tdAction = document.createElement('td');
     tdAction.className = 'px-4 py-2';
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'details-btn px-2 py-1 text-sm text-blue-700 border border-blue-700 rounded hover:bg-blue-700 hover:text-white flex items-center gap-1';
     btn.innerHTML = '<i class="fas fa-eye"></i><span>Ver detalhes</span>';
     btn.addEventListener('click', () => openTaskModal(t.id, 'table'));
