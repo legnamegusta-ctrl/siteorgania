@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'organia-v3';
+const CACHE_NAME = 'organia-v5';
 const APP_VERSION = '1.0.1';
 const urlsToCache = [
   // Arquivos principais
@@ -10,10 +10,7 @@ const urlsToCache = [
 
   // Imagens e Ícones
   '/logo.png',
-  '/favicon.png',
   '/background.jpg',
-  '/icon-192.png',
-  '/icon-512.png',
 
   // Páginas HTML
   '/dashboard-admin.html',
