@@ -34,33 +34,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // CÓDIGO PARA REGISTRAR O SERVICE WORKER (FUNCIONALIDADE PWA)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').then(registration => {
-                console.log('ServiceWorker registrado com sucesso: ', registration.scope);
+            navigator.serviceWorker
+                .register('/service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registrado com sucesso: ', registration.scope);
 
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    refreshing = true;
-                    window.location.reload();
-                });
-
-                if (registration.waiting) {
-                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                }
-
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    if (newWorker) {
+                    // A atualização do Service Worker será aplicada na próxima navegação.
+                    // Isso evita loops de recarregamento quando um novo SW é baixado a cada request.
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        if (!newWorker) return;
                         newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+                            if (newWorker.state === 'installed') {
+                                console.log('Nova versão do ServiceWorker instalada. Será utilizada após recarregar a página.');
                             }
                         });
-                    }
+                    });
+                })
+                .catch(error => {
+                    console.log('Falha no registro do ServiceWorker: ', error);
                 });
-            }).catch(error => {
-                console.log('Falha no registro do ServiceWorker: ', error);
-            });
         });
     }
 
