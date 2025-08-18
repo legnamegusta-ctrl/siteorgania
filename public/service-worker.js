@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'organia-v5';
+const CACHE_NAME = 'organia-v6';
 const APP_VERSION = '1.0.1';
 const urlsToCache = [
   // Arquivos principais
@@ -30,7 +30,7 @@ const urlsToCache = [
   '/js/services/auth.js',
   '/js/services/ui.js',
   '/js/services/notifications.js',
-  
+
   // Scripts das Páginas
   '/js/pages/dashboard-admin.js',
   '/js/pages/dashboard-agronomo.js',
@@ -45,50 +45,37 @@ const urlsToCache = [
   '/js/pages/mapa-geral.js'
 ];
 
-// Evento de Instalação: Salva os arquivos essenciais no cache.
-self.addEventListener('install', event => {
+self.addEventListener('install', e => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Cache aberto e arquivos locais sendo salvos');
-        return cache.addAll(urlsToCache);
-      })
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('Cache aberto e arquivos locais sendo salvos');
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
-// Evento de Fetch: LÓGICA CORRIGIDA E SIMPLIFICADA
 self.addEventListener('fetch', event => {
   event.respondWith(
-    // Tenta encontrar uma correspondência no cache.
-    // A opção { ignoreSearch: true } faz com que URLs como '/page.html?id=123'
-    // correspondam a '/page.html' que está no cache.
     caches.match(event.request, { ignoreSearch: true }).then(response => {
-      // Se encontrar no cache, retorna a resposta do cache.
-      // Se não encontrar, busca na rede. Isso funcionará online
-      // e falhará graciosamente offline para recursos não cacheados.
       return response || fetch(event.request);
     })
   );
 });
 
-
-// Evento de Ativação: Limpa caches antigos.
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
+self.addEventListener('activate', e => {
+  e.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
             console.log('Limpando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      self.skipWaiting();
-      return self.clients.claim();
+      return clients.claim();
     })
   );
 });
