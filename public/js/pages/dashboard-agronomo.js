@@ -521,15 +521,9 @@ function openProposalModal(leadId) {
 
 function initLeadModal() {
   const modal = getEl('modal-novo-lead');
-  const btnNovo = getEl('btn-novo-lead');
   const cancel = getEl('btn-cancel-lead');
   const form = getEl('form-novo-lead');
-  if (!modal || !btnNovo || !cancel || !form) return;
-
-  btnNovo.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  });
+  if (!modal || !cancel || !form) return;
   cancel.addEventListener('click', () => {
     modal.classList.add('hidden');
     document.body.style.overflow = '';
@@ -775,8 +769,14 @@ async function finishVisit() {
 async function renderLeads() {
   const tbody = getEl('lead-list');
   if (!tbody) return;
+  const empty = getEl('lead-empty');
   const leads = await crmStore.getAll('leads');
   tbody.innerHTML = '';
+  if (!leads.length) {
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
   leads.forEach((l) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -810,6 +810,37 @@ async function renderLeads() {
   });
 }
 
+function bindDashboardHeader(userId) {
+  const kpiLeads = document.getElementById('kpiLeads7d');
+  const kpiProps = document.getElementById('kpiPropsAtivas');
+  const kpiConv = document.getElementById('kpiConv30d');
+  if (kpiLeads) kpiLeads.textContent = '0';
+  if (kpiProps) kpiProps.textContent = '0';
+  if (kpiConv) kpiConv.textContent = '0';
+
+  const openLeadModal = () => {
+    const modal = document.getElementById('modal-novo-lead');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+  const btnNovo = document.getElementById('btnNovoLead');
+  const btnNovoEmpty = document.getElementById('btnNovoLeadEmpty');
+  btnNovo?.addEventListener('click', openLeadModal);
+  btnNovoEmpty?.addEventListener('click', openLeadModal);
+
+  const btnVisita = document.getElementById('btnIniciarVisita');
+  btnVisita?.addEventListener('click', () => {
+    setupVisitModal();
+    const modal = document.getElementById('modal-visita');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  });
+}
+
 function initAgronomoDashboard() {
   if (!getEl('dashboard-agronomo-marker')) {
     return;
@@ -817,6 +848,7 @@ function initAgronomoDashboard() {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUserId = user.uid;
+      bindDashboardHeader(currentUserId);
       setupTabs();
       setupOfflineIndicator();
       initLeadModal();
@@ -832,5 +864,5 @@ function initAgronomoDashboard() {
   });
 }
 
-export { initAgronomoDashboard };
+export { initAgronomoDashboard, bindDashboardHeader };
 
