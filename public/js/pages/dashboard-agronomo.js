@@ -13,6 +13,14 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 
+const TAG = '[DASH-AGRO]';
+
+function getEl(id) {
+  const el = document.getElementById(id);
+  if (!el) console.warn(TAG, 'elemento ausente:', id);
+  return el;
+}
+
 // Wrapper simples para IndexedDB com fallback em localStorage
 const DB_NAME = 'crm';
 const DB_VERSION = 1;
@@ -117,7 +125,7 @@ function setupTabs() {
       buttons.forEach((b) => b.classList.remove('active'));
       panels.forEach((p) => p.classList.add('hidden'));
       btn.classList.add('active');
-      const panel = document.getElementById(`tab-${btn.dataset.tab}`);
+      const panel = getEl(`tab-${btn.dataset.tab}`);
       if (panel) panel.classList.remove('hidden');
     });
   });
@@ -125,15 +133,10 @@ function setupTabs() {
 
 let offlineIndicatorSetup = false;
 function setupOfflineIndicator() {
-  const el = document.getElementById('offline-indicator');
-  if (!el) {
-    console.warn('[agronomo] offline indicator element not found');
-    return { update: () => {} };
-  }
+  const el = getEl('offline-indicator');
+  if (!el) return { update: () => {} };
   function update() {
-    if (el) {
-      el.classList.toggle('hidden', navigator.onLine);
-    }
+    el.classList.toggle('hidden', navigator.onLine);
   }
   if (!offlineIndicatorSetup) {
     window.addEventListener('online', () => { update(); syncPending(); });
@@ -153,13 +156,14 @@ async function syncPending() {
       l.syncFlag = 'synced';
       await crmStore.upsert('leads', l);
     } catch (err) {
-      console.warn('Falha ao sincronizar lead', err);
+      console.warn(TAG, 'Falha ao sincronizar lead', err);
     }
   }
 }
 
 function renderClients(userId) {
-  const clientList = document.getElementById('clientList');
+  const clientList = getEl('clientList');
+  if (!clientList) return;
   clientList.innerHTML = '';
   const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
   getDocs(q).then((snap) => {
@@ -168,19 +172,23 @@ function renderClients(userId) {
       const card = document.createElement('div');
       card.className = 'bg-white p-4 rounded-lg shadow flex flex-col';
       card.innerHTML = `<h3 class="text-lg font-semibold mb-4">${data.name || 'Cliente'}</h3><button class="mt-auto px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Abrir</button>`;
-      card.querySelector('button').addEventListener('click', () => {
-        window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
-      });
+      const btn = card.querySelector('button');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
+        });
+      }
       clientList.appendChild(card);
     });
   });
 }
 
 function initLeadModal() {
-  const modal = document.getElementById('modal-novo-lead');
-  const btnNovo = document.getElementById('btn-novo-lead');
-  const cancel = document.getElementById('btn-cancel-lead');
-  const form = document.getElementById('form-novo-lead');
+  const modal = getEl('modal-novo-lead');
+  const btnNovo = getEl('btn-novo-lead');
+  const cancel = getEl('btn-cancel-lead');
+  const form = getEl('form-novo-lead');
+  if (!modal || !btnNovo || !cancel || !form) return;
 
   btnNovo.addEventListener('click', () => {
     modal.classList.remove('hidden');
@@ -201,15 +209,21 @@ function initLeadModal() {
     e.preventDefault();
     const lead = {
       id: Date.now().toString(),
-      nomeContato: document.getElementById('lead-nomeContato').value,
-      propriedade: document.getElementById('lead-propriedade').value || undefined,
-      telefone: document.getElementById('lead-telefone').value || undefined,
-      email: document.getElementById('lead-email').value || undefined,
-      municipio: document.getElementById('lead-municipio').value,
-      uf: document.getElementById('lead-uf').value,
-      culturas: document.getElementById('lead-culturas').value ? document.getElementById('lead-culturas').value.split(',').map((s) => s.trim()) : [],
-      areaHa: document.getElementById('lead-areaHa').value ? Number(document.getElementById('lead-areaHa').value) : undefined,
-      origem: document.getElementById('lead-origem').value || 'Prospeccao',
+      nomeContato: getEl('lead-nomeContato')?.value || '',
+      propriedade: getEl('lead-propriedade')?.value || undefined,
+      telefone: getEl('lead-telefone')?.value || undefined,
+      email: getEl('lead-email')?.value || undefined,
+      municipio: getEl('lead-municipio')?.value,
+      uf: getEl('lead-uf')?.value,
+      culturas: (() => {
+        const val = getEl('lead-culturas')?.value;
+        return val ? val.split(',').map((s) => s.trim()) : [];
+      })(),
+      areaHa: (() => {
+        const val = getEl('lead-areaHa')?.value;
+        return val ? Number(val) : undefined;
+      })(),
+      origem: getEl('lead-origem')?.value || 'Prospeccao',
       lat: form.dataset.lat ? Number(form.dataset.lat) : undefined,
       lng: form.dataset.lng ? Number(form.dataset.lng) : undefined,
       criadoEm: new Date().toISOString(),
@@ -232,23 +246,26 @@ function initLeadModal() {
     renderLeads();
   });
 
-  const geoBtn = document.getElementById('btn-lead-geo');
-  geoBtn.addEventListener('click', () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        form.dataset.lat = pos.coords.latitude;
-        form.dataset.lng = pos.coords.longitude;
-      },
-      () => {
-        // Usuário negou; apenas segue
-      }
-    );
-  });
+  const geoBtn = getEl('btn-lead-geo');
+  if (geoBtn) {
+    geoBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          form.dataset.lat = pos.coords.latitude;
+          form.dataset.lng = pos.coords.longitude;
+        },
+        () => {
+          // Usuário negou; apenas segue
+        }
+      );
+    });
+  }
 }
 
 async function renderLeads() {
-  const tbody = document.getElementById('lead-list');
+  const tbody = getEl('lead-list');
+  if (!tbody) return;
   const leads = await crmStore.getAll('leads');
   tbody.innerHTML = '';
   leads.forEach((l) => {
@@ -272,7 +289,7 @@ async function renderLeads() {
 
 function initAgronomoDashboard() {
   if (!document.getElementById('dashboard-agronomo-marker')) {
-    console.log('[agronomo] marcador ausente; abortando init');
+    console.log(TAG, 'marcador ausente; abortando init');
     return;
   }
   onAuthStateChanged(auth, (user) => {
