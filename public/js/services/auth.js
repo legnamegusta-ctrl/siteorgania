@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     auth.onAuthStateChanged(async (user) => {
-        const onLoginPage = !!document.getElementById('loginForm');
+        const onLoginPage = isOnIndex();
         console.log('[auth] onAuthStateChanged disparado', { uid: user?.uid, onLoginPage });
 
         try {
@@ -184,22 +184,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                if (!isOnIndex()) {
-                    console.log('[auth] usuário não autenticado, redirecionando para index');
+                const currentlyOnIndex = isOnIndex();
+                if (!currentlyOnIndex) {
+                    console.log('[auth] usuário não autenticado, redirecionando para index', { onLoginPage, isOnIndex: currentlyOnIndex });
                     window.location.replace('index.html');
                 } else {
-                    console.log('[auth] usuário não autenticado já está na index');
+                    console.log('[auth] usuário não autenticado já está na index', { onLoginPage, isOnIndex: currentlyOnIndex });
                 }
             }
         } catch (e) {
             console.error('Erro no onAuthStateChanged:', e);
             if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                if (!isOnIndex()) {
-                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index');
+                const currentlyOnIndex = isOnIndex();
+                if (!currentlyOnIndex) {
+                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index', { onLoginPage, isOnIndex: currentlyOnIndex });
                     window.location.replace('index.html');
                 } else {
-                    console.log('[auth] erro no onAuthStateChanged, já na index');
+                    console.log('[auth] erro no onAuthStateChanged, já na index', { onLoginPage, isOnIndex: currentlyOnIndex });
                 }
             }
         }
