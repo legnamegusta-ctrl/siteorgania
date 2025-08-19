@@ -37,8 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[auth] DOMContentLoaded disparado');
       let redirecting = false;
 
-      const isOnIndex = () =>
+      const isLoginRoute = () =>
           window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+      const isLoginDomPresent = () => !!document.getElementById('loginForm');
+      const isOnLoginPage = () => isLoginRoute() || isLoginDomPresent();
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -80,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
               hideLoader();
               if (!redirecting) {
                   redirecting = true;
-                  if (!isOnIndex()) {
+                  if (!isLoginRoute()) {
                       console.log('[auth] redirecionando para index após logout');
                       window.location.replace('index.html');
                   } else {
@@ -144,8 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     auth.onAuthStateChanged(async (user) => {
-        const onLoginPage = isOnIndex();
-        console.log('[auth] onAuthStateChanged disparado', { uid: user?.uid, onLoginPage });
+        const routeCheck = isLoginRoute();
+        const domCheck = isLoginDomPresent();
+        const onLoginPage = isOnLoginPage();
+        console.log('[auth] onAuthStateChanged disparado', { uid: user?.uid, onLoginPage, isLoginRoute: routeCheck, isLoginDomPresent: domCheck });
 
         try {
             if (user) {
@@ -184,24 +188,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                const currentlyOnIndex = isOnIndex();
-                if (!currentlyOnIndex) {
-                    console.log('[auth] usuário não autenticado, redirecionando para index', { onLoginPage, isOnIndex: currentlyOnIndex });
+                if (!isLoginRoute()) {
+                    console.log('[auth] usuário não autenticado, redirecionando para index', { onLoginPage, isLoginRoute: routeCheck, isLoginDomPresent: domCheck });
                     window.location.replace('index.html');
-                } else {
-                    console.log('[auth] usuário não autenticado já está na index', { onLoginPage, isOnIndex: currentlyOnIndex });
                 }
             }
         } catch (e) {
             console.error('Erro no onAuthStateChanged:', e);
             if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                const currentlyOnIndex = isOnIndex();
-                if (!currentlyOnIndex) {
-                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index', { onLoginPage, isOnIndex: currentlyOnIndex });
+                if (!isLoginRoute()) {
+                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index', { onLoginPage, isLoginRoute: routeCheck, isLoginDomPresent: domCheck });
                     window.location.replace('index.html');
-                } else {
-                    console.log('[auth] erro no onAuthStateChanged, já na index', { onLoginPage, isOnIndex: currentlyOnIndex });
                 }
             }
         }
