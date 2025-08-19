@@ -9,7 +9,8 @@ import {
   where,
   getDocs,
   doc,
-  setDoc
+  setDoc,
+  limit
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 
@@ -192,26 +193,65 @@ async function syncPending() {
   }
 }
 
-function renderClients(userId) {
+async function renderClients(userId) {
   const clientList = getEl('clientList');
   if (!clientList) return;
   clientList.innerHTML = '';
   const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
-  getDocs(q).then((snap) => {
-    snap.forEach((docSnap) => {
-      const data = docSnap.data();
-      const card = document.createElement('div');
-      card.className = 'bg-white p-4 rounded-lg shadow flex flex-col';
-      card.innerHTML = `<h3 class="text-lg font-semibold mb-4">${data.name || 'Cliente'}</h3><button class="mt-auto px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Abrir</button>`;
-      const btn = card.querySelector('button');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
-        });
-      }
-      clientList.appendChild(card);
+  const snap = await getDocs(q);
+  for (const docSnap of snap.docs) {
+    const data = docSnap.data();
+    const card = document.createElement('div');
+    card.className = 'bg-white p-4 rounded-lg shadow flex flex-col';
+    const title = document.createElement('h3');
+    title.className = 'text-lg font-semibold mb-4';
+    title.textContent = data.name || 'Cliente';
+
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'mt-auto flex flex-col gap-2';
+
+    const btnCliente = document.createElement('button');
+    btnCliente.className = 'px-3 py-2 text-white rounded';
+    btnCliente.style.backgroundColor = 'var(--brand-green)';
+    btnCliente.textContent = 'Abrir cliente';
+    btnCliente.addEventListener('click', () => {
+      console.log('[POS-VENDA]', 'abrir cliente', docSnap.id);
+      window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
     });
-  });
+    btnContainer.appendChild(btnCliente);
+
+    const btnProps = document.createElement('button');
+    btnProps.className = 'px-3 py-2 text-white rounded';
+    btnProps.style.backgroundColor = 'var(--brand-green)';
+    btnProps.textContent = 'Abrir propriedades';
+    btnProps.addEventListener('click', () => {
+      console.log('[POS-VENDA]', 'abrir propriedades', docSnap.id);
+      window.location.href = `property-details.html?clientId=${docSnap.id}&from=agronomo`;
+    });
+    btnContainer.appendChild(btnProps);
+
+    try {
+      const propsSnap = await getDocs(query(collection(db, `clients/${docSnap.id}/properties`), limit(1)));
+      if (!propsSnap.empty) {
+        const propId = propsSnap.docs[0].id;
+        const btnTalhoes = document.createElement('button');
+        btnTalhoes.className = 'px-3 py-2 text-white rounded';
+        btnTalhoes.style.backgroundColor = 'var(--brand-green)';
+        btnTalhoes.textContent = 'Abrir talhões';
+        btnTalhoes.addEventListener('click', () => {
+          console.log('[POS-VENDA]', 'abrir talhoes', docSnap.id, propId);
+          window.location.href = `plot-details.html?clientId=${docSnap.id}&propertyId=${propId}&from=agronomo`;
+        });
+        btnContainer.appendChild(btnTalhoes);
+      }
+    } catch (err) {
+      console.warn(TAG, 'falha ao buscar propriedades', err);
+    }
+
+    card.appendChild(title);
+    card.appendChild(btnContainer);
+    clientList.appendChild(card);
+  }
 }
 
 async function convertLeadToClient(leadId) {
