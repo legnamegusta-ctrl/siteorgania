@@ -31,9 +31,13 @@ import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
 
 console.log('auth.js carregado');
+console.log('[auth] página atual:', window.location.href);
 
 document.addEventListener('DOMContentLoaded', () => {
       let redirecting = false;
+
+      const isOnIndex = () =>
+          window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
 
       async function handleLogin(e) {
           e.preventDefault();
@@ -73,8 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
               hideLoader();
               if (!redirecting) {
                   redirecting = true;
-                  console.log('[auth] redirecionando para index após logout');
-                  window.location.replace('index.html');
+                  if (!isOnIndex()) {
+                      console.log('[auth] redirecionando para index após logout');
+                      window.location.replace('index.html');
+                  } else {
+                      console.log('[auth] já está na index, sem redirecionar');
+                  }
               }
           }
       };
@@ -173,15 +181,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                console.log('[auth] usuário não autenticado, redirecionando para index');
-                window.location.replace('index.html');
+                if (!isOnIndex()) {
+                    console.log('[auth] usuário não autenticado, redirecionando para index');
+                    window.location.replace('index.html');
+                } else {
+                    console.log('[auth] usuário não autenticado já está na index');
+                }
             }
         } catch (e) {
             console.error('Erro no onAuthStateChanged:', e);
             if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                console.log('[auth] erro no onAuthStateChanged, redirecionando para index');
-                window.location.replace('index.html');
+                if (!isOnIndex()) {
+                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index');
+                    window.location.replace('index.html');
+                } else {
+                    console.log('[auth] erro no onAuthStateChanged, já na index');
+                }
             }
         }
     });
