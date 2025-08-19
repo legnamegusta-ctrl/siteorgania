@@ -274,7 +274,7 @@ onAuthStateChanged(auth, (user) => {
     currentUserId = user.uid;
     initAgronomoDashboard();
   } else {
-    window.location.href = 'index.html';
+    window.safeRedirectToIndex('dashboard-agronomo-unauthenticated');
   }
 });
 
