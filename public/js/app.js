@@ -9,11 +9,15 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('/sw.js')
     .then(async (registration) => {
-      const vapidKey = window.FCM_VAPID_PUBLIC_KEY || undefined;
-      try {
-        await getToken(messaging, { serviceWorkerRegistration: registration, vapidKey });
-      } catch (err) {
-        console.error('[FCM] getToken error:', err);
+      if (messaging) {
+        const vapidKey = window.FCM_VAPID_PUBLIC_KEY || undefined;
+        try {
+          await getToken(messaging, { serviceWorkerRegistration: registration, vapidKey });
+        } catch (err) {
+          console.error('[FCM] getToken error:', err);
+        }
+      } else {
+        console.warn('[FCM] messaging não suportado; getToken não será chamado.');
       }
     })
     .catch((err) => {
@@ -44,7 +48,9 @@ if ('serviceWorker' in navigator) {
       }
     })());
 
-  onMessage(messaging, (payload) => {
-    console.debug('[FCM] onMessage foreground:', payload);
-  });
+  if (messaging) {
+    onMessage(messaging, (payload) => {
+      console.debug('[FCM] onMessage foreground:', payload);
+    });
+  }
 }
