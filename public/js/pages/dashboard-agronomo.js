@@ -204,6 +204,64 @@ function renderClients(userId) {
   });
 }
 
+async function convertLeadToClient(leadId) {
+  const lead = await crmStore.getById('leads', leadId);
+  if (!lead) return null;
+  const clientId = lead.id;
+  const client = {
+    id: clientId,
+    name: lead.nomeContato || lead.propriedade || 'Cliente',
+    email: lead.email || null,
+    phone: lead.telefone || null,
+    municipio: lead.municipio,
+    uf: lead.uf,
+    agronomistId: currentUserId,
+    createdAt: new Date().toISOString(),
+    syncFlag: navigator.onLine ? 'synced' : 'local-only'
+  };
+  await crmStore.insert('clientes', client);
+  if (navigator.onLine) {
+    try {
+      await setDoc(doc(db, 'clients', clientId), client);
+    } catch (err) {
+      client.syncFlag = 'local-only';
+      await crmStore.upsert('clientes', client);
+    }
+  }
+  const propertyId = Date.now().toString();
+  const property = {
+    id: propertyId,
+    name: lead.propriedade || 'Propriedade',
+    lat: lead.lat || null,
+    lng: lead.lng || null,
+    createdAt: new Date().toISOString()
+  };
+  if (navigator.onLine) {
+    try {
+      await setDoc(doc(db, 'clients', clientId, 'properties', propertyId), property);
+    } catch (err) {
+      // ignore offline
+    }
+  }
+  lead.estagio = 'Convertido';
+  lead.stage = 'Convertido';
+  lead.clientId = clientId;
+  await crmStore.upsert('leads', lead);
+  if (navigator.onLine) {
+    try {
+      await setDoc(doc(db, 'leads', lead.id), { estagio: 'Convertido', stage: 'Convertido' }, { merge: true });
+    } catch (err) {
+      lead.syncFlag = 'local-only';
+      await crmStore.upsert('leads', lead);
+    }
+  }
+  console.log('[CONVERSAO]', 'lead->cliente', { leadId: lead.id, clientId, propertyId });
+  renderLeads();
+  renderClients(currentUserId);
+  syncPending();
+  return clientId;
+}
+
 async function updateProposalStatus(id, newStatus) {
   const prop = await crmStore.getById('propostas', id);
   if (!prop) return;
@@ -225,6 +283,11 @@ async function updateProposalStatus(id, newStatus) {
   renderProposals();
   syncPending();
 }
+
+document.addEventListener('proposalAccepted', async (e) => {
+  const prop = e.detail;
+  await convertLeadToClient(prop.leadId);
+});
 
 async function renderProposals() {
   const tbl = getEl('tbl-propostas');
@@ -590,6 +653,14 @@ async function renderLeads() {
   });
   tbody.querySelectorAll('.btn-lead-proposta').forEach((btn) => {
     btn.addEventListener('click', () => openProposalModal(btn.dataset.id));
+  });
+  tbody.querySelectorAll('.btn-lead-converter').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const cid = await convertLeadToClient(btn.dataset.id);
+      if (cid) {
+        window.location.href = `client-details.html?clientId=${cid}&from=agronomo`;
+      }
+    });
   });
 }
 
