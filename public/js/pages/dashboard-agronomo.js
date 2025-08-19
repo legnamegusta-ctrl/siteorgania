@@ -16,11 +16,9 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/fir
 
 const TAG = '[DASH-AGRO]';
 
-function getEl(id) {
-  const el = document.getElementById(id);
-  if (!el) console.warn(TAG, 'elemento ausente:', id);
-  return el;
-}
+const getEl = (id, tag = TAG) =>
+  document.getElementById(id) ||
+  (console.warn(tag, 'elemento ausente:', id), null);
 
 // Wrapper simples para IndexedDB com fallback em localStorage
 const DB_NAME = 'crm';
@@ -811,33 +809,31 @@ async function renderLeads() {
 }
 
 function bindDashboardHeader(userId) {
-  const kpiLeads = document.getElementById('kpiLeads7d');
-  const kpiProps = document.getElementById('kpiPropsAtivas');
-  const kpiConv = document.getElementById('kpiConv30d');
+  const kpiLeads = getEl('kpiLeads7d');
+  const kpiProps = getEl('kpiPropsAtivas');
+  const kpiConv = getEl('kpiConv30d');
   if (kpiLeads) kpiLeads.textContent = '0';
   if (kpiProps) kpiProps.textContent = '0';
   if (kpiConv) kpiConv.textContent = '0';
 
   const openLeadModal = () => {
-    const modal = document.getElementById('modal-novo-lead');
-    if (modal) {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
+    const modal = getEl('modal-novo-lead');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   };
-  const btnNovo = document.getElementById('btnNovoLead');
-  const btnNovoEmpty = document.getElementById('btnNovoLeadEmpty');
+  const btnNovo = getEl('btnNovoLead');
+  const btnNovoEmpty = getEl('btnNovoLeadEmpty');
   btnNovo?.addEventListener('click', openLeadModal);
   btnNovoEmpty?.addEventListener('click', openLeadModal);
 
-  const btnVisita = document.getElementById('btnIniciarVisita');
+  const btnVisita = getEl('btnIniciarVisita');
   btnVisita?.addEventListener('click', () => {
     setupVisitModal();
-    const modal = document.getElementById('modal-visita');
-    if (modal) {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
+    const modal = getEl('modal-visita');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   });
 }
 

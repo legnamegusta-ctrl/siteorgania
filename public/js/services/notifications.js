@@ -15,11 +15,9 @@ import { showToast } from './ui.js';
 
 const TAG = '[NOTIF]';
 
-function getEl(id) {
-    const el = document.getElementById(id);
-    if (!el) console.warn(TAG, 'elemento ausente:', id);
-    return el;
-}
+const getEl = (id, tag = TAG) =>
+    document.getElementById(id) ||
+    (console.warn(tag, 'elemento ausente:', id), null);
 
 let notificationsBtn;
 let notificationsDropdown;
