@@ -152,7 +152,10 @@ async function syncPending() {
   const leads = await crmStore.getAll('leads');
   for (const l of leads.filter((x) => x.syncFlag === 'local-only')) {
     try {
-      await setDoc(doc(db, 'leads', l.id), { ...l, syncFlag: 'synced' });
+      await setDoc(
+        doc(db, 'leads', l.id),
+        { ...l, agronomistId: l.ownerUid, syncFlag: 'synced' }
+      );
       l.syncFlag = 'synced';
       await crmStore.upsert('leads', l);
     } catch (err) {
@@ -258,7 +261,7 @@ async function convertLeadToClient(leadId) {
   const clientId = lead.id;
   const client = {
     id: clientId,
-    name: lead.nomeContato || lead.propriedade || 'Cliente',
+    name: lead.nomeContato || lead.nomePropriedade || 'Cliente',
     email: lead.email || null,
     phone: lead.telefone || null,
     municipio: lead.municipio,
@@ -279,7 +282,7 @@ async function convertLeadToClient(leadId) {
   const propertyId = Date.now().toString();
   const property = {
     id: propertyId,
-    name: lead.propriedade || 'Propriedade',
+    name: lead.nomePropriedade || 'Propriedade',
     lat: lead.lat || null,
     lng: lead.lng || null,
     createdAt: new Date().toISOString()
@@ -291,13 +294,13 @@ async function convertLeadToClient(leadId) {
       // ignore offline
     }
   }
-  lead.estagio = 'Convertido';
   lead.stage = 'Convertido';
+  lead.updatedAt = new Date().toISOString();
   lead.clientId = clientId;
   await crmStore.upsert('leads', lead);
   if (navigator.onLine) {
     try {
-      await setDoc(doc(db, 'leads', lead.id), { estagio: 'Convertido', stage: 'Convertido' }, { merge: true });
+      await setDoc(doc(db, 'leads', lead.id), { stage: 'Convertido', updatedAt: lead.updatedAt }, { merge: true });
     } catch (err) {
       lead.syncFlag = 'local-only';
       await crmStore.upsert('leads', lead);
@@ -345,7 +348,7 @@ async function renderProposals() {
   const props = await crmStore.getAll('propostas');
   const leads = await crmStore.getAll('leads');
   const leadMap = {};
-  leads.forEach((l) => { leadMap[l.id] = l.nomeContato || l.propriedade || l.id; });
+  leads.forEach((l) => { leadMap[l.id] = l.nomeContato || l.nomePropriedade || l.id; });
   tbody.innerHTML = '';
   props.forEach((p) => {
     const tr = document.createElement('tr');
@@ -473,12 +476,12 @@ function openProposalModal(leadId) {
     }
     const lead = await crmStore.getById('leads', leadId);
     if (lead) {
-      lead.estagio = 'Proposta';
       lead.stage = 'Proposta';
+      lead.updatedAt = new Date().toISOString();
       await crmStore.upsert('leads', lead);
       if (navigator.onLine) {
         try {
-          await setDoc(doc(db, 'leads', lead.id), { estagio: 'Proposta', stage: 'Proposta' }, { merge: true });
+          await setDoc(doc(db, 'leads', lead.id), { stage: 'Proposta', updatedAt: lead.updatedAt }, { merge: true });
         } catch (err) {
           lead.syncFlag = 'local-only';
           await crmStore.upsert('leads', lead);
@@ -489,7 +492,7 @@ function openProposalModal(leadId) {
       const agendaItem = {
         id: Date.now().toString(),
         type: 'followup',
-        title: `Acompanhar proposta ${lead ? (lead.nomeContato || lead.propriedade || leadId) : leadId} antes de ${new Date(prop.validade).toLocaleDateString()}`,
+        title: `Acompanhar proposta ${lead ? (lead.nomeContato || lead.nomePropriedade || leadId) : leadId} antes de ${new Date(prop.validade).toLocaleDateString()}`,
         when: new Date(prop.validade).toISOString(),
         leadId,
         ownerUid: currentUserId,
@@ -509,12 +512,39 @@ function openProposalModal(leadId) {
       console.log('[AGENDA]', 'add', agendaItem.id);
       renderAgenda();
     }
-    console.log('[PROPOSTAS]', 'criada', prop.id);
-    close();
-    renderProposals();
-    renderLeads();
-    syncPending();
-  });
+  console.log('[PROPOSTAS]', 'criada', prop.id);
+  close();
+  renderProposals();
+  renderLeads();
+  syncPending();
+});
+}
+
+async function openLeadDetails(leadId) {
+  let modal = getEl('modal-lead-view');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-lead-view';
+    document.body.appendChild(modal);
+  }
+  const lead = await crmStore.getById('leads', leadId);
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50';
+  modal.innerHTML = `
+    <div class="bg-white p-4 rounded w-full max-w-md max-h-full overflow-y-auto">
+      <h2 class="text-lg font-semibold mb-4">Detalhes do Lead</h2>
+      <pre class="whitespace-pre-wrap text-xs mb-4">${lead ? JSON.stringify(lead, null, 2) : 'Lead não encontrado'}</pre>
+      <h3 class="font-semibold mb-2">Histórico</h3>
+      <p class="text-sm text-gray-500">Sem dados</p>
+      <div class="text-right mt-4"><button id="btn-close-lead-view" class="px-4 py-2 border rounded">Fechar</button></div>
+    </div>`;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  const close = () => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+  getEl('btn-close-lead-view').addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
 }
 
 function initLeadModal() {
@@ -537,8 +567,14 @@ function initLeadModal() {
     e.preventDefault();
     const lead = {
       id: Date.now().toString(),
+      ownerUid: currentUserId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      stage: 'Novo',
+      lastVisitAt: null,
+      nextAction: null,
       nomeContato: getEl('lead-nomeContato')?.value || '',
-      propriedade: getEl('lead-propriedade')?.value || undefined,
+      nomePropriedade: getEl('lead-propriedade')?.value || undefined,
       telefone: getEl('lead-telefone')?.value || undefined,
       email: getEl('lead-email')?.value || undefined,
       municipio: getEl('lead-municipio')?.value,
@@ -551,18 +587,17 @@ function initLeadModal() {
         const val = getEl('lead-areaHa')?.value;
         return val ? Number(val) : undefined;
       })(),
-      origem: getEl('lead-origem')?.value || 'Prospeccao',
+      origem: getEl('lead-origem')?.value || '',
+      notas: getEl('lead-notas')?.value || '',
       lat: form.dataset.lat ? Number(form.dataset.lat) : undefined,
       lng: form.dataset.lng ? Number(form.dataset.lng) : undefined,
-      criadoEm: new Date().toISOString(),
-      donoAgronomoId: currentUserId,
-      estagio: 'Novo',
       syncFlag: navigator.onLine ? 'synced' : 'local-only'
     };
     await crmStore.insert('leads', lead);
+    console.log('[LEADS] novo lead', lead.id);
     if (navigator.onLine) {
       try {
-        await setDoc(doc(db, 'leads', lead.id), lead);
+        await setDoc(doc(db, 'leads', lead.id), { ...lead, agronomistId: currentUserId });
       } catch (err) {
         lead.syncFlag = 'local-only';
         await crmStore.upsert('leads', lead);
@@ -655,11 +690,12 @@ function startVisit(leadId) {
     }
     const lead = await crmStore.getById('leads', leadId);
     if (lead) {
-      lead.estagio = 'Visitado';
+      lead.stage = 'Visitado';
+      lead.updatedAt = new Date().toISOString();
       await crmStore.upsert('leads', lead);
       if (navigator.onLine) {
         try {
-          await setDoc(doc(db, 'leads', lead.id), { estagio: 'Visitado' }, { merge: true });
+          await setDoc(doc(db, 'leads', lead.id), { stage: 'Visitado', updatedAt: lead.updatedAt }, { merge: true });
         } catch (err) {
           lead.syncFlag = 'local-only';
           await crmStore.upsert('leads', lead);
@@ -715,12 +751,13 @@ async function finishVisit() {
         : '';
       lead.nextAction = when ? `${activeVisit.nextAction} até ${when}` : activeVisit.nextAction;
     }
+    lead.updatedAt = new Date().toISOString();
     await crmStore.upsert('leads', lead);
     if (navigator.onLine) {
       try {
         await setDoc(
           doc(db, 'leads', lead.id),
-          { lastVisitAt: lead.lastVisitAt, nextAction: lead.nextAction || null },
+          { lastVisitAt: lead.lastVisitAt, nextAction: lead.nextAction || null, updatedAt: lead.updatedAt },
           { merge: true }
         );
       } catch (err) {
@@ -732,7 +769,7 @@ async function finishVisit() {
       const agendaItem = {
         id: Date.now().toString(),
         type: 'followup',
-        title: `Follow-up: ${lead.nomeContato || lead.propriedade || lead.id}`,
+        title: `Follow-up: ${lead.nomeContato || lead.nomePropriedade || lead.id}`,
         when: activeVisit.nextWhen,
         leadId: lead.id,
         ownerUid: currentUserId,
@@ -768,24 +805,63 @@ async function renderLeads() {
   const tbody = getEl('lead-list');
   if (!tbody) return;
   const empty = getEl('lead-empty');
-  const leads = await crmStore.getAll('leads');
+  const stageSel = getEl('lead-filtro-estagio');
+  const cultureSel = getEl('lead-filtro-cultura');
+  const periodSel = getEl('lead-filtro-periodo');
+  const searchInput = getEl('lead-busca');
+
+  let leads = await crmStore.getAll('leads');
+
+  const stageVal = stageSel?.value || '';
+  const cultureVal = cultureSel?.value || '';
+  const periodVal = Number(periodSel?.value || 0);
+  const searchVal = (searchInput?.value || '').toLowerCase().trim();
+
+  if (stageSel) {
+    const stages = Array.from(new Set(leads.map((l) => l.stage).filter(Boolean)));
+    const prev = stageSel.value;
+    stageSel.innerHTML = '<option value="">Estágio</option>' + stages.map((s) => `<option value="${s}">${s}</option>`).join('');
+    stageSel.value = prev;
+  }
+  if (cultureSel) {
+    const cultures = Array.from(new Set(leads.flatMap((l) => l.culturas || [])));
+    const prevC = cultureSel.value;
+    cultureSel.innerHTML = '<option value="">Cultura</option>' + cultures.map((c) => `<option value="${c}">${c}</option>`).join('');
+    cultureSel.value = prevC;
+  }
+
+  if (stageVal) leads = leads.filter((l) => l.stage === stageVal);
+  if (cultureVal) leads = leads.filter((l) => (l.culturas || []).includes(cultureVal));
+  if (periodVal) {
+    const since = Date.now() - periodVal * 24 * 60 * 60 * 1000;
+    leads = leads.filter((l) => new Date(l.createdAt).getTime() >= since);
+  }
+  if (searchVal) {
+    leads = leads.filter((l) => {
+      const nome = (l.nomeContato || '').toLowerCase();
+      const prop = (l.nomePropriedade || '').toLowerCase();
+      return nome.includes(searchVal) || prop.includes(searchVal);
+    });
+  }
+
   tbody.innerHTML = '';
   if (!leads.length) {
     if (empty) empty.classList.remove('hidden');
+    console.log('[LEADS] render', 0);
     return;
   }
   if (empty) empty.classList.add('hidden');
   leads.forEach((l) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="p-2">${l.nomeContato}${l.propriedade ? '/' + l.propriedade : ''}</td>
+      <td class="p-2">${l.nomeContato}${l.nomePropriedade ? '/' + l.nomePropriedade : ''}</td>
       <td class="p-2">${l.municipio}/${l.uf}</td>
       <td class="p-2">${(l.culturas || []).join(', ')}</td>
-      <td class="p-2"><span class="px-2 py-1 rounded bg-gray-200">${l.estagio}</span></td>
+      <td class="p-2"><span class="px-2 py-1 rounded bg-gray-200">${l.stage}</span></td>
       <td class="p-2 text-center">${l.lastVisitAt ? new Date(l.lastVisitAt).toLocaleDateString() : '-'}</td>
       <td class="p-2 text-center">${l.nextAction || '-'}</td>
       <td class="p-2 space-x-1">
-        <button class="text-blue-600 underline btn-lead-visitar" data-id="${l.id}">Iniciar Visita</button>
+        <button class="text-blue-600 underline btn-lead-visitar" data-id="${l.id}">Visitar</button>
         <button class="text-blue-600 underline btn-lead-proposta" data-id="${l.id}">Proposta</button>
         <button class="text-blue-600 underline btn-lead-converter" data-id="${l.id}">Converter</button>
         <button class="text-blue-600 underline btn-lead-ver" data-id="${l.id}">Ver</button>
@@ -806,6 +882,10 @@ async function renderLeads() {
       }
     });
   });
+  tbody.querySelectorAll('.btn-lead-ver').forEach((btn) => {
+    btn.addEventListener('click', () => openLeadDetails(btn.dataset.id));
+  });
+  console.log('[LEADS] render', leads.length);
 }
 
 function bindDashboardHeader(userId) {
@@ -826,6 +906,11 @@ function bindDashboardHeader(userId) {
   const btnNovoEmpty = getEl('btnNovoLeadEmpty');
   btnNovo?.addEventListener('click', openLeadModal);
   btnNovoEmpty?.addEventListener('click', openLeadModal);
+
+  getEl('lead-filtro-estagio')?.addEventListener('change', renderLeads);
+  getEl('lead-filtro-cultura')?.addEventListener('change', renderLeads);
+  getEl('lead-filtro-periodo')?.addEventListener('change', renderLeads);
+  getEl('lead-busca')?.addEventListener('input', renderLeads);
 
   const btnVisita = getEl('btnIniciarVisita');
   btnVisita?.addEventListener('click', () => {
