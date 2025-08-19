@@ -17,11 +17,11 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/fir
 const DB_NAME = 'crm';
 const DB_VERSION = 1;
 const STORES = ['leads', 'visitas', 'propostas', 'clientes'];
-let db;
+let crmDb;
 let useLocal = false;
 
 function openDB() {
-  if (db || useLocal) return Promise.resolve(db);
+  if (crmDb || useLocal) return Promise.resolve(crmDb);
   return new Promise((resolve) => {
     try {
       const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -34,8 +34,8 @@ function openDB() {
         });
       };
       req.onsuccess = () => {
-        db = req.result;
-        resolve(db);
+        crmDb = req.result;
+        resolve(crmDb);
       };
       req.onerror = () => {
         useLocal = true;
