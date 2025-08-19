@@ -14,100 +14,98 @@ import {
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 
 // Wrapper simples para IndexedDB com fallback em localStorage
-const crmStore = (() => {
-  const DB_NAME = 'crm';
-  const DB_VERSION = 1;
-  const STORES = ['leads', 'visitas', 'propostas', 'clientes'];
-  let db;
-  let useLocal = false;
+const DB_NAME = 'crm';
+const DB_VERSION = 1;
+const STORES = ['leads', 'visitas', 'propostas', 'clientes'];
+let db;
+let useLocal = false;
 
-  function openDB() {
-    if (db || useLocal) return Promise.resolve(db);
-    return new Promise((resolve) => {
-      try {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = (e) => {
-          const d = e.target.result;
-          STORES.forEach((name) => {
-            if (!d.objectStoreNames.contains(name)) {
-              d.createObjectStore(name, { keyPath: 'id' });
-            }
-          });
-        };
-        req.onsuccess = () => {
-          db = req.result;
-          resolve(db);
-        };
-        req.onerror = () => {
-          useLocal = true;
-          resolve(null);
-        };
-      } catch (err) {
+function openDB() {
+  if (db || useLocal) return Promise.resolve(db);
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        STORES.forEach((name) => {
+          if (!d.objectStoreNames.contains(name)) {
+            d.createObjectStore(name, { keyPath: 'id' });
+          }
+        });
+      };
+      req.onsuccess = () => {
+        db = req.result;
+        resolve(db);
+      };
+      req.onerror = () => {
         useLocal = true;
         resolve(null);
-      }
-    });
-  }
-
-  function lsKey(col) {
-    return `crm:${col}`;
-  }
-  function lsRead(col) {
-    return JSON.parse(localStorage.getItem(lsKey(col)) || '[]');
-  }
-  function lsWrite(col, data) {
-    localStorage.setItem(lsKey(col), JSON.stringify(data));
-  }
-
-  async function getAll(col) {
-    if (useLocal) return lsRead(col);
-    const d = await openDB();
-    if (!d) return lsRead(col);
-    return new Promise((res) => {
-      const tx = d.transaction(col, 'readonly');
-      const store = tx.objectStore(col);
-      const req = store.getAll();
-      req.onsuccess = () => res(req.result || []);
-      req.onerror = () => res([]);
-    });
-  }
-
-  async function getById(col, id) {
-    if (useLocal) return lsRead(col).find((r) => r.id === id);
-    const d = await openDB();
-    if (!d) return lsRead(col).find((r) => r.id === id);
-    return new Promise((res) => {
-      const tx = d.transaction(col, 'readonly');
-      const req = tx.objectStore(col).get(id);
-      req.onsuccess = () => res(req.result);
-      req.onerror = () => res(undefined);
-    });
-  }
-
-  async function put(col, data) {
-    if (useLocal) {
-      const arr = lsRead(col);
-      const idx = arr.findIndex((r) => r.id === data.id);
-      if (idx >= 0) arr[idx] = data; else arr.push(data);
-      lsWrite(col, arr);
-      return;
+      };
+    } catch (err) {
+      useLocal = true;
+      resolve(null);
     }
-    const d = await openDB();
-    if (!d) return put(col, data);
-    return new Promise((res) => {
-      const tx = d.transaction(col, 'readwrite');
-      tx.objectStore(col).put(data);
-      tx.oncomplete = () => res();
-      tx.onerror = () => res();
-    });
+  });
+}
+
+function lsKey(col) {
+  return `crm:${col}`;
+}
+function lsRead(col) {
+  return JSON.parse(localStorage.getItem(lsKey(col)) || '[]');
+}
+function lsWrite(col, data) {
+  localStorage.setItem(lsKey(col), JSON.stringify(data));
+}
+
+async function getAll(col) {
+  if (useLocal) return lsRead(col);
+  const d = await openDB();
+  if (!d) return lsRead(col);
+  return new Promise((res) => {
+    const tx = d.transaction(col, 'readonly');
+    const store = tx.objectStore(col);
+    const req = store.getAll();
+    req.onsuccess = () => res(req.result || []);
+    req.onerror = () => res([]);
+  });
+}
+
+async function getById(col, id) {
+  if (useLocal) return lsRead(col).find((r) => r.id === id);
+  const d = await openDB();
+  if (!d) return lsRead(col).find((r) => r.id === id);
+  return new Promise((res) => {
+    const tx = d.transaction(col, 'readonly');
+    const req = tx.objectStore(col).get(id);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => res(undefined);
+  });
+}
+
+async function put(col, data) {
+  if (useLocal) {
+    const arr = lsRead(col);
+    const idx = arr.findIndex((r) => r.id === data.id);
+    if (idx >= 0) arr[idx] = data; else arr.push(data);
+    lsWrite(col, arr);
+    return;
   }
+  const d = await openDB();
+  if (!d) return put(col, data);
+  return new Promise((res) => {
+    const tx = d.transaction(col, 'readwrite');
+    tx.objectStore(col).put(data);
+    tx.oncomplete = () => res();
+    tx.onerror = () => res();
+  });
+}
 
-  async function insert(col, data) { return put(col, data); }
-  async function update(col, data) { return put(col, data); }
-  async function upsert(col, data) { return put(col, data); }
+async function insert(col, data) { return put(col, data); }
+async function update(col, data) { return put(col, data); }
+async function upsert(col, data) { return put(col, data); }
 
-  return { getAll, getById, insert, update, upsert };
-})();
+const crmStore = { getAll, getById, insert, update, upsert };
 
 let currentUserId = null;
 
@@ -125,14 +123,25 @@ function setupTabs() {
   });
 }
 
+let offlineIndicatorSetup = false;
 function setupOfflineIndicator() {
   const el = document.getElementById('offline-indicator');
-  function update() {
-    el.classList.toggle('hidden', navigator.onLine);
+  if (!el) {
+    console.warn('[agronomo] offline indicator element not found');
+    return { update: () => {} };
   }
-  window.addEventListener('online', () => { update(); syncPending(); });
-  window.addEventListener('offline', update);
+  function update() {
+    if (el) {
+      el.classList.toggle('hidden', navigator.onLine);
+    }
+  }
+  if (!offlineIndicatorSetup) {
+    window.addEventListener('online', () => { update(); syncPending(); });
+    window.addEventListener('offline', update);
+    offlineIndicatorSetup = true;
+  }
   update();
+  return { update };
 }
 
 async function syncPending() {
@@ -262,21 +271,23 @@ async function renderLeads() {
 }
 
 function initAgronomoDashboard() {
-  setupTabs();
-  setupOfflineIndicator();
-  initLeadModal();
-  renderLeads();
-  if (currentUserId) renderClients(currentUserId);
+  if (!document.getElementById('dashboard-agronomo-marker')) {
+    console.log('[agronomo] marcador ausente; abortando init');
+    return;
+  }
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUserId = user.uid;
+      setupTabs();
+      setupOfflineIndicator();
+      initLeadModal();
+      renderLeads();
+      renderClients(currentUserId);
+    } else {
+      window.safeRedirectToIndex('dashboard-agronomo-unauthenticated');
+    }
+  });
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUserId = user.uid;
-    initAgronomoDashboard();
-  } else {
-    window.safeRedirectToIndex('dashboard-agronomo-unauthenticated');
-  }
-});
-
-export { initAgronomoDashboard, crmStore };
+export { initAgronomoDashboard };
 
