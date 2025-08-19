@@ -39,8 +39,8 @@ self.addEventListener('fetch', (event) => {
   // Não interceptar métodos não-GET
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Nunca interceptar o próprio SW ou antigos SWs
-  if (url.pathname === '/sw.js' || url.pathname.endsWith('/firebase-messaging-sw.js')) return;
+  // Nunca interceptar o próprio SW
+  if (url.pathname === '/sw.js') return;
   // Não cachear navegação/HTML (para evitar versões presas)
   const isHTML = req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html');
   if (isHTML) return;
