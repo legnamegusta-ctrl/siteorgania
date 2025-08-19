@@ -20,7 +20,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // Inicializa o Auth aqui
-const messaging = getMessaging(app);
+
+let messaging;
+try {
+  // Evita erro "Service messaging is not available" em ambientes sem suporte
+  messaging = getMessaging(app);
+} catch (err) {
+  console.warn('Firebase messaging não suportado neste ambiente.', err);
+}
 
 // O BLOCO ABAIXO FOI COMENTADO PARA RESOLVER O ERRO DE IMPORTAÇÃO
 // Se a persistência offline for crucial, você precisará investigar a forma correta
