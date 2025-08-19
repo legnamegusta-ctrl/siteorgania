@@ -30,6 +30,8 @@ import { initOperadorAgenda } from '../pages/operador-agenda.js';
 import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
 
+console.log('auth.js carregado');
+
 document.addEventListener('DOMContentLoaded', () => {
       let redirecting = false;
 
@@ -60,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const logout = async () => {
+          console.log('[auth] logout chamado');
           try {
               showLoader();
               // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
@@ -70,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
               hideLoader();
               if (!redirecting) {
                   redirecting = true;
+                  console.log('[auth] redirecionando para index após logout');
                   window.location.replace('index.html');
               }
           }
@@ -130,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     auth.onAuthStateChanged(async (user) => {
         const onLoginPage = !!document.getElementById('loginForm');
+        console.log('[auth] onAuthStateChanged disparado', { uid: user?.uid, onLoginPage });
 
         try {
             if (user) {
@@ -152,12 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const destination = roleToDashboard[userRole];
                         if (destination) {
+                            console.log('[auth] redirecionando para', destination);
                             window.location.replace(destination);
                         } else {
                             console.error(`Papel de usuário desconhecido: ${userRole}`);
                             await logout();
                         }
                     } else {
+                        console.log('[auth] usuário autenticado, inicializando página', userRole);
                         initializePage(user, userRole);
                     }
                 } else {
@@ -166,12 +173,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (!onLoginPage && !redirecting) {
                 redirecting = true;
+                console.log('[auth] usuário não autenticado, redirecionando para index');
                 window.location.replace('index.html');
             }
         } catch (e) {
             console.error('Erro no onAuthStateChanged:', e);
             if (!onLoginPage && !redirecting) {
                 redirecting = true;
+                console.log('[auth] erro no onAuthStateChanged, redirecionando para index');
                 window.location.replace('index.html');
             }
         }
