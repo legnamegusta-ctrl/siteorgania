@@ -3,7 +3,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase
 // REMOVIDO 'enablePersistence' desta importação, pois não é exportado por este bundle CDN
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
-import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js';
+import { getMessaging } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js';
 
 // Seu objeto de configuração do Firebase (substitua com suas chaves reais!)
 const firebaseConfig = {
@@ -20,17 +20,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // Inicializa o Auth aqui
-const messaging = getMessaging();
-
-async function getFcmToken() {
-  const registration = await navigator.serviceWorker.ready;
-  const vapidKey = window.FCM_VAPID_PUBLIC_KEY || undefined;
-  return getToken(messaging, { serviceWorkerRegistration: registration, vapidKey });
-}
-
-onMessage(messaging, (payload) => {
-  console.debug('[FCM] onMessage foreground:', payload);
-});
+const messaging = getMessaging(app);
 
 // O BLOCO ABAIXO FOI COMENTADO PARA RESOLVER O ERRO DE IMPORTAÇÃO
 // Se a persistência offline for crucial, você precisará investigar a forma correta
@@ -48,4 +38,4 @@ enablePersistence(db)
   });
 */
 
-export { db, app, auth, messaging, getFcmToken }; // Exportar 'db', 'app', 'auth' e utilitários de messaging
+export { db, app, auth, messaging }; // Exportar 'db', 'app', 'auth' e utilitários de messaging
