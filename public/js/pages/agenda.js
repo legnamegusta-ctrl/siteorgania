@@ -42,7 +42,7 @@ export async function initAgenda(uid, userRole) {
     if (!currentUser || !currentUser.userRole) {
         console.error('initAgenda: Usuário não autenticado ou papel não definido.');
         hideSpinner();
-        window.location.href = 'index.html';
+        window.safeRedirectToIndex('agenda-no-user');
         return;
     }
 

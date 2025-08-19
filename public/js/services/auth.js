@@ -30,17 +30,57 @@ import { initOperadorAgenda } from '../pages/operador-agenda.js';
 import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
 
+// ===== Detectores robustos de "tela de login" e redirect seguro =====
+function isLoginRoute() {
+  try {
+    const p = new URL(window.location.href).pathname.replace(/\/+$/, '/');
+    return p === '/' || p.endsWith('/index.html');
+  } catch {
+    return false;
+  }
+}
+
+function isLoginDomPresent() {
+  return !!document.getElementById('loginForm') ||
+         (document.body && document.body.dataset && document.body.dataset.page === 'login');
+}
+
+function isOnLoginPage() {
+  return isLoginRoute() || isLoginDomPresent();
+}
+
+// Evita redirecionar em loop para a mesma URL e cria um "debounce" temporal
+function safeRedirectToIndex(reason) {
+  try {
+    const now = Date.now();
+    const lastTs = Number(sessionStorage.getItem('lastIndexRedirectTs') || 0);
+    if (now - lastTs < 4000) {
+      console.warn('[auth] Bloqueado redirect repetido para index (debounce). Motivo:', reason);
+      return;
+    }
+    sessionStorage.setItem('lastIndexRedirectTs', String(now));
+  } catch {}
+
+  const here = new URL(window.location.href);
+  const target = new URL('index.html', here.origin);
+  if (here.href === target.href) {
+    console.warn('[auth] Já está na index; redirecionamento ignorado. Motivo:', reason);
+    return;
+  }
+  console.log('[auth] Redirecionando para index. Motivo:', reason, { from: here.href, to: target.href });
+  window.location.replace(target.href);
+}
+
+// Exponibiliza para outros módulos
+window.safeRedirectToIndex = safeRedirectToIndex;
+
 console.log('auth.js carregado');
 console.log('[auth] página atual:', window.location.href);
 
 document.addEventListener('DOMContentLoaded', () => {
       console.log('[auth] DOMContentLoaded disparado');
+      console.log('[auth] diag: isLoginRoute=', isLoginRoute(), 'isLoginDomPresent=', isLoginDomPresent());
       let redirecting = false;
-
-      const isLoginRoute = () =>
-          window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
-      const isLoginDomPresent = () => !!document.getElementById('loginForm');
-      const isOnLoginPage = () => isLoginRoute() || isLoginDomPresent();
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -83,10 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
               if (!redirecting) {
                   redirecting = true;
                   if (!isLoginRoute()) {
-                      console.log('[auth] redirecionando para index após logout');
-                      window.location.replace('index.html');
+                      safeRedirectToIndex('logout');
                   } else {
-                      console.log('[auth] já está na index, sem redirecionar');
+                      console.log('[auth] logout: já na index; sem redirect.');
                   }
               }
           }
@@ -188,18 +227,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                if (!isLoginRoute()) {
-                    console.log('[auth] usuário não autenticado, redirecionando para index', { onLoginPage, isLoginRoute: routeCheck, isLoginDomPresent: domCheck });
-                    window.location.replace('index.html');
+                if (!routeCheck) {
+                    safeRedirectToIndex('user-unauthenticated');
+                } else {
+                    console.log('[auth] Usuário não autenticado já na index; sem redirect.');
                 }
             }
         } catch (e) {
             console.error('Erro no onAuthStateChanged:', e);
             if (!onLoginPage && !redirecting) {
                 redirecting = true;
-                if (!isLoginRoute()) {
-                    console.log('[auth] erro no onAuthStateChanged, redirecionando para index', { onLoginPage, isLoginRoute: routeCheck, isLoginDomPresent: domCheck });
-                    window.location.replace('index.html');
+                if (!routeCheck) {
+                    safeRedirectToIndex('onAuthStateChanged-error');
+                } else {
+                    console.log('[auth] Erro no onAuthStateChanged, mas já na index; sem redirect.');
                 }
             }
         }
