@@ -1,4 +1,6 @@
-const CACHE_NAME = 'organia-v7';
+// Não fazer takeover agressivo; update será natural/seguro.
+
+const CACHE_NAME = 'organia-v8'; // bump de versão
 
 // Firebase Messaging (compat) no Service Worker
 self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js');
@@ -14,42 +16,47 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-
-// Notificação em segundo plano (customize conforme necessário)
 messaging.onBackgroundMessage((payload) => {
-  const title = (payload.notification && payload.notification.title) || 'Notificação';
-  const options = {
-    body: (payload.notification && payload.notification.body) || '',
-    icon: '/icons/icon-192.png'
-  };
-  self.registration.showNotification(title, options);
+  const n = payload?.notification || {};
+  self.registration.showNotification(n.title || 'Notificação', { body: n.body || '' });
 });
 
-self.addEventListener('install', () => {
-  // self.skipWaiting();
+self.addEventListener('install', (event) => {
+  // sem skipWaiting
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(key => (key !== CACHE_NAME ? caches.delete(key) : undefined)));
-    // clients.claim();
-    const clientsArr = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of clientsArr) {
-      client.postMessage({ type: 'SW_READY' });
-    }
-  })());
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.open(CACHE_NAME).then(cache =>
-      fetch(event.request)
-        .then(response => {
-          cache.put(event.request, response.clone());
-          return response;
-        })
-        .catch(() => cache.match(event.request))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => (key !== CACHE_NAME ? caches.delete(key) : undefined)))
     )
+  );
+  // sem clients.claim
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  // Não interceptar métodos não-GET
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  // Nunca interceptar o próprio SW ou antigos SWs
+  if (url.pathname === '/sw.js' || url.pathname.endsWith('/firebase-messaging-sw.js')) return;
+  // Não cachear navegação/HTML (para evitar versões presas)
+  const isHTML = req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html');
+  if (isHTML) return;
+  event.respondWith(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      try {
+        const resp = await fetch(req);
+        if (resp && resp.status === 200 && resp.type === 'basic') {
+          cache.put(req, resp.clone());
+        }
+        return resp;
+      } catch (e) {
+        const cached = await cache.match(req);
+        if (cached) return cached;
+        throw e;
+      }
+    })
   );
 });
