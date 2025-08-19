@@ -23,8 +23,8 @@ function getEl(id) {
 
 // Wrapper simples para IndexedDB com fallback em localStorage
 const DB_NAME = 'crm';
-const DB_VERSION = 1;
-const STORES = ['leads', 'visitas', 'propostas', 'clientes'];
+const DB_VERSION = 2;
+const STORES = ['leads', 'visitas', 'propostas', 'clientes', 'agenda'];
 let crmDb;
 let useLocal = false;
 
@@ -180,6 +180,16 @@ async function syncPending() {
       console.warn(TAG, 'Falha ao sincronizar proposta', err);
     }
   }
+  const agenda = await crmStore.getAll('agenda');
+  for (const a of agenda.filter((x) => x.syncFlag === 'local-only')) {
+    try {
+      await setDoc(doc(db, 'agenda', a.ownerUid, 'items', a.id), { ...a, syncFlag: 'synced' });
+      a.syncFlag = 'synced';
+      await crmStore.upsert('agenda', a);
+    } catch (err) {
+      console.warn(TAG, 'Falha ao sincronizar agenda', err);
+    }
+  }
 }
 
 function renderClients(userId) {
@@ -320,6 +330,54 @@ async function renderProposals() {
   });
 }
 
+async function renderAgenda() {
+  const lista = getEl('agenda-lista');
+  if (!lista) return;
+  const filtroSel = getEl('agenda-filtro-periodo');
+  const dias = filtroSel ? Number(filtroSel.value) : 7;
+  const items = await crmStore.getAll('agenda');
+  const now = new Date();
+  const limite = new Date();
+  limite.setDate(now.getDate() + dias);
+  const futuros = items
+    .filter((i) => i.when && new Date(i.when) >= now && new Date(i.when) <= limite)
+    .sort((a, b) => new Date(a.when) - new Date(b.when));
+  lista.innerHTML = '';
+  futuros.forEach((item) => {
+    const li = document.createElement('li');
+    li.className = 'p-2 bg-white rounded shadow flex items-center gap-2';
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = !!item.done;
+    chk.addEventListener('change', async () => {
+      item.done = chk.checked;
+      item.syncFlag = navigator.onLine ? 'synced' : 'local-only';
+      await crmStore.upsert('agenda', item);
+      if (navigator.onLine) {
+        try {
+          await setDoc(
+            doc(db, 'agenda', item.ownerUid, 'items', item.id),
+            { done: item.done, syncFlag: 'synced' },
+            { merge: true }
+          );
+        } catch (err) {
+          item.syncFlag = 'local-only';
+          await crmStore.upsert('agenda', item);
+        }
+      }
+      console.log('[AGENDA]', 'done', item.id);
+      renderAgenda();
+      syncPending();
+    });
+    const span = document.createElement('span');
+    span.textContent = `${new Date(item.when).toLocaleDateString()} - ${item.title}`;
+    if (item.done) span.classList.add('line-through', 'text-gray-500');
+    li.appendChild(chk);
+    li.appendChild(span);
+    lista.appendChild(li);
+  });
+}
+
 function openProposalModal(leadId) {
   let modal = getEl('modal-proposta');
   if (!modal) {
@@ -388,6 +446,30 @@ function openProposalModal(leadId) {
           await crmStore.upsert('leads', lead);
         }
       }
+    }
+    if (prop.validade) {
+      const agendaItem = {
+        id: Date.now().toString(),
+        type: 'followup',
+        title: `Acompanhar proposta ${lead ? (lead.nomeContato || lead.propriedade || leadId) : leadId} antes de ${new Date(prop.validade).toLocaleDateString()}`,
+        when: new Date(prop.validade).toISOString(),
+        leadId,
+        ownerUid: currentUserId,
+        createdAt: new Date().toISOString(),
+        done: false,
+        syncFlag: navigator.onLine ? 'synced' : 'local-only'
+      };
+      await crmStore.insert('agenda', agendaItem);
+      if (navigator.onLine) {
+        try {
+          await setDoc(doc(db, 'agenda', currentUserId, 'items', agendaItem.id), agendaItem);
+        } catch (err) {
+          agendaItem.syncFlag = 'local-only';
+          await crmStore.upsert('agenda', agendaItem);
+        }
+      }
+      console.log('[AGENDA]', 'add', agendaItem.id);
+      renderAgenda();
     }
     console.log('[PROPOSTAS]', 'criada', prop.id);
     close();
@@ -614,6 +696,30 @@ async function finishVisit() {
         await crmStore.upsert('leads', lead);
       }
     }
+    if (activeVisit.nextWhen) {
+      const agendaItem = {
+        id: Date.now().toString(),
+        type: 'followup',
+        title: `Follow-up: ${lead.nomeContato || lead.propriedade || lead.id}`,
+        when: activeVisit.nextWhen,
+        leadId: lead.id,
+        ownerUid: currentUserId,
+        createdAt: new Date().toISOString(),
+        done: false,
+        syncFlag: navigator.onLine ? 'synced' : 'local-only'
+      };
+      await crmStore.insert('agenda', agendaItem);
+      if (navigator.onLine) {
+        try {
+          await setDoc(doc(db, 'agenda', currentUserId, 'items', agendaItem.id), agendaItem);
+        } catch (err) {
+          agendaItem.syncFlag = 'local-only';
+          await crmStore.upsert('agenda', agendaItem);
+        }
+      }
+      console.log('[AGENDA]', 'add', agendaItem.id);
+      renderAgenda();
+    }
   }
   console.log('[VISITAS]', 'check-out', activeVisit.id);
   const modal = getEl('modal-visita');
@@ -679,6 +785,8 @@ function initAgronomoDashboard() {
       renderLeads();
       renderProposals();
       renderClients(currentUserId);
+      getEl('agenda-filtro-periodo')?.addEventListener('change', renderAgenda);
+      renderAgenda();
     } else {
       window.safeRedirectToIndex('dashboard-agronomo-unauthenticated');
     }
