@@ -1,8 +1,25 @@
 // public/js/services/notifications.js
 
 import { db } from '../config/firebase.js';
-import { onSnapshot, collection, query, where, orderBy, doc, updateDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import {
+    onSnapshot,
+    collection,
+    query,
+    where,
+    orderBy,
+    doc,
+    updateDoc,
+    writeBatch
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { showToast } from './ui.js';
+
+const TAG = '[NOTIF]';
+
+function getEl(id) {
+    const el = document.getElementById(id);
+    if (!el) console.warn(TAG, 'elemento ausente:', id);
+    return el;
+}
 
 let notificationsBtn;
 let notificationsDropdown;
@@ -13,29 +30,17 @@ let viewAllNotifications;
 let notificationsListener = null;
 
 export function setupNotifications(userId) {
-    console.log('Notifications: Setting up notifications for user:', userId);
+    console.log(TAG, 'setting up notifications for user:', userId);
 
-    notificationsBtn = document.getElementById('notificationsBtn');
-    if (!notificationsBtn) {
-        console.warn('Notifications: notificationsBtn não encontrado; abortando setup.');
+    notificationsBtn = getEl('notificationsBtn');
+    notificationsDropdown = getEl('notificationsDropdown');
+    notificationsList = getEl('notificationsList');
+    notificationsBadge = getEl('notificationsBadge');
+    viewAllNotifications = getEl('viewAllNotifications');
+
+    if (!notificationsBtn || !notificationsDropdown || !notificationsList || !notificationsBadge) {
         return;
     }
-    notificationsDropdown = document.getElementById('notificationsDropdown');
-    if (!notificationsDropdown) {
-        console.warn('Notifications: notificationsDropdown não encontrado; abortando setup.');
-        return;
-    }
-    notificationsList = document.getElementById('notificationsList');
-    if (!notificationsList) {
-        console.warn('Notifications: notificationsList não encontrado; abortando setup.');
-        return;
-    }
-    notificationsBadge = document.getElementById('notificationsBadge');
-    if (!notificationsBadge) {
-        console.warn('Notifications: notificationsBadge não encontrado; abortando setup.');
-        return;
-    }
-    viewAllNotifications = document.getElementById('viewAllNotifications');
 
     if (notificationsListener) {
         notificationsListener();
@@ -51,7 +56,8 @@ export function setupNotifications(userId) {
 
     notificationsListener = onSnapshot(q, (snapshot) => {
         if (!notificationsList || !notificationsBadge) {
-            console.warn('Notifications: elementos DOM ausentes durante atualização; removendo listener.');
+            if (!notificationsList) console.warn(TAG, 'elemento ausente:', 'notificationsList');
+            if (!notificationsBadge) console.warn(TAG, 'elemento ausente:', 'notificationsBadge');
             if (notificationsListener) notificationsListener();
             return;
         }
@@ -96,19 +102,21 @@ export function setupNotifications(userId) {
         });
 
         if (unreadCount > 0) {
-            notificationsBadge.textContent = unreadCount;
-            notificationsBadge.classList.remove('hidden');
+            if (notificationsBadge) {
+                notificationsBadge.textContent = unreadCount;
+                notificationsBadge.classList.remove('hidden');
+            }
         } else {
-            notificationsBadge.classList.add('hidden');
+            notificationsBadge && notificationsBadge.classList.add('hidden');
         }
-        console.log('Notifications: Notificações renderizadas. Contagem de não lidas:', unreadCount);
+        console.log(TAG, 'notificações renderizadas. não lidas:', unreadCount);
     }, (error) => {
-        console.error('Notifications: Erro ao buscar notificações:', error);
+        console.error(TAG, 'erro ao buscar notificações:', error);
         showToast('Erro ao carregar notificações: ' + error.message, 'error');
     });
 
     function setupNotificationButtonEvents() {
-        if (!notificationsBtn._hasEventListener) {
+        if (notificationsBtn && !notificationsBtn._hasEventListener) {
             notificationsBtn.addEventListener('click', (event) => {
                 event.stopPropagation();
                 if (notificationsDropdown) {
@@ -131,7 +139,11 @@ export function setupNotifications(userId) {
             viewAllNotifications.addEventListener('click', async (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                console.log('Notifications: Marcando todas as notificações visíveis como lidas...');
+                if (!notificationsList || !notificationsBadge) {
+                    if (!notificationsList) console.warn(TAG, 'elemento ausente:', 'notificationsList');
+                    if (!notificationsBadge) console.warn(TAG, 'elemento ausente:', 'notificationsBadge');
+                    return;
+                }
                 const visibleNotifications = notificationsList.querySelectorAll('div[data-notification-id]');
                 const batch = writeBatch(db);
                 visibleNotifications.forEach(item => {

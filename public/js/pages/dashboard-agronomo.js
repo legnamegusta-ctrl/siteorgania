@@ -811,8 +811,7 @@ async function renderLeads() {
 }
 
 function initAgronomoDashboard() {
-  if (!document.getElementById('dashboard-agronomo-marker')) {
-    console.log(TAG, 'marcador ausente; abortando init');
+  if (!getEl('dashboard-agronomo-marker')) {
     return;
   }
   onAuthStateChanged(auth, (user) => {
