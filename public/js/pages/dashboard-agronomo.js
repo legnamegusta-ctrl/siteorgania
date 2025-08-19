@@ -116,6 +116,7 @@ async function upsert(col, data) { return put(col, data); }
 const crmStore = { getAll, getById, insert, update, upsert };
 
 let currentUserId = null;
+let activeVisit = null;
 
 function setupTabs() {
   const buttons = document.querySelectorAll('.tab-btn');
@@ -157,6 +158,16 @@ async function syncPending() {
       await crmStore.upsert('leads', l);
     } catch (err) {
       console.warn(TAG, 'Falha ao sincronizar lead', err);
+    }
+  }
+  const visitas = await crmStore.getAll('visitas');
+  for (const v of visitas.filter((x) => x.syncFlag === 'local-only')) {
+    try {
+      await setDoc(doc(db, 'visits', v.id), { ...v, syncFlag: 'synced' });
+      v.syncFlag = 'synced';
+      await crmStore.upsert('visitas', v);
+    } catch (err) {
+      console.warn(TAG, 'Falha ao sincronizar visita', err);
     }
   }
 }
@@ -263,6 +274,155 @@ function initLeadModal() {
   }
 }
 
+function setupVisitModal() {
+  if (getEl('modal-visita')) return;
+  const modal = document.createElement('div');
+  modal.id = 'modal-visita';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50';
+  modal.innerHTML = `
+    <div class="bg-white p-4 rounded w-full max-w-md">
+      <h2 class="text-lg font-semibold mb-4">Visita em andamento</h2>
+      <textarea id="visit-notes" class="w-full border p-2 rounded mb-2" placeholder="Observações"></textarea>
+      <select id="visit-interest" class="w-full border p-2 rounded mb-2">
+        <option value="baixo">Interesse baixo</option>
+        <option value="medio">Interesse médio</option>
+        <option value="alto">Interesse alto</option>
+      </select>
+      <input id="visit-next" class="w-full border p-2 rounded mb-2" placeholder="Próximo passo" />
+      <input id="visit-date" type="date" class="w-full border p-2 rounded mb-4" />
+      <div class="text-right space-x-2">
+        <button id="btn-finish-visit" class="px-4 py-2 bg-green-600 text-white rounded">Encerrar Visita</button>
+        <button id="btn-cancel-visit" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+      activeVisit = null;
+    }
+  });
+  getEl('btn-cancel-visit').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    activeVisit = null;
+  });
+  getEl('btn-finish-visit').addEventListener('click', finishVisit);
+}
+
+function startVisit(leadId) {
+  const proceed = async (lat, lng) => {
+    activeVisit = {
+      id: Date.now().toString(),
+      leadId,
+      startedAt: new Date().toISOString(),
+      startLat: lat,
+      startLng: lng,
+      endedAt: null,
+      notes: '',
+      interest: 'baixo',
+      nextAction: null,
+      nextWhen: null,
+      ownerUid: currentUserId,
+      syncFlag: navigator.onLine ? 'synced' : 'local-only'
+    };
+    await crmStore.insert('visitas', activeVisit);
+    if (navigator.onLine) {
+      try {
+        await setDoc(doc(db, 'visits', activeVisit.id), activeVisit);
+      } catch (err) {
+        activeVisit.syncFlag = 'local-only';
+        await crmStore.upsert('visitas', activeVisit);
+      }
+    }
+    const lead = await crmStore.getById('leads', leadId);
+    if (lead) {
+      lead.estagio = 'Visitado';
+      await crmStore.upsert('leads', lead);
+      if (navigator.onLine) {
+        try {
+          await setDoc(doc(db, 'leads', lead.id), { estagio: 'Visitado' }, { merge: true });
+        } catch (err) {
+          lead.syncFlag = 'local-only';
+          await crmStore.upsert('leads', lead);
+        }
+      }
+      renderLeads();
+    }
+    console.log('[VISITAS]', 'check-in', activeVisit.id);
+    const modal = getEl('modal-visita');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => proceed(pos.coords.latitude, pos.coords.longitude),
+      () => proceed(null, null)
+    );
+  } else {
+    proceed(null, null);
+  }
+}
+
+async function finishVisit() {
+  if (!activeVisit) return;
+  activeVisit.endedAt = new Date().toISOString();
+  activeVisit.notes = getEl('visit-notes')?.value || '';
+  activeVisit.interest = getEl('visit-interest')?.value || 'baixo';
+  activeVisit.nextAction = getEl('visit-next')?.value || null;
+  activeVisit.nextWhen = getEl('visit-date')?.value
+    ? new Date(getEl('visit-date').value).toISOString()
+    : null;
+  await crmStore.upsert('visitas', activeVisit);
+  if (navigator.onLine) {
+    try {
+      await setDoc(doc(db, 'visits', activeVisit.id), activeVisit);
+      activeVisit.syncFlag = 'synced';
+    } catch (err) {
+      activeVisit.syncFlag = 'local-only';
+      await crmStore.upsert('visitas', activeVisit);
+    }
+  } else {
+    activeVisit.syncFlag = 'local-only';
+    await crmStore.upsert('visitas', activeVisit);
+  }
+  const lead = await crmStore.getById('leads', activeVisit.leadId);
+  if (lead) {
+    lead.lastVisitAt = activeVisit.endedAt;
+    if (activeVisit.nextAction) {
+      const when = activeVisit.nextWhen
+        ? new Date(activeVisit.nextWhen).toLocaleDateString()
+        : '';
+      lead.nextAction = when ? `${activeVisit.nextAction} até ${when}` : activeVisit.nextAction;
+    }
+    await crmStore.upsert('leads', lead);
+    if (navigator.onLine) {
+      try {
+        await setDoc(
+          doc(db, 'leads', lead.id),
+          { lastVisitAt: lead.lastVisitAt, nextAction: lead.nextAction || null },
+          { merge: true }
+        );
+      } catch (err) {
+        lead.syncFlag = 'local-only';
+        await crmStore.upsert('leads', lead);
+      }
+    }
+  }
+  console.log('[VISITAS]', 'check-out', activeVisit.id);
+  const modal = getEl('modal-visita');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  activeVisit = null;
+  renderLeads();
+  syncPending();
+}
+
 async function renderLeads() {
   const tbody = getEl('lead-list');
   if (!tbody) return;
@@ -275,15 +435,18 @@ async function renderLeads() {
       <td class="p-2">${l.municipio}/${l.uf}</td>
       <td class="p-2">${(l.culturas || []).join(', ')}</td>
       <td class="p-2"><span class="px-2 py-1 rounded bg-gray-200">${l.estagio}</span></td>
-      <td class="p-2 text-center">-</td>
-      <td class="p-2 text-center">-</td>
+      <td class="p-2 text-center">${l.lastVisitAt ? new Date(l.lastVisitAt).toLocaleDateString() : '-'}</td>
+      <td class="p-2 text-center">${l.nextAction || '-'}</td>
       <td class="p-2 space-x-1">
-        <button class="text-blue-600 underline btn-lead-visitar" data-id="${l.id}">Visitar</button>
+        <button class="text-blue-600 underline btn-lead-visitar" data-id="${l.id}">Iniciar Visita</button>
         <button class="text-blue-600 underline btn-lead-proposta" data-id="${l.id}">Proposta</button>
         <button class="text-blue-600 underline btn-lead-converter" data-id="${l.id}">Converter</button>
         <button class="text-blue-600 underline btn-lead-ver" data-id="${l.id}">Ver</button>
       </td>`;
     tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.btn-lead-visitar').forEach((btn) => {
+    btn.addEventListener('click', () => startVisit(btn.dataset.id));
   });
 }
 
@@ -298,6 +461,7 @@ function initAgronomoDashboard() {
       setupTabs();
       setupOfflineIndicator();
       initLeadModal();
+      setupVisitModal();
       renderLeads();
       renderClients(currentUserId);
     } else {
