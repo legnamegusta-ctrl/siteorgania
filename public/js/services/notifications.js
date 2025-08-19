@@ -16,15 +16,26 @@ export function setupNotifications(userId) {
     console.log('Notifications: Setting up notifications for user:', userId);
 
     notificationsBtn = document.getElementById('notificationsBtn');
-    notificationsDropdown = document.getElementById('notificationsDropdown');
-    notificationsList = document.getElementById('notificationsList');
-    notificationsBadge = document.getElementById('notificationsBadge');
-    viewAllNotifications = document.getElementById('viewAllNotifications');
-
-    if (!notificationsBtn || !notificationsDropdown || !notificationsList || !notificationsBadge) {
-        console.warn('Notifications: Um ou mais elementos DOM de notificação não foram encontrados. As notificações podem não funcionar corretamente.');
+    if (!notificationsBtn) {
+        console.warn('Notifications: notificationsBtn não encontrado; abortando setup.');
         return;
     }
+    notificationsDropdown = document.getElementById('notificationsDropdown');
+    if (!notificationsDropdown) {
+        console.warn('Notifications: notificationsDropdown não encontrado; abortando setup.');
+        return;
+    }
+    notificationsList = document.getElementById('notificationsList');
+    if (!notificationsList) {
+        console.warn('Notifications: notificationsList não encontrado; abortando setup.');
+        return;
+    }
+    notificationsBadge = document.getElementById('notificationsBadge');
+    if (!notificationsBadge) {
+        console.warn('Notifications: notificationsBadge não encontrado; abortando setup.');
+        return;
+    }
+    viewAllNotifications = document.getElementById('viewAllNotifications');
 
     if (notificationsListener) {
         notificationsListener();
@@ -39,6 +50,11 @@ export function setupNotifications(userId) {
     );
 
     notificationsListener = onSnapshot(q, (snapshot) => {
+        if (!notificationsList || !notificationsBadge) {
+            console.warn('Notifications: elementos DOM ausentes durante atualização; removendo listener.');
+            if (notificationsListener) notificationsListener();
+            return;
+        }
         let unreadCount = 0;
         notificationsList.innerHTML = '';
 
@@ -72,7 +88,7 @@ export function setupNotifications(userId) {
                 await updateDoc(doc(db, 'notifications', notificationId), { isRead: true });
                 if (detailLink) {
                     window.location.href = detailLink;
-                } else {
+                } else if (notificationsDropdown) {
                     notificationsDropdown.classList.add('hidden');
                 }
             });
@@ -95,7 +111,9 @@ export function setupNotifications(userId) {
         if (!notificationsBtn._hasEventListener) {
             notificationsBtn.addEventListener('click', (event) => {
                 event.stopPropagation();
-                notificationsDropdown.classList.toggle('hidden');
+                if (notificationsDropdown) {
+                    notificationsDropdown.classList.toggle('hidden');
+                }
             });
             notificationsBtn._hasEventListener = true;
         }
@@ -126,7 +144,9 @@ export function setupNotifications(userId) {
 
                 notificationsBadge.classList.add('hidden');
                 showToast('Todas as notificações marcadas como lidas.', 'info');
-                notificationsDropdown.classList.add('hidden');
+                if (notificationsDropdown) {
+                    notificationsDropdown.classList.add('hidden');
+                }
             });
             viewAllNotifications._hasEventListener = true;
         }
