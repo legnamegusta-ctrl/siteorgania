@@ -41,8 +41,6 @@
           <h1 class="text-xl font-bold">Painel do Agrônomo</h1>
         </div>
         <div class="flex space-x-2">
-          <button id="btn-novo-lead" class="dashboard-btn flex items-center text-sm"><i class="fas fa-user-plus mr-2"></i>+ Novo Lead</button>
-          <button id="btn-iniciar-visita" class="dashboard-btn flex items-center text-sm"><i class="fas fa-walking mr-2"></i>Iniciar Visita</button>
           <button onclick="logout()" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
         </div>
       </div>
@@ -50,6 +48,26 @@
     <div id="offline-indicator" class="fixed top-0 right-0 m-2 bg-yellow-200 text-yellow-800 text-xs px-2 py-1 rounded hidden">Offline</div>
 
     <div class="dashboard-container py-6">
+      <div class="flex justify-between items-start mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded shadow">
+            <p class="text-sm text-gray-500">Leads (7d)</p>
+            <span id="kpiLeads7d" class="text-2xl font-bold">0</span>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <p class="text-sm text-gray-500">Propostas ativas</p>
+            <span id="kpiPropsAtivas" class="text-2xl font-bold">0</span>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <p class="text-sm text-gray-500">Conversões (30d)</p>
+            <span id="kpiConv30d" class="text-2xl font-bold">0</span>
+          </div>
+        </div>
+        <div class="flex space-x-2">
+          <button id="btnNovoLead" class="px-4 py-2 bg-green-600 text-white rounded">Novo Lead</button>
+          <button id="btnIniciarVisita" class="px-4 py-2 border border-green-600 text-green-600 rounded">Iniciar Visita</button>
+        </div>
+      </div>
       <nav class="flex space-x-4 overflow-x-auto mb-6" role="tablist">
         <button class="tab-btn active" data-tab="leads">Leads</button>
         <button class="tab-btn" data-tab="mapa">Mapa</button>
@@ -89,6 +107,10 @@
             </thead>
             <tbody id="lead-list"></tbody>
           </table>
+        </div>
+        <div id="lead-empty" class="text-center py-8 hidden">
+          <p class="mb-4">Sem leads ainda</p>
+          <button id="btnNovoLeadEmpty" class="px-4 py-2 bg-green-600 text-white rounded">Novo Lead</button>
         </div>
         <div id="lead-funil" class="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
       </section>
