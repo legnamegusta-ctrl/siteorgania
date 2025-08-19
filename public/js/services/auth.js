@@ -31,6 +31,7 @@ import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+      let redirecting = false;
 
       async function handleLogin(e) {
           e.preventDefault();
@@ -63,11 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
               showLoader();
               // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
               await signOut(auth);
-              window.location.href = 'index.html';
           } catch (error) {
               console.error('Erro ao fazer logout:', error);
           } finally {
               hideLoader();
+              if (!redirecting) {
+                  redirecting = true;
+                  window.location.replace('index.html');
+              }
           }
       };
 
@@ -127,41 +131,48 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(async (user) => {
         const onLoginPage = !!document.getElementById('loginForm');
 
-        if (user) {
-            // USANDO O 'db' IMPORTADO DIRETAMENTE DE 'firebase.js'
-            const userRef = doc(db, 'users', user.uid);
-            const userDoc = await getDoc(userRef);
+        try {
+            if (user) {
+                // USANDO O 'db' IMPORTADO DIRETAMENTE DE 'firebase.js'
+                const userRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userRef);
 
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                const userRole = userData.role; // Obtém o papel do usuário
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const userRole = userData.role; // Obtém o papel do usuário
 
-                if (onLoginPage) {
-                    const roleToDashboard = {
-                        admin: 'dashboard-admin.html',
-                        agronomo: 'dashboard-agronomo.html',
-                        cliente: 'dashboard-cliente.html',
-                        // NOVO: Adiciona o roteamento para o papel 'operador'
-                        operador: 'operador-dashboard.html'
-                    };
+                    if (onLoginPage) {
+                        const roleToDashboard = {
+                            admin: 'dashboard-admin.html',
+                            agronomo: 'dashboard-agronomo.html',
+                            cliente: 'dashboard-cliente.html',
+                            // NOVO: Adiciona o roteamento para o papel 'operador'
+                            operador: 'operador-dashboard.html'
+                        };
 
-                    const destination = roleToDashboard[userRole];
-                    if (destination) {
-                        window.location.href = destination;
+                        const destination = roleToDashboard[userRole];
+                        if (destination) {
+                            window.location.replace(destination);
+                        } else {
+                            console.error(`Papel de usuário desconhecido: ${userRole}`);
+                            await logout();
+                        }
                     } else {
-                        console.error(`Papel de usuário desconhecido: ${userRole}`);
-                        await logout();
+                        initializePage(user, userRole);
                     }
                 } else {
-                    initializePage(user, userRole);
+                    console.error("Documento de usuário não encontrado no Firestore. Fazendo logout forçado.");
+                    await logout();
                 }
-            } else {
-                console.error("Documento de usuário não encontrado no Firestore. Fazendo logout forçado.");
-                await logout();
+            } else if (!onLoginPage && !redirecting) {
+                redirecting = true;
+                window.location.replace('index.html');
             }
-        } else {
-            if (!onLoginPage) {
-                window.location.href = 'index.html';
+        } catch (e) {
+            console.error('Erro no onAuthStateChanged:', e);
+            if (!onLoginPage && !redirecting) {
+                redirecting = true;
+                window.location.replace('index.html');
             }
         }
     });
