@@ -16,4 +16,17 @@ if ('serviceWorker' in navigator) {
       }
     });
   });
+
+  // Diagnóstico leve para depuração
+  window.__sw_debug_once__ || (window.__sw_debug_once__ = (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations?.();
+      console.log('[SW DEBUG] Registrations:', regs?.map(r => r.active?.scriptURL || r.scriptURL));
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[SW DEBUG] controllerchange fired — sem reload automático.');
+      });
+    } catch (e) {
+      console.warn('[SW DEBUG] erro:', e);
+    }
+  })());
 }
