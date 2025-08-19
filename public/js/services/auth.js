@@ -34,25 +34,28 @@ console.log('auth.js carregado');
 console.log('[auth] página atual:', window.location.href);
 
 document.addEventListener('DOMContentLoaded', () => {
+      console.log('[auth] DOMContentLoaded disparado');
       let redirecting = false;
 
       const isOnIndex = () =>
           window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
 
-      async function handleLogin(e) {
-          e.preventDefault();
-          const loginForm = document.getElementById('loginForm');
-          const loginError = document.getElementById('loginError');
-          const email = loginForm.email.value;
-          const password = loginForm.password.value;
+        async function handleLogin(e) {
+            e.preventDefault();
+            const loginForm = document.getElementById('loginForm');
+            const loginError = document.getElementById('loginError');
+            const email = loginForm.email.value;
+            const password = loginForm.password.value;
 
-          try {
-              showLoader();
-              loginError.classList.add('hidden');
-              // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
-              await signInWithEmailAndPassword(auth, email, password);
-          } catch (error) {
-              console.error("Erro de login detalhado:", error);
+            try {
+                console.log('[auth] tentativa de login iniciada', { email });
+                showLoader();
+                loginError.classList.add('hidden');
+                // SINTAXE CORRIGIDA FIREBASE V9 AUTH: passa 'auth' como primeiro argumento
+                await signInWithEmailAndPassword(auth, email, password);
+                console.log('[auth] login bem-sucedido, aguardando onAuthStateChanged');
+            } catch (error) {
+                console.error("Erro de login detalhado:", error);
 
               if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                   loginError.textContent = 'Email ou senha incorretos.';
@@ -60,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   loginError.textContent = 'Ocorreu um erro. Tente novamente.';
               }
               loginError.classList.remove('hidden');
-          } finally {
-              hideLoader();
-          }
-      }
+            } finally {
+                hideLoader();
+            }
+        }
 
       const logout = async () => {
           console.log('[auth] logout chamado');
