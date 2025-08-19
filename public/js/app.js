@@ -1,19 +1,14 @@
 // public/js/app.js
 
-export function unregisterSW() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations()
-      .then(registrations => {
-        for (const registration of registrations) {
-          registration.unregister();
-        }
-      })
-      .catch(err => {
-        console.error('Falha ao desregistrar Service Worker', err);
-      });
-  }
-}
+if ('serviceWorker' in navigator) {
+  let didReloadOnce = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (didReloadOnce) return;
+    didReloadOnce = true;
+    location.reload();
+  });
 
-document.addEventListener('DOMContentLoaded', () => {
-  unregisterSW();
-});
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.error('Falha ao registrar Service Worker', err);
+  });
+}
