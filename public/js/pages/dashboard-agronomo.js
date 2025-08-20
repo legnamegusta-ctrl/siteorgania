@@ -1,6 +1,6 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
-import { initAgroMap, setMapCenter, plotLeads } from './agro-map.js';
+import { initAgroMap, setMapCenter, plotLeads, plotClients, setVisibleLayers } from './agro-map.js';
 import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
@@ -17,9 +17,85 @@ export function initAgronomoDashboard() {
   const saleModal = document.getElementById('saleModal');
   const quickCreateModal = document.getElementById('quickCreateModal');
 
+  let currentMapFilter = 'all';
+  let highlightClientId = null;
+
+  function clearErrors(form) {
+    form?.querySelectorAll('.error').forEach((e) => e.remove());
+  }
+  function setFieldError(input, message) {
+    const field = input.closest('.field') || input.parentElement;
+    if (!field) return;
+    let span = field.querySelector('span.error');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'error';
+      field.appendChild(span);
+    }
+    span.textContent = message;
+  }
+
+  function getClientsWithProps() {
+    const clients = getClients();
+    const properties = getProperties();
+    return clients.map((c) => {
+      const prop = properties.find((p) => p.clientId === c.id);
+      return {
+        id: c.id,
+        name: c.name,
+        farmName: prop?.name,
+        lat: prop?.lat,
+        lng: prop?.lng,
+      };
+    });
+  }
+
+  function applyMapFilter() {
+    if (currentMapFilter === 'all')
+      setVisibleLayers({ showLeads: true, showClients: true });
+    else if (currentMapFilter === 'clients')
+      setVisibleLayers({ showLeads: false, showClients: true });
+    else setVisibleLayers({ showLeads: true, showClients: false });
+  }
+
+  function renderMap() {
+    plotLeads(getLeads());
+    plotClients(getClientsWithProps());
+    applyMapFilter();
+  }
+
+  function updateMapChips() {
+    document
+      .querySelectorAll('#mapFilters .chip')
+      .forEach((c) => c.classList.remove('filter-active'));
+    if (currentMapFilter === 'all')
+      document.getElementById('mapFilterAll')?.classList.add('filter-active');
+    else if (currentMapFilter === 'clients')
+      document
+        .getElementById('mapFilterClients')
+        ?.classList.add('filter-active');
+    else document.getElementById('mapFilterLeads')?.classList.add('filter-active');
+  }
+
+  document.getElementById('mapFilterAll')?.addEventListener('click', () => {
+    currentMapFilter = 'all';
+    updateMapChips();
+    applyMapFilter();
+  });
+  document.getElementById('mapFilterClients')?.addEventListener('click', () => {
+    currentMapFilter = 'clients';
+    updateMapChips();
+    applyMapFilter();
+  });
+  document.getElementById('mapFilterLeads')?.addEventListener('click', () => {
+    currentMapFilter = 'leads';
+    updateMapChips();
+    applyMapFilter();
+  });
+
   initBottomNav();
   initAgroMap();
-  plotLeads(getLeads());
+  renderMap();
 
   bindPlus(() => toggleModal(quickModal, true));
   document.getElementById('btnQuickClose')?.addEventListener('click', () => toggleModal(quickModal, false));
@@ -69,18 +145,39 @@ export function initAgronomoDashboard() {
 
   document.getElementById('leadForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const nome = document.getElementById('leadNome').value.trim();
-    const propriedade = document.getElementById('leadPropriedade').value.trim();
-    if (!nome || !propriedade) return;
+    const form = e.target;
+    clearErrors(form);
+    const nomeEl = document.getElementById('leadNome');
+    const propEl = document.getElementById('leadPropriedade');
+    const nome = nomeEl.value.trim();
+    const propriedade = propEl.value.trim();
+    let valid = true;
+    if (!nome) {
+      setFieldError(nomeEl, 'Campo obrigatório');
+      valid = false;
+    }
+    if (!propriedade) {
+      setFieldError(propEl, 'Campo obrigatório');
+      valid = false;
+    }
+    if (!valid) return;
     const notas = document.getElementById('leadNotas').value.trim();
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
-    const newLead = addLead({ name: nome, farmName: propriedade, notes: notas, lat: isNaN(lat) ? null : lat, lng: isNaN(lng) ? null : lng });
+    const newLead = addLead({
+      name: nome,
+      farmName: propriedade,
+      notes: notas,
+      lat: isNaN(lat) ? null : lat,
+      lng: isNaN(lng) ? null : lng,
+    });
     console.log('[LEADS] novo', newLead.id);
-    plotLeads(getLeads());
+    renderMap();
     if (newLead.lat && newLead.lng) setMapCenter(newLead.lat, newLead.lng);
     location.hash = '#mapa';
     toggleModal(addLeadModal, false);
+    clearErrors(form);
+    form.reset();
   });
 
   // ===== Visit Flow =====
@@ -193,7 +290,7 @@ export function initAgronomoDashboard() {
       btnOpen.className = 'btn-secondary text-sm flex-1';
       btnOpen.textContent = 'Abrir';
       btnOpen.addEventListener('click', () => {
-        console.log('Abrir cliente', it.client.id);
+        location.href = `client-details.html?clientId=${it.client.id}`;
       });
       actions.appendChild(btnVisit);
       actions.appendChild(btnOpen);
@@ -237,7 +334,7 @@ export function initAgronomoDashboard() {
     const needFollow =
       sale === 'nao' && (interest === 'Interessado' || interest === 'Na dúvida');
     leadFollowUp.classList.toggle('hidden', !needFollow);
-    document.getElementById('visitReturnAt').required = needFollow;
+    document.getElementById('visitReturnAt').required = false;
     const needReason = interest === 'Sem interesse';
     leadReason.classList.toggle('hidden', !needReason);
     document.getElementById('visitReason').required = needReason;
@@ -272,9 +369,23 @@ export function initAgronomoDashboard() {
     .getElementById('quickCreateForm')
     ?.addEventListener('submit', (e) => {
       e.preventDefault();
+      const form = e.target;
+      clearErrors(form);
       const type = document.querySelector("input[name='quickType']:checked").value;
-      const name = document.getElementById('qcName').value.trim();
-      const farm = document.getElementById('qcFarm').value.trim();
+      const nameEl = document.getElementById('qcName');
+      const farmEl = document.getElementById('qcFarm');
+      const name = nameEl.value.trim();
+      const farm = farmEl.value.trim();
+      let valid = true;
+      if (!name) {
+        setFieldError(nameEl, 'Campo obrigatório');
+        valid = false;
+      }
+      if (!farm) {
+        setFieldError(farmEl, 'Campo obrigatório');
+        valid = false;
+      }
+      if (!valid) return;
       const notes = document.getElementById('qcNotes').value.trim();
       const lat = parseFloat(document.getElementById('qcLat').value);
       const lng = parseFloat(document.getElementById('qcLng').value);
@@ -287,7 +398,6 @@ export function initAgronomoDashboard() {
           lat: isNaN(lat) ? null : lat,
           lng: isNaN(lng) ? null : lng,
         });
-        plotLeads(getLeads());
       } else {
         created = addClient({ name });
         addProperty({
@@ -296,10 +406,17 @@ export function initAgronomoDashboard() {
           lat: isNaN(lat) ? null : lat,
           lng: isNaN(lng) ? null : lng,
         });
-        renderClientsList(created.id);
+        highlightClientId = created.id;
+        if (location.hash === '#clientes') {
+          renderClientsList(created.id);
+          highlightClientId = null;
+        }
       }
+      renderMap();
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
+      clearErrors(form);
+      form.reset();
       if (reopen) {
         populateVisitSelect(type);
         visitSelect.value = created.id;
@@ -309,15 +426,42 @@ export function initAgronomoDashboard() {
 
   visitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.target;
+    clearErrors(form);
     const type = document.querySelector("input[name='visitTarget']:checked").value;
     const refId = visitSelect.value;
     if (!refId) return;
-    const at = document.getElementById('visitAt').value;
-    const notes = document.getElementById('visitNotes').value.trim();
-    let visit = { type, refId, at, notes };
+    const atEl = document.getElementById('visitAt');
+    const notesEl = document.getElementById('visitNotes');
+    let valid = true;
+    if (!atEl.value) {
+      setFieldError(atEl, 'Campo obrigatório');
+      valid = false;
+    }
+    if (!notesEl.value.trim()) {
+      setFieldError(notesEl, 'Campo obrigatório');
+      valid = false;
+    }
+    const visit = {
+      type,
+      refId,
+      at: atEl.value,
+      notes: notesEl.value.trim(),
+    };
     if (type === 'lead') {
       const interest = visitInterest.value;
-      if (!interest) return;
+      if (!interest) {
+        setFieldError(visitInterest, 'Campo obrigatório');
+        valid = false;
+      }
+      if (interest === 'Sem interesse') {
+        const reasonEl = document.getElementById('visitReason');
+        if (!reasonEl.value.trim()) {
+          setFieldError(reasonEl, 'Campo obrigatório');
+          valid = false;
+        }
+      }
+      if (!valid) return;
       visit.interest = interest;
       const sale = visitSale.value;
       if (sale === 'sim') {
@@ -338,6 +482,7 @@ export function initAgronomoDashboard() {
             lng: lead.lng,
           });
           updateLead(refId, { stage: 'Convertido' });
+          renderMap();
         }
       } else {
         if (interest === 'Interessado' || interest === 'Na dúvida') {
@@ -354,16 +499,20 @@ export function initAgronomoDashboard() {
         }
         if (interest === 'Sem interesse') {
           const reason = document.getElementById('visitReason').value.trim();
-          if (!reason) return;
           visit.reason = reason;
         }
       }
       const lead = getLeads().find((l) => l.id === refId);
       visit.leadName = lead?.name;
+    } else {
+      if (!valid) return;
     }
+    if (!valid) return;
     const saved = addVisit(visit);
     console.log('[VISITS] novo', saved.id);
     toggleModal(visitModal, false);
+    clearErrors(form);
+    form.reset();
     renderClientsList();
     if (type === 'lead') {
       const lead = getLeads().find((l) => l.id === refId);
@@ -387,15 +536,31 @@ export function initAgronomoDashboard() {
       }
       function onSubmit(ev) {
         ev.preventDefault();
+        clearErrors(saleForm);
         const formulationId = formulaSelect.value;
-        const tons = parseFloat(document.getElementById('saleTons').value);
+        const tonsEl = document.getElementById('saleTons');
+        const tons = parseFloat(tonsEl.value);
+        let valid = true;
+        if (!formulationId) {
+          setFieldError(formulaSelect, 'Campo obrigatório');
+          valid = false;
+        }
+        if (!tons || tons <= 0) {
+          setFieldError(tonsEl, 'Campo obrigatório');
+          valid = false;
+        }
+        if (!valid) return;
         const note = document.getElementById('saleNote').value.trim();
         toggleModal(saleModal, false);
+        clearErrors(saleForm);
+        saleForm.reset();
         cleanup();
         resolve({ formulationId, tons, note });
       }
       function onCancel() {
         toggleModal(saleModal, false);
+        clearErrors(saleForm);
+        saleForm.reset();
         cleanup();
         resolve(null);
       }
@@ -530,9 +695,18 @@ export function initAgronomoDashboard() {
       badge?.remove();
     }
   }
+  function handleHashChange() {
+    if (location.hash === '#mapa') renderMap();
+    if (location.hash === '#clientes') {
+      renderClientsList(highlightClientId);
+      highlightClientId = null;
+    }
+  }
 
   bindClientsEvents();
   renderClientsList();
   bindAgendaHomeEvents();
   renderAgendaHome(7);
+  window.addEventListener('hashchange', handleHashChange);
+  handleHashChange();
 }
