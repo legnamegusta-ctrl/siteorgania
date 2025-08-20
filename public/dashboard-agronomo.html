@@ -1,193 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta name="theme-color" content="#166534">
-  <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orgânia - Painel do Agrônomo</title>
+  <meta name="theme-color" content="#166534" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <script type="module" src="js/app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="style.css" />
+  <title>Orgânia - Painel do Agrônomo</title>
 </head>
 <body class="bg-gray-100 text-gray-800">
   <div id="dashboard-agronomo-marker" hidden></div>
 
-  <button id="btn-sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false">
-    <i class="fas fa-bars"></i>
-  </button>
-  <div id="sidebar-backdrop" class="drawer-overlay"></div>
-
-  <aside id="sidebar" class="drawer">
-    <div class="sidebar-logo">
-      <img src="logo.png" alt="Orgânia" />
-    </div>
-    <nav class="sidebar-nav">
-      <a href="dashboard-agronomo.html" class="sidebar-link"><i class="fas fa-home"></i><span>Clientes</span></a>
-      <a href="operador-tarefas.html" class="sidebar-link"><i class="fas fa-tasks"></i><span>Tarefas</span><span id="tasksBadge" class="sidebar-badge"></span></a>
-      <div id="sidebarTasks" class="sidebar-submenu"></div>
-      <a href="agenda.html" class="sidebar-link"><i class="fas fa-calendar"></i><span>Agenda</span><span id="agendaIndicator" class="sidebar-indicator"></span></a>
-      <a href="#" onclick="logout()" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span>Sair</span></a>
-    </nav>
-  </aside>
-
-  <main class="main-content">
-    <header class="dashboard-header shadow-md">
-      <div class="dashboard-container flex justify-between items-center h-16">
-        <div class="flex items-center space-x-4">
-          <img src="logo.png" alt="Orgânia" class="dashboard-logo" />
-          <h1 class="text-xl font-bold">Painel do Agrônomo</h1>
-        </div>
-        <div class="flex space-x-2">
-          <button onclick="logout()" class="dashboard-btn flex items-center text-sm"><i class="fas fa-sign-out-alt mr-2"></i>Sair</button>
-        </div>
-      </div>
-    </header>
-    <div id="offline-indicator" class="fixed top-0 right-0 m-2 bg-yellow-200 text-yellow-800 text-xs px-2 py-1 rounded hidden">Offline</div>
-
-    <div class="dashboard-container py-6">
-      <div class="flex justify-between items-start mb-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white p-4 rounded shadow">
-            <p class="text-sm text-gray-500">Leads (7d)</p>
-            <span id="kpiLeads7d" class="text-2xl font-bold">0</span>
-          </div>
-          <div class="bg-white p-4 rounded shadow">
-            <p class="text-sm text-gray-500">Propostas ativas</p>
-            <span id="kpiPropsAtivas" class="text-2xl font-bold">0</span>
-          </div>
-          <div class="bg-white p-4 rounded shadow">
-            <p class="text-sm text-gray-500">Conversões (30d)</p>
-            <span id="kpiConv30d" class="text-2xl font-bold">0</span>
-          </div>
-        </div>
-        <div class="flex space-x-2">
-          <button id="btnNovoLead" class="px-4 py-2 bg-green-600 text-white rounded">Novo Lead</button>
-          <button id="btnIniciarVisita" class="px-4 py-2 border border-green-600 text-green-600 rounded">Iniciar Visita</button>
-        </div>
-      </div>
-      <nav class="flex space-x-4 overflow-x-auto mb-6" role="tablist">
-        <button class="tab-btn active" data-tab="leads">Leads</button>
-        <button class="tab-btn" data-tab="mapa">Mapa</button>
-        <button class="tab-btn" data-tab="agenda">Agenda</button>
-        <button class="tab-btn" data-tab="propostas">Propostas</button>
-        <button class="tab-btn" data-tab="clientes">Clientes</button>
-        <button class="tab-btn" data-tab="comentarios">Comentários</button>
-      </nav>
-
-      <section id="tab-leads" class="tab-panel">
-        <div class="flex flex-wrap gap-2 mb-4">
-          <input id="lead-busca" type="text" placeholder="Buscar" class="flex-1 min-w-[150px] border p-2 rounded" />
-          <select id="lead-filtro-estagio" class="border p-2 rounded">
-            <option value="">Estágio</option>
-          </select>
-          <select id="lead-filtro-cultura" class="border p-2 rounded">
-            <option value="">Cultura</option>
-          </select>
-          <select id="lead-filtro-periodo" class="border p-2 rounded">
-            <option value="7">7 dias</option>
-            <option value="30">30 dias</option>
-            <option value="90">90 dias</option>
-          </select>
-        </div>
-        <div id="lead-lista" class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="sr-only md:not-sr-only">
-              <tr>
-                <th class="text-left p-2">Nome/Propriedade</th>
-                <th class="text-left p-2">Município/UF</th>
-                <th class="text-left p-2">Culturas</th>
-                <th class="text-left p-2">Estágio</th>
-                <th class="text-left p-2">Última visita</th>
-                <th class="text-left p-2">Próximo passo</th>
-                <th class="text-left p-2">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="lead-list"></tbody>
-          </table>
-        </div>
-        <div id="lead-empty" class="text-center py-8 hidden">
-          <p class="mb-4">Sem leads ainda</p>
-          <button id="btnNovoLeadEmpty" class="px-4 py-2 bg-green-600 text-white rounded">Novo Lead</button>
-        </div>
-        <div id="lead-funil" class="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
-      </section>
-
-      <section id="tab-mapa" class="tab-panel hidden">
-        <div id="mapa-container" class="h-64 bg-white rounded shadow mb-4"></div>
-        <ul id="mapa-lista" class="space-y-2"></ul>
-      </section>
-
-      <section id="tab-agenda" class="tab-panel hidden">
-        <div class="flex gap-2 mb-4">
-          <select id="agenda-filtro-periodo" class="border p-2 rounded">
-            <option value="7">7 dias</option>
-            <option value="30">30 dias</option>
-          </select>
-        </div>
-        <ul id="agenda-lista" class="space-y-2"></ul>
-      </section>
-
-      <section id="tab-propostas" class="tab-panel hidden">
-        <div class="overflow-x-auto">
-          <table id="tbl-propostas" class="min-w-full text-sm">
-            <thead class="sr-only md:not-sr-only">
-              <tr>
-                <th class="p-2 text-left">Lead</th>
-                <th class="p-2 text-left">Valor</th>
-                <th class="p-2 text-left">Status</th>
-                <th class="p-2 text-left">Validade</th>
-                <th class="p-2 text-left">Ações</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div id="modal-proposta" class="hidden"></div>
-      </section>
-
-      <section id="tab-clientes" class="tab-panel hidden">
-        <div id="clientList" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-      </section>
-
-      <section id="tab-comentarios" class="tab-panel hidden">
-        <ul id="list-comentarios" class="space-y-2 mb-4"></ul>
-        <div class="flex gap-2">
-          <input id="input-comentario" class="flex-1 border p-2 rounded" placeholder="Adicionar comentário" />
-          <button id="btn-comentar" class="px-4 py-2 bg-green-600 text-white rounded">Enviar</button>
-        </div>
-      </section>
-    </div>
-
-    <footer class="text-center mt-8 text-gray-500 text-sm p-4">
-      <p>&copy; 2025 Orgânia Fertilizantes. A tecnologia para o campo não para.</p>
-    </footer>
+  <main id="agroMain" class="pb-16">
+    <section id="view-home" data-view>
+      <h2 class="p-4 font-semibold">Home</h2>
+    </section>
+    <section id="view-clientes" data-view class="hidden">
+      <h2 class="p-4 font-semibold">Clientes</h2>
+    </section>
+    <section id="view-mapa" data-view class="hidden">
+      <div id="agroMap" style="height: calc(100vh - 140px)"></div>
+    </section>
+    <section id="view-ajustes" data-view class="hidden">
+      <h2 class="p-4 font-semibold">Ajustes</h2>
+    </section>
   </main>
 
-  <div id="modal-novo-lead" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-4 rounded w-full max-w-md max-h-full overflow-y-auto">
-      <h2 class="text-lg font-semibold mb-4">Novo Lead</h2>
-      <form id="form-novo-lead" class="space-y-2">
-        <input id="lead-nomeContato" required class="w-full border p-2 rounded" placeholder="Nome do contato" />
-        <input id="lead-propriedade" class="w-full border p-2 rounded" placeholder="Propriedade" />
-        <div class="flex gap-2">
-          <input id="lead-municipio" required class="flex-1 border p-2 rounded" placeholder="Município" />
-          <input id="lead-uf" required maxlength="2" class="w-20 border p-2 rounded" placeholder="UF" />
-        </div>
-        <input id="lead-telefone" class="w-full border p-2 rounded" placeholder="Telefone" />
-        <input id="lead-email" class="w-full border p-2 rounded" placeholder="Email" />
-        <input id="lead-culturas" class="w-full border p-2 rounded" placeholder="Culturas (separadas por vírgula)" />
-        <input id="lead-areaHa" type="number" class="w-full border p-2 rounded" placeholder="Área (ha)" />
-        <input id="lead-origem" class="w-full border p-2 rounded" placeholder="Origem" />
-        <textarea id="lead-notas" class="w-full border p-2 rounded" placeholder="Notas"></textarea>
-        <div class="flex items-center justify-between">
-          <button id="btn-lead-geo" type="button" class="text-sm text-green-700 underline">Usar localização atual</button>
-          <div class="space-x-2">
-            <button type="button" id="btn-cancel-lead" class="px-4 py-2 border rounded">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Salvar</button>
+  <nav id="bottomBar" class="bottom-bar">
+    <button data-nav="#home"><i class="fas fa-home"></i></button>
+    <button data-nav="#clientes"><i class="fas fa-users"></i></button>
+    <button id="navPlus" class="plus-btn"><i class="fas fa-plus"></i></button>
+    <button data-nav="#mapa"><i class="fas fa-map"></i></button>
+    <button data-nav="#ajustes"><i class="fas fa-cog"></i></button>
+  </nav>
+
+  <div id="quickActionsModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 class="mb-4 font-semibold">Ações Rápidas</h3>
+      <div class="flex flex-col gap-2 mb-4">
+        <button id="btnQuickAddCliente" class="btn-primary">Adicionar Cliente</button>
+        <button id="btnQuickAddLead" class="btn-primary">Adicionar Lead</button>
+        <button id="btnQuickRegVisita" class="btn-primary">Registrar Visita</button>
+      </div>
+      <button id="btnQuickClose" class="btn-secondary w-full">Fechar</button>
+    </div>
+  </div>
+
+  <div id="addLeadModal" class="modal hidden">
+    <div class="modal-card max-w-2xl w-full">
+      <h3 class="mb-4 font-semibold">Adicionar Lead</h3>
+      <form id="leadForm" class="grid gap-4 md:grid-cols-2">
+        <div class="flex flex-col gap-2">
+          <div class="field">
+            <label for="leadNome">Nome do lead*</label>
+            <input id="leadNome" required class="input" />
           </div>
+          <div class="field">
+            <label for="leadPropriedade">Propriedade/Fazenda*</label>
+            <input id="leadPropriedade" required class="input" />
+          </div>
+          <div class="field">
+            <label for="leadNotas">Notas</label>
+            <textarea id="leadNotas" class="input"></textarea>
+          </div>
+          <div class="field">
+            <label>Localização</label>
+            <button type="button" id="btnUseLocation" class="btn-secondary mb-2">Usar minha localização</button>
+            <div class="flex gap-2">
+              <input id="leadLat" class="input flex-1" placeholder="Lat" readonly />
+              <input id="leadLng" class="input flex-1" placeholder="Lng" readonly />
+            </div>
+          </div>
+        </div>
+        <div id="leadMap" class="h-48 md:h-full"></div>
+        <div class="flex gap-2 justify-end md:col-span-2">
+          <button type="button" id="btnCancelLead" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
         </div>
       </form>
     </div>
@@ -198,7 +92,6 @@
   <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
-  <script type="module" src="js/ui/sidebar.js"></script>
   <script type="module" src="js/pages/dashboard-agronomo.js"></script>
 </body>
 </html>
