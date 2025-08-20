@@ -5,7 +5,7 @@ import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
 import { addProperty } from '../stores/propertiesStore.js';
 import { addVisit } from '../stores/visitsStore.js';
-import { addAgenda } from '../stores/agendaStore.js';
+import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
@@ -243,8 +243,12 @@ export function initAgronomoDashboard() {
           const note = document
             .getElementById('visitReturnNote')
             .value.trim();
-          if (when)
+          if (when) {
             addAgenda({ title: 'Retorno', when, leadId: refId, note });
+            renderAgendaHome(
+              parseInt(document.getElementById('agendaPeriod')?.value || '7')
+            );
+          }
         }
         if (interest === 'Sem interesse') {
           const reason = document.getElementById('visitReason').value.trim();
@@ -322,4 +326,108 @@ export function initAgronomoDashboard() {
       sel.appendChild(opt);
     });
   }
+
+  // ===== Agenda Home =====
+  function renderAgendaHome(periodDays = 7) {
+    const select = document.getElementById('agendaPeriod');
+    if (select) select.value = String(periodDays);
+    const listEl = document.getElementById('agendaList');
+    const emptyEl = document.getElementById('agendaEmpty');
+    if (!listEl || !emptyEl) return;
+    listEl.innerHTML = '';
+    const agenda = getAgenda();
+    const now = new Date();
+    const limit = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
+    const leads = getLeads();
+    const clients = getClients();
+    const items = agenda
+      .filter((it) => {
+        if (it.done) return false;
+        const w = new Date(it.when);
+        if (isNaN(w)) return false;
+        return w >= now && w <= limit;
+      })
+      .sort((a, b) => new Date(a.when) - new Date(b.when));
+    items.forEach((it) => {
+      const when = new Date(it.when);
+      const li = document.createElement('li');
+      li.className = 'flex justify-between items-start gap-2 py-2';
+      const info = document.createElement('div');
+      info.className = 'flex-1';
+      const dt = document.createElement('div');
+      dt.className = 'text-sm';
+      dt.textContent = when.toLocaleString('pt-BR');
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'font-semibold';
+      let name = '(sem nome)';
+      let type = 'Lead';
+      if (it.clientId) {
+        const c = clients.find((cl) => cl.id === it.clientId);
+        name = c?.name || '(sem nome)';
+        type = 'Cliente';
+      } else if (it.leadId) {
+        const l = leads.find((ld) => ld.id === it.leadId);
+        name = l?.name || '(sem nome)';
+        type = 'Lead';
+      }
+      nameDiv.innerHTML = `<span class="text-xs bg-blue-100 text-blue-800 rounded px-1 mr-1">${type}</span>${name}`;
+      info.appendChild(dt);
+      info.appendChild(nameDiv);
+      if (it.note) {
+        const note = document.createElement('div');
+        note.className = 'text-xs text-gray-600';
+        note.textContent = it.note;
+        info.appendChild(note);
+      }
+      const btn = document.createElement('button');
+      btn.className = 'btn-secondary text-sm';
+      btn.textContent = 'Concluir';
+      btn.addEventListener('click', () => {
+        updateAgenda(it.id, { done: true });
+        renderAgendaHome(parseInt(select.value));
+      });
+      li.appendChild(info);
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    });
+    listEl.classList.toggle('hidden', items.length === 0);
+    emptyEl.classList.toggle('hidden', items.length !== 0);
+    const upcomingCount = agenda.filter((it) => {
+      if (it.done) return false;
+      const w = new Date(it.when);
+      if (isNaN(w)) return false;
+      return w >= now && w <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    }).length;
+    toggleHomeBadge(upcomingCount);
+  }
+
+  function bindAgendaHomeEvents() {
+    document.getElementById('agendaPeriod')?.addEventListener('change', (e) => {
+      const days = parseInt(e.target.value);
+      renderAgendaHome(days);
+    });
+    document.getElementById('btnAgendaAddVisit')?.addEventListener('click', () => {
+      openVisitModal();
+    });
+  }
+
+  function toggleHomeBadge(count) {
+    const btn = document.querySelector('#bottomBar button[data-nav="#home"]');
+    if (!btn) return;
+    btn.classList.add('relative');
+    let badge = btn.querySelector('span.badge');
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'badge absolute top-0 right-1 bg-red-500 text-white rounded-full text-xs px-1';
+        btn.appendChild(badge);
+      }
+      badge.textContent = String(count);
+    } else {
+      badge?.remove();
+    }
+  }
+
+  bindAgendaHomeEvents();
+  renderAgendaHome(7);
 }
