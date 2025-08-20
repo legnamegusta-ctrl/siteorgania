@@ -53,7 +53,12 @@
       </div>
     </section>
     <section id="view-mapa" data-view class="hidden">
-      <div id="agroMap" style="height: calc(100vh - 140px)"></div>
+      <div id="mapFilters" class="p-4 flex gap-2">
+        <button id="mapFilterAll" class="chip chip--filter filter-active">Todos</button>
+        <button id="mapFilterClients" class="chip chip--filter">Clientes</button>
+        <button id="mapFilterLeads" class="chip chip--filter">Leads</button>
+      </div>
+      <div id="agroMap" style="height: calc(100vh - 196px)"></div>
     </section>
     <section id="view-ajustes" data-view class="hidden">
       <h2 class="p-4 font-semibold">Ajustes</h2>
