@@ -38,6 +38,19 @@
     </section>
     <section id="view-clientes" data-view class="hidden">
       <h2 class="p-4 font-semibold">Clientes</h2>
+      <div class="p-4 flex gap-2">
+        <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar" />
+        <select id="clientsFilter" class="input w-56">
+          <option value="all">Todos</option>
+          <option value="recent">Com visitas nos últimos 30 dias</option>
+          <option value="stale">Sem contato há 30+ dias</option>
+        </select>
+      </div>
+      <div id="clientsList" class="p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="clientsEmpty" class="p-4 empty-state hidden text-center">
+        <p class="mb-2">Nenhum cliente encontrado.</p>
+        <button id="btnClientsQuickAdd" class="btn-primary">Cadastrar cliente</button>
+      </div>
     </section>
     <section id="view-mapa" data-view class="hidden">
       <div id="agroMap" style="height: calc(100vh - 140px)"></div>
