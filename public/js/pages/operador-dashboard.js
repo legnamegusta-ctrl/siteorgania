@@ -8,6 +8,7 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
 import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
+import { openTaskModal } from '../ui/task-modal.js';
 
 let state = {
   farmClientId: null,
@@ -174,6 +175,9 @@ function bindUI() {
     window.taskOriginHash = window.location.hash.slice(1);
     openTaskDetail(null, { mode: 'create' });
     window.location.hash = 'task/new';
+  });
+  document.querySelector('[data-action="open-task-modal"]')?.addEventListener('click', () => {
+    openTaskModal(null, 'dashboard');
   });
 }
 
