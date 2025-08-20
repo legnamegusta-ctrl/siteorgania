@@ -21,3 +21,14 @@ export function addLead(lead) {
   localStorage.setItem(KEY, JSON.stringify(leads));
   return newLead;
 }
+
+export function updateLead(id, changes) {
+  const leads = getLeads();
+  const idx = leads.findIndex((l) => l.id === id);
+  if (idx >= 0) {
+    leads[idx] = { ...leads[idx], ...changes, updatedAt: new Date().toISOString() };
+    localStorage.setItem(KEY, JSON.stringify(leads));
+    return leads[idx];
+  }
+  return null;
+}
