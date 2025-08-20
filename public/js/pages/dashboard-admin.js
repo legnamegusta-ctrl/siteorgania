@@ -272,24 +272,29 @@ export function initAdminDashboard(userId, userRole) {
         function renderAdminClientList(clientsToRender) {
             adminClientsList.innerHTML = '';
             if (clientsToRender.length === 0) {
-                adminClientsList.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Nenhum cliente encontrado.</td></tr>';
+                adminClientsList.innerHTML = '<tr><td colspan="4" class="empty-state"><span>Nenhum cliente encontrado.</span><button id="emptyAddClientBtn" class="btn btn-primary">Adicionar cliente</button></td></tr>';
+                const btn = document.getElementById("emptyAddClientBtn");
+                if(btn) btn.addEventListener('click', () => openClientModal());
                 return;
             }
             clientsToRender.forEach(client => {
                 const assignedAgronomist = allAgronomists.find(a => a.id === client.agronomistId);
                 const statusBadge = client.clientAuthUid ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ativo</span>` : `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendente</span>`;
-                const linkButton = !client.clientAuthUid ? `<button data-action="setup-access" data-client-id="${client.id}" data-client-name="${client.name}" class="text-purple-600 hover:text-purple-900" title="Vincular Usuário"><i class="fas fa-link"></i></button>` : '';
-                
+                const linkButton = !client.clientAuthUid ? `<button data-action="setup-access" data-client-id="${client.id}" data-client-name="${client.name}" class="btn btn-secondary btn-icon" title="Vincular Usuário"><i class="fas fa-link"></i></button>` : '';
+
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap"><a href="client-details.html?clientId=${client.id}&from=admin" class="text-sm font-medium text-gray-900 hover:text-green-700" title="Ver detalhes do cliente">${client.name}</a></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${assignedAgronomist ? assignedAgronomist.name : 'Nenhum'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                        <button data-action="manage-modules" data-client-id="${client.id}" data-client-name="${client.name}" class="text-blue-600 hover:text-blue-900" title="Gerenciar Módulos"><i class="fas fa-cog"></i></button>
-                        <button data-action="edit-client" data-client-id="${client.id}" class="text-gray-600 hover:text-gray-900" title="Editar Cliente"><i class="fas fa-pencil-alt"></i></button>
-                        ${linkButton}
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 responsive-hide">${assignedAgronomist ? assignedAgronomist.name : 'Nenhum'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap responsive-hide">${statusBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex gap-4 actions-desktop">
+                            <button data-action="manage-modules" data-client-id="${client.id}" data-client-name="${client.name}" class="btn btn-secondary btn-icon" title="Gerenciar Módulos"><i class="fas fa-cog"></i></button>
+                            <button data-action="edit-client" data-client-id="${client.id}" class="btn btn-secondary btn-icon" title="Editar Cliente"><i class="fas fa-pencil-alt"></i></button>
+                            ${linkButton}
+                        </div>
+                        <a href="client-details.html?clientId=${client.id}&from=admin" class="btn btn-secondary details-mobile">+ detalhes</a>
                     </td>`;
                 adminClientsList.appendChild(row);
             });
