@@ -1,6 +1,7 @@
 let map;
 let leadsLayer;
 let clientsLayer;
+let clientMarkers = {};
 
 export function initAgroMap() {
   const el = document.getElementById('agroMap');
@@ -38,6 +39,7 @@ export function plotLeads(leads) {
 export function plotClients(clients) {
   if (!map || typeof L === 'undefined' || !clientsLayer) return;
   clientsLayer.clearLayers();
+  clientMarkers = {};
   clients
     .filter((c) => c.lat && c.lng)
     .forEach((c) => {
@@ -45,9 +47,19 @@ export function plotClients(clients) {
         title: c.name || 'Cliente',
       }).addTo(clientsLayer);
       marker.bindPopup(
-        `<b>${c.name || 'Cliente'}</b><br>${c.farmName || ''}`
+        `<b>${c.name || 'Cliente'}</b><br>${c.farmName || ''}<br><a href="client-details.html?clientId=${c.id}">Abrir cliente</a>`
       );
+      clientMarkers[c.id] = marker;
     });
+}
+
+export function focusClient(id) {
+  const m = clientMarkers[id];
+  if (m) {
+    const pos = m.getLatLng();
+    setMapCenter(pos.lat, pos.lng);
+    m.openPopup();
+  }
 }
 
 export function setVisibleLayers({ showLeads, showClients }) {

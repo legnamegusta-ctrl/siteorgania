@@ -4,45 +4,112 @@
   <meta name="theme-color" content="#166534">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="manifest" href="/manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orgânia - Detalhes do Cliente</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orgânia - Detalhes do Cliente</title>
   <script type="module" src="js/app.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100">
-    
-    <div id="client-details-marker" class="hidden"></div>
-
- <header class="bg-white shadow-lg sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="flex justify-between items-center h-16">
-                <div class="flex items-center gap-4">
-                    <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar">
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                    <h1 id="clientNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
-                </div>
-                <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
-            </div>
+  <header class="bg-white shadow-lg sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-4">
+          <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar"><i class="fas fa-arrow-left"></i></a>
+          <h1 id="clientNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
         </div>
-    </header>
- <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-bold text-gray-800">Propriedades</h2>
-  <button id="showAddPropertyBtn" class="px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Adicionar</button>        
+        <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+      </div>
     </div>
-            <div id="propertiesList" class="space-y-2"></div>
-        </div>
-    </main>
+  </header>
 
-    <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
-    <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="/__/firebase/init.js"></script>
-    <script type="module" src="js/services/auth.js"></script>
+  <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+    <section class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Resumo</h2>
+      <div class="space-y-1">
+        <div id="summaryName" class="font-semibold"></div>
+        <div id="summaryProperty" class="text-sm text-gray-600"></div>
+      </div>
+      <button id="btnViewMap" class="btn-secondary mt-4">Ver no mapa</button>
+    </section>
+
+    <section class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Propriedades</h2>
+        <button id="showAddPropertyBtn" class="px-3 py-2 text-white rounded" style="background-color: var(--brand-green);">Adicionar</button>
+      </div>
+      <div id="propertiesList" class="space-y-2"></div>
+    </section>
+
+    <section class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Histórico</h2>
+        <div class="flex gap-2">
+          <button id="btnRegisterVisit" class="btn-secondary text-sm">Registrar visita</button>
+          <button id="btnNewSale" class="btn-primary text-sm">Nova venda</button>
+        </div>
+      </div>
+      <div id="historyTimeline"></div>
+    </section>
+  </main>
+
+  <!-- Add Property Modal -->
+  <div id="addPropertyModal" class="modal hidden">
+    <div class="modal-card w-full max-w-md">
+      <h3 class="font-semibold mb-4">Adicionar Propriedade</h3>
+      <form id="addPropertyForm" class="grid gap-4">
+        <div class="field">
+          <label for="addPropName">Nome*</label>
+          <input id="addPropName" class="input" required />
+        </div>
+        <div class="field">
+          <label>Localização</label>
+          <button type="button" id="addPropUseLocation" class="btn-secondary mb-2">Usar minha localização</button>
+          <div class="flex gap-2">
+            <input id="addPropLat" class="input flex-1" placeholder="Lat" readonly />
+            <input id="addPropLng" class="input flex-1" placeholder="Lng" readonly />
+          </div>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnAddPropCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sale Modal -->
+  <div id="saleModal" class="modal hidden">
+    <div class="modal-card max-w-md w-full">
+      <h3 class="mb-4 font-semibold">Registrar Venda</h3>
+      <form id="saleForm" class="grid gap-4">
+        <div class="field">
+          <label for="saleFormula">Fórmula</label>
+          <select id="saleFormula" class="input"></select>
+        </div>
+        <div class="field">
+          <label for="saleTons">Toneladas</label>
+          <input id="saleTons" type="number" min="0.1" step="0.1" class="input" required />
+        </div>
+        <div class="field">
+          <label for="saleNote">Observação</label>
+          <textarea id="saleNote" class="input"></textarea>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnSaleCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script type="module" src="js/services/auth.js"></script>
+  <script type="module" src="js/pages/client-details.js"></script>
 </body>
 </html>
