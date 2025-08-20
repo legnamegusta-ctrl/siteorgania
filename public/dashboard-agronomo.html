@@ -87,6 +87,129 @@
     </div>
   </div>
 
+  <div id="visitModal" class="modal hidden">
+    <div class="modal-card max-w-xl w-full">
+      <h3 class="mb-4 font-semibold">Registrar Visita</h3>
+      <form id="visitForm" class="grid gap-4">
+        <div>
+          <label><input type="radio" name="visitTarget" value="cliente" checked /> Cliente</label>
+          <label class="ml-4"><input type="radio" name="visitTarget" value="lead" /> Lead</label>
+        </div>
+        <div class="field">
+          <label for="visitTargetSelect">Selecione</label>
+          <select id="visitTargetSelect" class="input"></select>
+        </div>
+        <button type="button" id="btnVisitQuickCreate" class="btn-secondary">Cadastrar novo (rápido)</button>
+        <div class="field">
+          <label for="visitAt">Data/Hora</label>
+          <input id="visitAt" type="datetime-local" class="input" required />
+        </div>
+        <div class="field">
+          <label for="visitNotes">Descrição*</label>
+          <textarea id="visitNotes" class="input" required></textarea>
+        </div>
+        <div id="leadExtras" class="hidden">
+          <div class="field">
+            <label for="visitInterest">Interesse*</label>
+            <select id="visitInterest" class="input">
+              <option value="">Selecione</option>
+              <option value="Interessado">Interessado</option>
+              <option value="Na dúvida">Na dúvida</option>
+              <option value="Sem interesse">Sem interesse</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="visitSale">Venda?</label>
+            <select id="visitSale" class="input">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+          <div id="leadFollowUp" class="hidden">
+            <div class="field">
+              <label for="visitReturnAt">Agendar retorno</label>
+              <input id="visitReturnAt" type="datetime-local" class="input" />
+            </div>
+            <div class="field">
+              <label for="visitReturnNote">Nota</label>
+              <input id="visitReturnNote" class="input" />
+            </div>
+          </div>
+          <div id="leadReason" class="hidden">
+            <div class="field">
+              <label for="visitReason">Motivo</label>
+              <input id="visitReason" class="input" />
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnVisitCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="saleModal" class="modal hidden">
+    <div class="modal-card max-w-md w-full">
+      <h3 class="mb-4 font-semibold">Registrar Venda</h3>
+      <form id="saleForm" class="grid gap-4">
+        <div class="field">
+          <label for="saleFormula">Fórmula</label>
+          <select id="saleFormula" class="input"></select>
+        </div>
+        <div class="field">
+          <label for="saleTons">Toneladas</label>
+          <input id="saleTons" type="number" min="0.1" step="0.1" class="input" required />
+        </div>
+        <div class="field">
+          <label for="saleNote">Observação</label>
+          <textarea id="saleNote" class="input"></textarea>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnSaleCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="quickCreateModal" class="modal hidden">
+    <div class="modal-card max-w-xl w-full">
+      <h3 class="mb-4 font-semibold">Cadastro Rápido</h3>
+      <form id="quickCreateForm" class="grid gap-4">
+        <div>
+          <label><input type="radio" name="quickType" value="cliente" checked /> Cliente</label>
+          <label class="ml-4"><input type="radio" name="quickType" value="lead" /> Lead</label>
+        </div>
+        <div class="field">
+          <label for="qcName">Nome*</label>
+          <input id="qcName" class="input" required />
+        </div>
+        <div class="field">
+          <label for="qcFarm">Fazenda*</label>
+          <input id="qcFarm" class="input" required />
+        </div>
+        <div class="field">
+          <label for="qcNotes">Notas</label>
+          <textarea id="qcNotes" class="input"></textarea>
+        </div>
+        <div class="field">
+          <label>Localização</label>
+          <button type="button" id="qcUseLocation" class="btn-secondary mb-2">Usar minha localização</button>
+          <div class="flex gap-2">
+            <input id="qcLat" class="input flex-1" placeholder="Lat" readonly />
+            <input id="qcLng" class="input flex-1" placeholder="Lng" readonly />
+          </div>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnQCCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
   <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
   <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>

@@ -1,7 +1,11 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
 import { initAgroMap, setMapCenter, plotLeads } from './agro-map.js';
-import { getLeads, addLead } from '../stores/leadsStore.js';
+import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
+import { getClients, addClient } from '../stores/clientsStore.js';
+import { addProperty } from '../stores/propertiesStore.js';
+import { addVisit } from '../stores/visitsStore.js';
+import { addAgenda } from '../stores/agendaStore.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
@@ -9,6 +13,9 @@ export function initAgronomoDashboard() {
   const latInput = document.getElementById('leadLat');
   const lngInput = document.getElementById('leadLng');
   const btnUseLocation = document.getElementById('btnUseLocation');
+  const visitModal = document.getElementById('visitModal');
+  const saleModal = document.getElementById('saleModal');
+  const quickCreateModal = document.getElementById('quickCreateModal');
 
   initBottomNav();
   initAgroMap();
@@ -20,6 +27,14 @@ export function initAgronomoDashboard() {
     toggleModal(quickModal, false);
     toggleModal(addLeadModal, true);
     ensureLeadMap();
+  });
+  document.getElementById('btnQuickAddCliente')?.addEventListener('click', () => {
+    toggleModal(quickModal, false);
+    openQuickCreateModal('cliente');
+  });
+  document.getElementById('btnQuickRegVisita')?.addEventListener('click', () => {
+    toggleModal(quickModal, false);
+    openVisitModal();
   });
   document.getElementById('btnCancelLead')?.addEventListener('click', () => toggleModal(addLeadModal, false));
 
@@ -67,4 +82,244 @@ export function initAgronomoDashboard() {
     location.hash = '#mapa';
     toggleModal(addLeadModal, false);
   });
+
+  // ===== Visit Flow =====
+  const visitSelect = document.getElementById('visitTargetSelect');
+  const visitForm = document.getElementById('visitForm');
+  const visitInterest = document.getElementById('visitInterest');
+  const visitSale = document.getElementById('visitSale');
+  const leadExtras = document.getElementById('leadExtras');
+  const leadFollowUp = document.getElementById('leadFollowUp');
+  const leadReason = document.getElementById('leadReason');
+
+  function populateVisitSelect(type) {
+    visitSelect.innerHTML = '';
+    const items = type === 'lead' ? getLeads() : getClients();
+    items.forEach((it) => {
+      const opt = document.createElement('option');
+      opt.value = it.id;
+      opt.textContent = it.name || it.farmName || 'Sem nome';
+      visitSelect.appendChild(opt);
+    });
+  }
+
+  function openVisitModal() {
+    populateVisitSelect('cliente');
+    document.querySelector("input[name='visitTarget'][value='cliente']").checked = true;
+    visitForm.reset();
+    document.getElementById('visitAt').value = new Date().toISOString().slice(0, 16);
+    leadExtras.classList.add('hidden');
+    toggleModal(visitModal, true);
+  }
+
+  function openQuickCreateModal(defaultType) {
+    document.getElementById('quickCreateForm')?.reset();
+    document.getElementById('qcLat').value = '';
+    document.getElementById('qcLng').value = '';
+    document
+      .querySelectorAll("input[name='quickType']")
+      .forEach((r) => (r.checked = r.value === defaultType));
+    toggleModal(quickCreateModal, true);
+  }
+
+  document.querySelectorAll("input[name='visitTarget']").forEach((r) =>
+    r.addEventListener('change', () => {
+      const type = document.querySelector("input[name='visitTarget']:checked").value;
+      populateVisitSelect(type);
+      leadExtras.classList.toggle('hidden', type !== 'lead');
+    })
+  );
+
+  function refreshLeadFields() {
+    const interest = visitInterest.value;
+    const sale = visitSale.value;
+    const needFollow =
+      sale === 'nao' && (interest === 'Interessado' || interest === 'Na dúvida');
+    leadFollowUp.classList.toggle('hidden', !needFollow);
+    document.getElementById('visitReturnAt').required = needFollow;
+    const needReason = interest === 'Sem interesse';
+    leadReason.classList.toggle('hidden', !needReason);
+    document.getElementById('visitReason').required = needReason;
+  }
+  visitInterest?.addEventListener('change', refreshLeadFields);
+  visitSale?.addEventListener('change', refreshLeadFields);
+
+  document.getElementById('btnVisitQuickCreate')?.addEventListener('click', () => {
+    const type = document.querySelector("input[name='visitTarget']:checked").value;
+    toggleModal(visitModal, false);
+    openQuickCreateModal(type);
+  });
+
+  document.getElementById('btnVisitCancel')?.addEventListener('click', () =>
+    toggleModal(visitModal, false)
+  );
+
+  document.getElementById('btnQCCancel')?.addEventListener('click', () => {
+    toggleModal(quickCreateModal, false);
+    toggleModal(visitModal, true);
+  });
+
+  document.getElementById('qcUseLocation')?.addEventListener('click', async () => {
+    const pos = await getCurrentPositionSafe();
+    if (pos) {
+      document.getElementById('qcLat').value = pos.lat.toFixed(6);
+      document.getElementById('qcLng').value = pos.lng.toFixed(6);
+    }
+  });
+
+  document
+    .getElementById('quickCreateForm')
+    ?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const type = document.querySelector("input[name='quickType']:checked").value;
+      const name = document.getElementById('qcName').value.trim();
+      const farm = document.getElementById('qcFarm').value.trim();
+      const notes = document.getElementById('qcNotes').value.trim();
+      const lat = parseFloat(document.getElementById('qcLat').value);
+      const lng = parseFloat(document.getElementById('qcLng').value);
+      let created;
+      if (type === 'lead') {
+        created = addLead({
+          name,
+          farmName: farm,
+          notes,
+          lat: isNaN(lat) ? null : lat,
+          lng: isNaN(lng) ? null : lng,
+        });
+        plotLeads(getLeads());
+      } else {
+        created = addClient({ name });
+        addProperty({
+          clientId: created.id,
+          name: farm,
+          lat: isNaN(lat) ? null : lat,
+          lng: isNaN(lng) ? null : lng,
+        });
+      }
+      const reopen = !visitModal.classList.contains('hidden');
+      toggleModal(quickCreateModal, false);
+      if (reopen) {
+        populateVisitSelect(type);
+        visitSelect.value = created.id;
+        toggleModal(visitModal, true);
+      }
+    });
+
+  visitForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const type = document.querySelector("input[name='visitTarget']:checked").value;
+    const refId = visitSelect.value;
+    if (!refId) return;
+    const at = document.getElementById('visitAt').value;
+    const notes = document.getElementById('visitNotes').value.trim();
+    let visit = { type, refId, at, notes };
+    if (type === 'lead') {
+      const interest = visitInterest.value;
+      if (!interest) return;
+      visit.interest = interest;
+      const sale = visitSale.value;
+      if (sale === 'sim') {
+        toggleModal(visitModal, false);
+        const saleData = await openSaleModal();
+        if (!saleData) {
+          toggleModal(visitModal, true);
+          return;
+        }
+        visit.sale = saleData;
+        const lead = getLeads().find((l) => l.id === refId);
+        if (lead) {
+          const client = addClient({ name: lead.name });
+          addProperty({
+            clientId: client.id,
+            name: lead.farmName,
+            lat: lead.lat,
+            lng: lead.lng,
+          });
+          updateLead(refId, { stage: 'Convertido' });
+        }
+      } else {
+        if (interest === 'Interessado' || interest === 'Na dúvida') {
+          const when = document.getElementById('visitReturnAt').value;
+          const note = document
+            .getElementById('visitReturnNote')
+            .value.trim();
+          if (when)
+            addAgenda({ title: 'Retorno', when, leadId: refId, note });
+        }
+        if (interest === 'Sem interesse') {
+          const reason = document.getElementById('visitReason').value.trim();
+          if (!reason) return;
+          visit.reason = reason;
+        }
+      }
+      const lead = getLeads().find((l) => l.id === refId);
+      visit.leadName = lead?.name;
+    }
+    const saved = addVisit(visit);
+    console.log('[VISITS] novo', saved.id);
+    toggleModal(visitModal, false);
+    if (type === 'lead') {
+      const lead = getLeads().find((l) => l.id === refId);
+      if (lead && lead.lat && lead.lng) {
+        setMapCenter(lead.lat, lead.lng);
+        location.hash = '#mapa';
+      }
+    }
+  });
+
+  async function openSaleModal() {
+    const formulaSelect = document.getElementById('saleFormula');
+    await loadFormulas();
+    toggleModal(saleModal, true);
+    return new Promise((resolve) => {
+      function cleanup() {
+        saleForm.removeEventListener('submit', onSubmit);
+        document
+          .getElementById('btnSaleCancel')
+          .removeEventListener('click', onCancel);
+      }
+      function onSubmit(ev) {
+        ev.preventDefault();
+        const formulationId = formulaSelect.value;
+        const tons = parseFloat(document.getElementById('saleTons').value);
+        const note = document.getElementById('saleNote').value.trim();
+        toggleModal(saleModal, false);
+        cleanup();
+        resolve({ formulationId, tons, note });
+      }
+      function onCancel() {
+        toggleModal(saleModal, false);
+        cleanup();
+        resolve(null);
+      }
+      const saleForm = document.getElementById('saleForm');
+      saleForm.addEventListener('submit', onSubmit);
+      document.getElementById('btnSaleCancel').addEventListener('click', onCancel);
+    });
+  }
+
+  async function loadFormulas() {
+    const sel = document.getElementById('saleFormula');
+    sel.innerHTML = '';
+    let formulas = [];
+    try {
+      const snap = await firebase
+        .firestore()
+        .collection('fertilizer_formulas')
+        .where('isFixed', '==', true)
+        .get();
+      formulas = snap.docs.map((d) => ({ id: d.id, name: d.data().name }));
+    } catch (e) {
+      formulas = [
+        { id: 'local1', name: 'Fórmula A' },
+        { id: 'local2', name: 'Fórmula B' },
+      ];
+    }
+    formulas.forEach((f) => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.name;
+      sel.appendChild(opt);
+    });
+  }
 }
