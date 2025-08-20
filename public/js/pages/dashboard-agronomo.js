@@ -1,11 +1,19 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
-import { initAgroMap, setMapCenter, plotLeads, plotClients, setVisibleLayers } from './agro-map.js';
+import {
+  initAgroMap,
+  setMapCenter,
+  plotLeads,
+  plotClients,
+  setVisibleLayers,
+  focusClient,
+} from './agro-map.js';
 import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
 import { getVisits, addVisit } from '../stores/visitsStore.js';
 import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
+import { addSale } from '../stores/salesStore.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
@@ -475,11 +483,19 @@ export function initAgronomoDashboard() {
         const lead = getLeads().find((l) => l.id === refId);
         if (lead) {
           const client = addClient({ name: lead.name });
-          addProperty({
+          const property = addProperty({
             clientId: client.id,
             name: lead.farmName,
             lat: lead.lat,
             lng: lead.lng,
+          });
+          addSale({
+            clientId: client.id,
+            propertyId: property.id,
+            formulationId: saleData.formulationId,
+            formulationName: saleData.formulationName,
+            tons: saleData.tons,
+            note: saleData.note,
           });
           updateLead(refId, { stage: 'Convertido' });
           renderMap();
@@ -538,6 +554,8 @@ export function initAgronomoDashboard() {
         ev.preventDefault();
         clearErrors(saleForm);
         const formulationId = formulaSelect.value;
+        const formulationName =
+          formulaSelect.options[formulaSelect.selectedIndex]?.textContent || '';
         const tonsEl = document.getElementById('saleTons');
         const tons = parseFloat(tonsEl.value);
         let valid = true;
@@ -555,7 +573,7 @@ export function initAgronomoDashboard() {
         clearErrors(saleForm);
         saleForm.reset();
         cleanup();
-        resolve({ formulationId, tons, note });
+        resolve({ formulationId, formulationName, tons, note });
       }
       function onCancel() {
         toggleModal(saleModal, false);
@@ -696,10 +714,24 @@ export function initAgronomoDashboard() {
     }
   }
   function handleHashChange() {
-    if (location.hash === '#mapa') renderMap();
+    if (location.hash === '#mapa') {
+      const focusId = sessionStorage.getItem('focusClientId');
+      if (focusId) {
+        focusClient(focusId);
+        sessionStorage.removeItem('focusClientId');
+      }
+    }
     if (location.hash === '#clientes') {
       renderClientsList(highlightClientId);
       highlightClientId = null;
+    }
+    if (location.hash === '#visita') {
+      const target = sessionStorage.getItem('visitForClientId');
+      openVisitModal();
+      if (target) {
+        visitSelect.value = target;
+        sessionStorage.removeItem('visitForClientId');
+      }
     }
   }
 

@@ -1118,3 +1118,10 @@ body.has-modal{overflow:hidden;}
 @media (min-width:768px){
   .modal-card{max-width:600px;}
 }
+
+/* Timeline components */
+.timeline{position:relative;margin-left:1rem;}
+.timeline::before{content:"";position:absolute;top:0;bottom:0;left:-0.5rem;width:2px;background:#E5E7EB;}
+.timeline-item{position:relative;margin-bottom:1rem;}
+.timeline-badge{position:absolute;left:-0.75rem;top:0.25rem;width:0.5rem;height:0.5rem;border-radius:50%;background:var(--brand-green);}
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:1rem;}
