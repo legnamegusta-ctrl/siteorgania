@@ -60,7 +60,7 @@ export function initAgronomoDashboard() {
     const notas = document.getElementById('leadNotas').value.trim();
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
-    const newLead = addLead({ nome, propriedade, notas, lat: isNaN(lat) ? null : lat, lng: isNaN(lng) ? null : lng });
+    const newLead = addLead({ name: nome, farmName: propriedade, notes: notas, lat: isNaN(lat) ? null : lat, lng: isNaN(lng) ? null : lng });
     console.log('[LEADS] novo', newLead.id);
     plotLeads(getLeads());
     if (newLead.lat && newLead.lng) setMapCenter(newLead.lat, newLead.lng);

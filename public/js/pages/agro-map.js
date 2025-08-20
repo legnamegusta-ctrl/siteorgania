@@ -23,7 +23,8 @@ export function setMapCenter(lat, lng, zoom=14) {
 export function plotLeads(leads) {
   if (!map || typeof L === 'undefined' || !leadsLayer) return;
   leadsLayer.clearLayers();
-  leads.filter(l=>l.lat && l.lng).forEach(l=> {
-    L.marker([l.lat,l.lng]).addTo(leadsLayer);
+  leads.filter(l => l.lat && l.lng).forEach(l => {
+    const marker = L.marker([l.lat, l.lng], { title: l.name || 'Lead' }).addTo(leadsLayer);
+    marker.bindPopup(`<b>${l.name || 'Lead'}</b><br>${l.farmName || ''}`);
   });
 }
