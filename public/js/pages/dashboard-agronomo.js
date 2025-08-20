@@ -637,7 +637,7 @@ function setupVisitModal() {
       <textarea id="visit-notes" class="w-full border p-2 rounded mb-2" placeholder="Observações"></textarea>
       <select id="visit-interest" class="w-full border p-2 rounded mb-2">
         <option value="baixo">Interesse baixo</option>
-        <option value="medio">Interesse médio</option>
+        <option value="medio" selected>Interesse médio</option>
         <option value="alto">Interesse alto</option>
       </select>
       <input id="visit-next" class="w-full border p-2 rounded mb-2" placeholder="Próximo passo" />
@@ -673,7 +673,7 @@ function startVisit(leadId) {
       startLng: lng,
       endedAt: null,
       notes: '',
-      interest: 'baixo',
+      interest: 'medio',
       nextAction: null,
       nextWhen: null,
       ownerUid: currentUserId,
@@ -693,6 +693,7 @@ function startVisit(leadId) {
       lead.stage = 'Visitado';
       lead.updatedAt = new Date().toISOString();
       await crmStore.upsert('leads', lead);
+      console.log('[VISITAS]', 'lead stage -> Visitado', lead.id);
       if (navigator.onLine) {
         try {
           await setDoc(doc(db, 'leads', lead.id), { stage: 'Visitado', updatedAt: lead.updatedAt }, { merge: true });
@@ -724,7 +725,7 @@ async function finishVisit() {
   if (!activeVisit) return;
   activeVisit.endedAt = new Date().toISOString();
   activeVisit.notes = getEl('visit-notes')?.value || '';
-  activeVisit.interest = getEl('visit-interest')?.value || 'baixo';
+  activeVisit.interest = getEl('visit-interest')?.value || 'medio';
   activeVisit.nextAction = getEl('visit-next')?.value || null;
   activeVisit.nextWhen = getEl('visit-date')?.value
     ? new Date(getEl('visit-date').value).toISOString()
@@ -753,6 +754,11 @@ async function finishVisit() {
     }
     lead.updatedAt = new Date().toISOString();
     await crmStore.upsert('leads', lead);
+    console.log('[VISITAS]', 'lead update', {
+      id: lead.id,
+      lastVisitAt: lead.lastVisitAt,
+      nextAction: lead.nextAction || null
+    });
     if (navigator.onLine) {
       try {
         await setDoc(
