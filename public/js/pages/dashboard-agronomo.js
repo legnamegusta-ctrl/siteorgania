@@ -198,15 +198,32 @@ async function renderClients(userId) {
   const clientList = getEl('clientList');
   if (!clientList) return;
   clientList.innerHTML = '';
-  const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
-  const snap = await getDocs(q);
-  for (const docSnap of snap.docs) {
-    const data = docSnap.data();
+
+  let clients = [];
+  if (navigator.onLine) {
+    try {
+      const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
+      const snap = await getDocs(q);
+      clients = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      for (const c of clients) {
+        await crmStore.upsert('clientes', { ...c, syncFlag: 'synced' });
+      }
+    } catch (err) {
+      console.warn(TAG, 'falha ao buscar clientes', err);
+      clients = await crmStore.getAll('clientes');
+      clients = clients.filter((c) => c.agronomistId === userId);
+    }
+  } else {
+    clients = await crmStore.getAll('clientes');
+    clients = clients.filter((c) => c.agronomistId === userId);
+  }
+
+  for (const c of clients) {
     const card = document.createElement('div');
     card.className = 'bg-white p-4 rounded-lg shadow flex flex-col';
     const title = document.createElement('h3');
     title.className = 'text-lg font-semibold mb-4';
-    title.textContent = data.name || 'Cliente';
+    title.textContent = c.name || 'Cliente';
 
     const btnContainer = document.createElement('div');
     btnContainer.className = 'mt-auto flex flex-col gap-2';
@@ -216,32 +233,32 @@ async function renderClients(userId) {
     btnCliente.style.backgroundColor = 'var(--brand-green)';
     btnCliente.textContent = 'Abrir cliente';
     btnCliente.addEventListener('click', () => {
-      console.log('[POS-VENDA]', 'abrir cliente', docSnap.id);
-      window.location.href = `client-details.html?clientId=${docSnap.id}&from=agronomo`;
+      console.log('[POS-VENDA]', 'abrir cliente', c.id);
+      window.location.href = `client-details.html?clientId=${c.id}&from=agronomo`;
     });
     btnContainer.appendChild(btnCliente);
 
-    const btnProps = document.createElement('button');
-    btnProps.className = 'px-3 py-2 text-white rounded';
-    btnProps.style.backgroundColor = 'var(--brand-green)';
-    btnProps.textContent = 'Abrir propriedades';
-    btnProps.addEventListener('click', () => {
-      console.log('[POS-VENDA]', 'abrir propriedades', docSnap.id);
-      window.location.href = `property-details.html?clientId=${docSnap.id}&from=agronomo`;
-    });
-    btnContainer.appendChild(btnProps);
-
     try {
-      const propsSnap = await getDocs(query(collection(db, `clients/${docSnap.id}/properties`), limit(1)));
+      const propsSnap = await getDocs(query(collection(db, `clients/${c.id}/properties`), limit(1)));
       if (!propsSnap.empty) {
         const propId = propsSnap.docs[0].id;
+        const btnProps = document.createElement('button');
+        btnProps.className = 'px-3 py-2 text-white rounded';
+        btnProps.style.backgroundColor = 'var(--brand-green)';
+        btnProps.textContent = 'Propriedades';
+        btnProps.addEventListener('click', () => {
+          console.log('[POS-VENDA]', 'abrir propriedades', c.id);
+          window.location.href = `property-details.html?clientId=${c.id}&propertyId=${propId}&from=agronomo`;
+        });
+        btnContainer.appendChild(btnProps);
+
         const btnTalhoes = document.createElement('button');
         btnTalhoes.className = 'px-3 py-2 text-white rounded';
         btnTalhoes.style.backgroundColor = 'var(--brand-green)';
         btnTalhoes.textContent = 'Abrir talhões';
         btnTalhoes.addEventListener('click', () => {
-          console.log('[POS-VENDA]', 'abrir talhoes', docSnap.id, propId);
-          window.location.href = `plot-details.html?clientId=${docSnap.id}&propertyId=${propId}&from=agronomo`;
+          console.log('[POS-VENDA]', 'abrir talhoes', c.id, propId);
+          window.location.href = `plot-details.html?clientId=${c.id}&propertyId=${propId}&from=agronomo`;
         });
         btnContainer.appendChild(btnTalhoes);
       }
