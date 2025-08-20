@@ -22,6 +22,7 @@ export function initBottomNav() {
   });
 
   window.addEventListener('hashchange', () => show(location.hash));
+  if (!location.hash) location.hash = '#home';
   show(location.hash);
 }
 
