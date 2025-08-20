@@ -327,7 +327,7 @@ async function updateProposalStatus(id, newStatus) {
       await crmStore.upsert('propostas', prop);
     }
   }
-  console.log('[PROPOSTAS]', 'status', prop.id, newStatus);
+  console.log('[PROPOSTAS]', 'status alterado', prop.id, newStatus);
   if (newStatus === 'Aceita') {
     document.dispatchEvent(new CustomEvent('proposalAccepted', { detail: prop }));
   }
@@ -358,8 +358,8 @@ async function renderProposals() {
       <td class="p-2">${p.status}</td>
       <td class="p-2">${p.validade ? new Date(p.validade).toLocaleDateString() : '-'}</td>
       <td class="p-2 space-x-2">
-        <button class="text-green-600 underline btn-prop-aceita" data-id="${p.id}">Aceita</button>
-        <button class="text-red-600 underline btn-prop-rejeita" data-id="${p.id}">Rejeitada</button>
+        <button class="text-green-600 underline btn-prop-aceita" data-id="${p.id}">Aceitar</button>
+        <button class="text-red-600 underline btn-prop-rejeita" data-id="${p.id}">Rejeitar</button>
       </td>`;
     tbody.appendChild(tr);
   });
