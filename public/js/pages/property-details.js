@@ -26,6 +26,8 @@ export function initPropertyDetails(userId, userRole) {
      const newCultureNameInput = document.getElementById('newCultureName');
     const newCultureStartDateInput = document.getElementById('newCultureStartDate');
 
+    let isSavingPlot = false;
+
     if (!currentPropertyId || !currentClientId) {
          if (propertyNameHeader) propertyNameHeader.textContent = 'ID da Propriedade ou do Cliente não encontrado.';
         return;
@@ -39,6 +41,9 @@ export function initPropertyDetails(userId, userRole) {
     const clientDocRef = doc(db, 'clients', currentClientId);
 
     async function addPlotAndFirstCulture() {
+        if (isSavingPlot) return;
+        isSavingPlot = true;
+        addPlotBtn.disabled = true;
         const plotName = newPlotNameInput.value.trim();
         const plotArea = parseFloat(newPlotAreaInput.value) || 0;
   const plotPlants = parseInt(newPlotPlantsInput.value) || 0;
@@ -47,10 +52,14 @@ export function initPropertyDetails(userId, userRole) {
 
         if (!plotName || !cultureName || !cultureStartDate) {
             showToast('Por favor, preencha o nome do talhão, o nome da cultura e a data de início.', 'error');
+            addPlotBtn.disabled = false;
+            isSavingPlot = false;
             return;
         }
         if (isNaN(plotArea) || plotArea <= 0) {
             showToast('A área do talhão deve ser um número válido e maior que zero.', 'error');
+            addPlotBtn.disabled = false;
+            isSavingPlot = false;
             return;
         }
 
@@ -90,6 +99,9 @@ export function initPropertyDetails(userId, userRole) {
         } catch (error) {
             console.error('Erro ao adicionar talhão e cultura:', error);
             showToast('Ocorreu um erro ao salvar os dados.', 'error');
+        } finally {
+            addPlotBtn.disabled = false;
+            isSavingPlot = false;
         }
     }
 
