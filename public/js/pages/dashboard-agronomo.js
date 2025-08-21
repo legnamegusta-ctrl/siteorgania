@@ -837,14 +837,27 @@ export function initAgronomoDashboard() {
           {
             label: 'Visitas',
             data,
-            borderColor: '#16a34a',
-            backgroundColor: '#bbf7d0',
+            borderColor: '#166534',
+            backgroundColor: 'rgba(22,101,52,0.1)',
             tension: 0.1,
             fill: true,
           },
         ],
       },
-      options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, color: '#4b5563' },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+          },
+          x: {
+            ticks: { color: '#4b5563' },
+            grid: { color: 'rgba(0,0,0,0.03)' },
+          },
+        },
+        plugins: { legend: { labels: { color: '#4b5563' } } },
+      },
     });
   }
 
@@ -893,11 +906,21 @@ export function initAgronomoDashboard() {
           {
             label: 'Toneladas',
             data,
-            backgroundColor: '#16a34a',
+            backgroundColor: '#166534',
           },
         ],
       },
-      options: { scales: { y: { beginAtZero: true } } },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#4b5563' },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+          },
+          x: { ticks: { color: '#4b5563' }, grid: { color: 'rgba(0,0,0,0.03)' } },
+        },
+        plugins: { legend: { labels: { color: '#4b5563' } } },
+      },
     });
   }
 
@@ -973,14 +996,14 @@ export function initAgronomoDashboard() {
     items.forEach((it) => {
       const when = new Date(it.when);
       const li = document.createElement('li');
-      li.className = 'flex justify-between items-start gap-2 py-2';
+      li.className = 'rounded-xl border border-gray-100 bg-white p-3 hover:bg-gray-50 transition flex justify-between items-start gap-2';
       const info = document.createElement('div');
-      info.className = 'flex-1';
+      info.className = 'flex-1 space-y-1';
       const dt = document.createElement('div');
-      dt.className = 'text-sm';
+      dt.className = 'text-sm text-gray-600';
       dt.textContent = when.toLocaleString('pt-BR');
       const nameDiv = document.createElement('div');
-      nameDiv.className = 'font-semibold';
+      nameDiv.className = 'font-semibold text-gray-800';
       let name = '(sem nome)';
       let type = 'Lead';
       if (it.clientId) {
@@ -992,17 +1015,17 @@ export function initAgronomoDashboard() {
         name = l?.name || '(sem nome)';
         type = 'Lead';
       }
-      nameDiv.innerHTML = `<span class="text-xs bg-blue-100 text-blue-800 rounded px-1 mr-1">${type}</span>${name}`;
+      nameDiv.innerHTML = `<span class="text-xs rounded px-1.5 py-0.5 bg-blue-50 text-blue-700 mr-1">${type}</span>${name}`;
       info.appendChild(dt);
       info.appendChild(nameDiv);
       if (it.note) {
         const note = document.createElement('div');
-        note.className = 'text-xs text-gray-600';
+        note.className = 'text-xs text-gray-500';
         note.textContent = it.note;
         info.appendChild(note);
       }
       const btn = document.createElement('button');
-      btn.className = 'btn-secondary text-sm';
+      btn.className = 'btn-secondary text-sm min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/40 hover:bg-gray-200';
       btn.textContent = 'Concluir';
       btn.addEventListener('click', () => {
         updateAgenda(it.id, { done: true });
