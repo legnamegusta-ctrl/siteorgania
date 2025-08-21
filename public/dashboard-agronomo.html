@@ -20,6 +20,28 @@
   <main id="agroMain" class="pb-16">
     <section id="view-home" data-view>
       <h2 class="p-4 font-semibold">Home</h2>
+      <div id="homeMetrics" class="p-4 grid gap-4 sm:grid-cols-3">
+        <div class="bg-white p-4 rounded shadow text-center">
+          <div class="text-sm text-gray-500">Clientes ativos</div>
+          <div id="metricClients" class="text-2xl font-bold">0</div>
+          <div class="text-xs text-gray-600">total</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+          <div class="text-sm text-gray-500">Visitas</div>
+          <div id="metricVisits" class="text-2xl font-bold">0</div>
+          <div class="text-xs text-gray-600">últimos 30 dias</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+          <div class="text-sm text-gray-500">Vendas (t)</div>
+          <div id="metricSales" class="text-2xl font-bold">0</div>
+          <div class="text-xs text-gray-600">últimos 30 dias</div>
+        </div>
+      </div>
+      <div id="homeQuickActions" class="px-4 flex gap-2">
+        <button id="chipAddCliente" class="chip">Adicionar cliente</button>
+        <button id="chipAddLead" class="chip">Adicionar lead</button>
+        <button id="chipRegVisit" class="chip">Registrar visita</button>
+      </div>
       <div id="agendaHome" class="p-4">
         <div class="flex items-center justify-between mb-2">
           <h3 class="font-semibold">Próximos compromissos</h3>
