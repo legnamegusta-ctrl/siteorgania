@@ -7,6 +7,7 @@ import {
   plotClients,
   setVisibleLayers,
   focusClient,
+  fitMapToPoints,
 } from './agro-map.js';
 import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
@@ -75,10 +76,26 @@ export function initAgronomoDashboard() {
     else setVisibleLayers({ showLeads: true, showClients: false });
   }
 
-  function renderMap() {
-    plotLeads(getLeads());
-    plotClients(getClientsWithProps());
+  async function renderMap() {
+    const leads = getLeads();
+    const clients = getClientsWithProps();
+    plotLeads(leads);
+    plotClients(clients);
     applyMapFilter();
+
+    // Center the map on existing markers or use current location when empty
+    const points = [
+      ...leads
+        .filter((l) => l.stage !== 'Convertido' && l.lat && l.lng)
+        .map((l) => [l.lat, l.lng]),
+      ...clients.filter((c) => c.lat && c.lng).map((c) => [c.lat, c.lng]),
+    ];
+    if (points.length) {
+      fitMapToPoints(points);
+    } else {
+      const pos = await getCurrentPositionSafe();
+      if (pos) setMapCenter(pos.lat, pos.lng, 12);
+    }
   }
 
   function updateMapChips() {
