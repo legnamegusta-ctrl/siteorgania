@@ -6,9 +6,10 @@ export async function initPropertyEmployees() {
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get('clientId');
   const propertyId = params.get('propertyId');
+  const from = params.get('from') || 'agronomo';
   if (!clientId || !propertyId) return;
 
-  document.getElementById('backToFarm').href = `agronomo-farm.html?clientId=${clientId}&propertyId=${propertyId}`;
+  document.getElementById('backToFarm').href = `property-details.html?clientId=${clientId}&propertyId=${propertyId}&from=${from}`;
 
   try {
     const employeesRef = collection(doc(db, `clients/${clientId}/properties/${propertyId}`), 'employees');

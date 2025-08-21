@@ -15,6 +15,7 @@ export function initPropertyDetails(userId, userRole) {
     const backBtn = document.getElementById('backBtn');
     const plotsListDiv = document.getElementById('plotsList');
     const showAddPlotModalBtn = document.getElementById('showAddPlotModalBtn');
+    const viewEmployeesBtn = document.getElementById('viewEmployeesBtn');
   
     const addPlotModal = document.getElementById('addPlotModal');
     const closeAddPlotModalBtn = document.getElementById('closeAddPlotModalBtn');
@@ -28,6 +29,10 @@ export function initPropertyDetails(userId, userRole) {
     if (!currentPropertyId || !currentClientId) {
          if (propertyNameHeader) propertyNameHeader.textContent = 'ID da Propriedade ou do Cliente não encontrado.';
         return;
+    }
+
+    if (viewEmployeesBtn) {
+        viewEmployeesBtn.href = `property-employees.html?clientId=${currentClientId}&propertyId=${currentPropertyId}&from=${from}`;
     }
 
     const propertyDocRef = doc(collection(db, `clients/${currentClientId}/properties`), currentPropertyId);

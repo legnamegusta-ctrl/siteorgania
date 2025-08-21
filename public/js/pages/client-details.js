@@ -95,13 +95,11 @@ export function initClientDetails(userId, userRole) {
       return;
     }
     props.forEach((p) => {
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.textContent = p.name;
-      div.addEventListener('click', () => {
-        location.href = `property-details.html?clientId=${clientId}&propertyId=${p.id}&from=${from}`;
-      });
-      propertiesListDiv.appendChild(div);
+      const link = document.createElement('a');
+      link.className = 'card block';
+      link.textContent = p.name;
+      link.href = `property-details.html?clientId=${clientId}&propertyId=${p.id}&from=${from}`;
+      propertiesListDiv.appendChild(link);
     });
   }
   renderProperties();
