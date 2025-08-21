@@ -74,8 +74,9 @@ export function initPropertyDetails(userId, userRole) {
                 status: 'ativo',
                 createdAt: serverTimestamp()
             });
-            batch.update(clientDocRef, { cultureCount: increment(1) });
-            batch.update(propertyDocRef, { plotCount: increment(1) });
+            // Use set with merge to avoid errors if documents don't exist yet
+            batch.set(clientDocRef, { cultureCount: increment(1) }, { merge: true });
+            batch.set(propertyDocRef, { plotCount: increment(1) }, { merge: true });
             await batch.commit();
 
  newPlotNameInput.value = '';
