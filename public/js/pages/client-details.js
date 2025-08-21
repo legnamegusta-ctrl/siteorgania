@@ -28,13 +28,20 @@ function setFieldError(input, message) {
 export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(location.search);
   const clientId = params.get('clientId');
+  const from = params.get('from') || 'agronomo';
   if (!clientId) return;
 
   const client = getClients().find((c) => c.id === clientId);
   const clientNameHeader = document.getElementById('clientNameHeader');
   if (clientNameHeader) clientNameHeader.textContent = client?.name || 'Cliente';
 
-  document.getElementById('backBtn')?.addEventListener('click', () => history.back());
+  document.getElementById('backBtn')?.addEventListener('click', () => {
+    if (from === 'agronomo') {
+      location.href = 'dashboard-agronomo.html';
+    } else {
+      history.back();
+    }
+  });
 
   const summaryName = document.getElementById('summaryName');
   const summaryProperty = document.getElementById('summaryProperty');
@@ -67,6 +74,9 @@ export function initClientDetails(userId, userRole) {
       const div = document.createElement('div');
       div.className = 'card';
       div.textContent = p.name;
+      div.addEventListener('click', () => {
+        location.href = `property-details.html?clientId=${clientId}&propertyId=${p.id}&from=${from}`;
+      });
       propertiesListDiv.appendChild(div);
     });
   }

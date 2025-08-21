@@ -287,7 +287,7 @@ export function initClientList(userId, userRole) {
                 if (favoriteButton) { toggleFavorite(favoriteButton); return; }
                 const clientCardBody = e.target.closest('.client-card-body');
                 if (clientCardBody) {
-                    window.location.href = `client-details.html?clientId=${clientCardBody.dataset.clientId}`;
+                    window.location.href = `client-details.html?clientId=${clientCardBody.dataset.clientId}&from=agronomo`;
                 }
             });
         }
