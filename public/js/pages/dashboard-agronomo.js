@@ -37,8 +37,9 @@ export function initAgronomoDashboard() {
   let clientsFilter = localStorage.getItem(CLIENTS_FILTER_KEY) || 'active';
   let leadsSort = localStorage.getItem(LEADS_SORT_KEY) || 'az';
   let leadsFilter = localStorage.getItem(LEADS_FILTER_KEY) || 'all';
-  let visitsChart;
-  let salesByFormulaChart;
+  let chartSales;
+  let chartVisits;
+  let chartJsPromise;
 
   function runStagger() {
     const items = document.querySelectorAll('.stagger-item');
@@ -222,6 +223,7 @@ export function initAgronomoDashboard() {
     renderLeadsList();
     renderLeadsSummary();
     renderHomeKPIs();
+    renderHomeCharts();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
     );
@@ -559,6 +561,7 @@ export function initAgronomoDashboard() {
       }
       renderMap();
       renderHomeKPIs();
+      renderHomeCharts();
       renderAgendaHome(
         parseInt(document.getElementById('agendaPeriod')?.value || '7')
       );
@@ -639,7 +642,7 @@ export function initAgronomoDashboard() {
             note: saleData.note,
           });
           renderHomeKPIs();
-          renderSalesByFormula90d();
+          renderHomeCharts();
           updateLead(refId, { stage: 'Convertido' });
           renderMap();
         }
@@ -683,7 +686,7 @@ export function initAgronomoDashboard() {
     renderClientsList();
     renderLeadsList();
     renderHomeKPIs();
-    renderVisitsChart30d();
+    renderHomeCharts();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
     );
@@ -772,166 +775,280 @@ export function initAgronomoDashboard() {
     });
   }
 
-  function renderHomeKPIs() {
-    const leads = getLeads().filter((l) => l.stage !== 'Convertido').length;
-    document.getElementById('kpiLeadsTotal').textContent = String(leads);
-    document.getElementById('kpiClientsTotal').textContent = String(
-      getClients().length
-    );
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const visits30 = getVisits().filter((v) => {
-      const t = new Date(v.at).getTime();
-      return !isNaN(t) && t >= cutoff;
-    }).length;
-    document.getElementById('kpiVisits30d').textContent = String(visits30);
-    const sales30 = getSales().filter((s) => {
-      const t = new Date(s.createdAt).getTime();
-      return !isNaN(t) && t >= cutoff;
-    }).length;
-    document.getElementById('kpiSales30d').textContent = String(sales30);
+  function loadChartJs() {
+    if (window.Chart) return Promise.resolve();
+    if (chartJsPromise) return chartJsPromise;
+    chartJsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+    return chartJsPromise;
   }
 
-  function renderVisitsChart30d() {
-    const canvas = document.getElementById('chartVisits30d');
-    if (!canvas) return;
-    const wrapper = canvas.parentElement;
-    wrapper.querySelector('.chart-placeholder')?.remove();
-    if (typeof Chart === 'undefined') {
-      canvas.classList.add('hidden');
-      const msg = document.createElement('div');
-      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
-      msg.textContent = 'Gráfico indisponível';
-      wrapper.appendChild(msg);
-      return;
+  function renderHomeKPIs() {
+    const exec = () => {
+      const now = new Date();
+      const salesStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const salesTons = getSales()
+        .filter((s) => new Date(s.createdAt) >= salesStart)
+        .reduce((acc, s) => acc + (parseFloat(s.tons) || 0), 0);
+      document.getElementById('kpiSales').textContent = String(salesTons);
+
+      const visitsCut = now.getTime() - 28 * 24 * 60 * 60 * 1000;
+      const visitsCount = getVisits().filter((v) => {
+        const t = new Date(v.at).getTime();
+        return !isNaN(t) && t >= visitsCut;
+      }).length;
+      document.getElementById('kpiVisits').textContent = String(visitsCount);
+
+      const leadsCut = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+      const leadsCount = getLeads().filter((l) => {
+        const t = new Date(l.createdAt).getTime();
+        return !isNaN(t) && t >= leadsCut;
+      }).length;
+      document.getElementById('kpiLeads').textContent = String(leadsCount);
+
+      const agendaLimit = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const pend = getAgenda().filter((a) => {
+        if (a.done) return false;
+        const w = new Date(a.when);
+        return !isNaN(w) && w >= now && w <= agendaLimit;
+      }).length;
+      document.getElementById('kpiAgenda').textContent = String(pend);
+    };
+    if (!document.getElementById('kpiSales')?.textContent) {
+      setTimeout(exec, 300);
+    } else exec();
+  }
+
+  function monthLabels() {
+    const arr = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d
+        .toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })
+        .replace('.', '')
+        .toUpperCase();
+      arr.push({ key, label });
     }
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const visits = getVisits().filter((v) => {
-      const t = new Date(v.at).getTime();
-      return !isNaN(t) && t >= cutoff;
+    return arr;
+  }
+
+  function getISOWeek(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  }
+
+  function weekLabels() {
+    const res = [];
+    const now = new Date();
+    const monday = new Date(now);
+    const diff = (monday.getDay() + 6) % 7;
+    monday.setDate(monday.getDate() - diff);
+    monday.setHours(0, 0, 0, 0);
+    for (let i = 11; i >= 0; i--) {
+      const start = new Date(monday);
+      start.setDate(monday.getDate() - i * 7);
+      const year = start.getFullYear();
+      const week = getISOWeek(start);
+      res.push({
+        key: `${year}-${week}`,
+        label: `sem ${String(week).padStart(2, '0')}/${String(year).slice(-2)}`,
+      });
+    }
+    return res;
+  }
+
+  async function renderSalesChart() {
+    const container = document.getElementById('chartSales');
+    if (!container) return;
+    if (!chartSales) {
+      // skeleton already in HTML; wait before rendering
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    const months = monthLabels();
+    const map = new Map(months.map((m) => [m.key, 0]));
+    getSales().forEach((s) => {
+      const d = new Date(s.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const tons = parseFloat(s.tons) || 0;
+      if (map.has(key)) map.set(key, map.get(key) + tons);
     });
-    if (!visits.length) {
-      canvas.classList.add('hidden');
-      const msg = document.createElement('div');
-      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
-      msg.textContent = 'Sem visitas nos últimos 30 dias';
-      wrapper.appendChild(msg);
+    const labels = months.map((m) => m.label);
+    const data = months.map((m) => map.get(m.key));
+    if (!data.some((v) => v > 0)) {
+      container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem dados no período</div>';
       return;
     }
-    canvas.classList.remove('hidden');
-    const map = new Map();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      map.set(key, 0);
+    await loadChartJs();
+    if (!chartSales) {
+      container.innerHTML = '';
+      const canvas = document.createElement('canvas');
+      canvas.className = 'h-56 md:h-64 w-full';
+      canvas.setAttribute('aria-label', 'Gráfico de vendas dos últimos 6 meses');
+      container.appendChild(canvas);
+      chartSales = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              data,
+              backgroundColor: '#166534',
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label} — ${ctx.parsed.y} t`,
+              },
+            },
+            legend: { display: false },
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: '#4b5563',
+                font: { size: window.innerWidth < 360 ? 10 : 12 },
+              },
+              grid: { color: 'rgba(0,0,0,0.03)' },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#4b5563' },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
+          },
+        },
+      });
+    } else {
+      chartSales.data.labels = labels;
+      chartSales.data.datasets[0].data = data;
+      chartSales.update();
     }
-    visits.forEach((v) => {
-      const key = new Date(v.at).toISOString().slice(0, 10);
+  }
+
+  async function renderVisitsChart() {
+    const container = document.getElementById('chartVisits');
+    if (!container) return;
+    if (!chartVisits) {
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    const weeks = weekLabels();
+    const map = new Map(weeks.map((w) => [w.key, 0]));
+    getVisits().forEach((v) => {
+      const d = new Date(v.at);
+      const key = `${d.getFullYear()}-${getISOWeek(d)}`;
       if (map.has(key)) map.set(key, map.get(key) + 1);
     });
-    const labels = [];
-    const data = [];
-    map.forEach((val, key) => {
-      const d = new Date(key);
-      labels.push(
-        d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-      );
-      data.push(val);
-    });
-    visitsChart?.destroy();
-    visitsChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Visitas',
-            data,
-            borderColor: '#166534',
-            backgroundColor: 'rgba(22,101,52,0.1)',
-            tension: 0.1,
-            fill: true,
+    const labels = weeks.map((w) => w.label);
+    const data = weeks.map((w) => map.get(w.key));
+    if (!data.some((v) => v > 0)) {
+      container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem dados no período</div>';
+      return;
+    }
+    await loadChartJs();
+    if (!chartVisits) {
+      container.innerHTML = '';
+      const canvas = document.createElement('canvas');
+      canvas.className = 'h-56 md:h-64 w-full';
+      canvas.setAttribute('aria-label', 'Gráfico de visitas das últimas 12 semanas');
+      container.appendChild(canvas);
+      chartVisits = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              data,
+              borderColor: '#166534',
+              backgroundColor: 'rgba(22,101,52,0.1)',
+              tension: 0.3,
+              pointRadius: 3,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label} — ${ctx.parsed.y} visitas`,
+              },
+            },
+            legend: { display: false },
           },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0, color: '#4b5563' },
-            grid: { color: 'rgba(0,0,0,0.05)' },
-          },
-          x: {
-            ticks: { color: '#4b5563' },
-            grid: { color: 'rgba(0,0,0,0.03)' },
+          scales: {
+            x: {
+              ticks: {
+                color: '#4b5563',
+                font: { size: window.innerWidth < 360 ? 10 : 12 },
+              },
+              grid: { color: 'rgba(0,0,0,0.03)' },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#4b5563' },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+            },
           },
         },
-        plugins: { legend: { labels: { color: '#4b5563' } } },
-      },
+      });
+    } else {
+      chartVisits.data.labels = labels;
+      chartVisits.data.datasets[0].data = data;
+      chartVisits.update();
+    }
+  }
+
+  function renderLeadsFunnel() {
+    const container = document.getElementById('chartLeadsFunnel');
+    if (!container) return;
+    container.innerHTML = '';
+    const stages = [
+      'Novo',
+      'Interessado',
+      'Na dúvida',
+      'Convertido',
+      'Sem interesse',
+    ];
+    const counts = {};
+    stages.forEach((s) => (counts[s] = 0));
+    getLeads().forEach((l) => {
+      counts[l.stage] = (counts[l.stage] || 0) + 1;
+    });
+    stages.forEach((stage) => {
+      const div = document.createElement('div');
+      const active = stage !== 'Sem interesse';
+      div.className = `flex-1 rounded-xl p-3 text-center text-sm transition transform hover:scale-105 hover:shadow-lg bg-gradient-to-br ${
+        active ? 'from-emerald-100 to-emerald-200 text-emerald-700' : 'from-gray-200 to-gray-300 text-gray-600'
+      }`;
+      div.title = String(counts[stage]);
+      div.innerHTML = `<div class="text-lg font-bold">${counts[stage] || 0}</div><div class="text-xs">${stage}</div>`;
+      container.appendChild(div);
     });
   }
 
-  function renderSalesByFormula90d() {
-    const canvas = document.getElementById('chartSalesByFormula');
-    if (!canvas) return;
-    const wrapper = canvas.parentElement;
-    wrapper.querySelector('.chart-placeholder')?.remove();
-    if (typeof Chart === 'undefined') {
-      canvas.classList.add('hidden');
-      const msg = document.createElement('div');
-      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
-      msg.textContent = 'Gráfico indisponível';
-      wrapper.appendChild(msg);
-      return;
+  async function renderHomeCharts() {
+    const home = document.getElementById('view-home');
+    if (home?.classList.contains('hidden')) return;
+    try {
+      await renderSalesChart();
+      await renderVisitsChart();
+      renderLeadsFunnel();
+    } catch (e) {
+      console.error(e);
     }
-    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
-    const sales = getSales().filter((s) => {
-      const t = new Date(s.createdAt).getTime();
-      return !isNaN(t) && t >= cutoff;
-    });
-    if (!sales.length) {
-      canvas.classList.add('hidden');
-      const msg = document.createElement('div');
-      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
-      msg.textContent = 'Sem vendas nos últimos 90 dias';
-      wrapper.appendChild(msg);
-      return;
-    }
-    const totals = {};
-    sales.forEach((s) => {
-      const key = s.formulationName || s.formulationId || 'N/D';
-      const tons = parseFloat(s.tons) || 0;
-      totals[key] = (totals[key] || 0) + tons;
-    });
-    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-    const labels = entries.map((e) => e[0]);
-    const data = entries.map((e) => e[1]);
-    canvas.classList.remove('hidden');
-    salesByFormulaChart?.destroy();
-    salesByFormulaChart = new Chart(canvas, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Toneladas',
-            data,
-            backgroundColor: '#166534',
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#4b5563' },
-            grid: { color: 'rgba(0,0,0,0.05)' },
-          },
-          x: { ticks: { color: '#4b5563' }, grid: { color: 'rgba(0,0,0,0.03)' } },
-        },
-        plugins: { legend: { labels: { color: '#4b5563' } } },
-      },
-    });
   }
 
   function bindHomeShortcuts() {
@@ -971,15 +1088,6 @@ export function initAgronomoDashboard() {
           );
         }
       });
-  }
-
-  function renderHomeCharts() {
-    try {
-      renderVisitsChart30d();
-      renderSalesByFormula90d();
-    } catch (e) {
-      console.error(e);
-    }
   }
 
   // ===== Agenda Home =====
