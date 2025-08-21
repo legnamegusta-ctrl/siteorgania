@@ -15,8 +15,7 @@ import { getClients, addClient } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
 import { getVisits, addVisit } from '../stores/visitsStore.js';
 import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
-import { addSale } from '../stores/salesStore.js';
-import { countVisitsLast30d, sumSalesLast30d } from '../utils/metrics.js';
+import { getSales, addSale } from '../stores/salesStore.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
@@ -38,6 +37,8 @@ export function initAgronomoDashboard() {
   let clientsFilter = localStorage.getItem(CLIENTS_FILTER_KEY) || 'active';
   let leadsSort = localStorage.getItem(LEADS_SORT_KEY) || 'az';
   let leadsFilter = localStorage.getItem(LEADS_FILTER_KEY) || 'all';
+  let visitsChart;
+  let salesByFormulaChart;
 
   function clearErrors(form) {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
@@ -210,7 +211,7 @@ export function initAgronomoDashboard() {
     renderMap();
     renderLeadsList();
     renderLeadsSummary();
-    renderHomeMetrics();
+    renderHomeKPIs();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
     );
@@ -547,7 +548,7 @@ export function initAgronomoDashboard() {
         }
       }
       renderMap();
-      renderHomeMetrics();
+      renderHomeKPIs();
       renderAgendaHome(
         parseInt(document.getElementById('agendaPeriod')?.value || '7')
       );
@@ -627,6 +628,8 @@ export function initAgronomoDashboard() {
             tons: saleData.tons,
             note: saleData.note,
           });
+          renderHomeKPIs();
+          renderSalesByFormula90d();
           updateLead(refId, { stage: 'Convertido' });
           renderMap();
         }
@@ -669,7 +672,8 @@ export function initAgronomoDashboard() {
     form.reset();
     renderClientsList();
     renderLeadsList();
-    renderHomeMetrics();
+    renderHomeKPIs();
+    renderVisitsChart30d();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
     );
@@ -758,30 +762,191 @@ export function initAgronomoDashboard() {
     });
   }
 
-  function renderHomeMetrics() {
-    document.getElementById('metricClients').textContent = String(
+  function renderHomeKPIs() {
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido').length;
+    document.getElementById('kpiLeadsTotal').textContent = String(leads);
+    document.getElementById('kpiClientsTotal').textContent = String(
       getClients().length
     );
-    document.getElementById('metricVisits').textContent = String(
-      countVisitsLast30d()
-    );
-    const sales = sumSalesLast30d();
-    document.getElementById('metricSales').textContent = sales.toLocaleString(
-      'pt-BR',
-      { maximumFractionDigits: 2 }
-    );
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const visits30 = getVisits().filter((v) => {
+      const t = new Date(v.at).getTime();
+      return !isNaN(t) && t >= cutoff;
+    }).length;
+    document.getElementById('kpiVisits30d').textContent = String(visits30);
+    const sales30 = getSales().filter((s) => {
+      const t = new Date(s.createdAt).getTime();
+      return !isNaN(t) && t >= cutoff;
+    }).length;
+    document.getElementById('kpiSales30d').textContent = String(sales30);
   }
 
-  function bindHomeQuickActions() {
+  function renderVisitsChart30d() {
+    const canvas = document.getElementById('chartVisits30d');
+    if (!canvas) return;
+    const wrapper = canvas.parentElement;
+    wrapper.querySelector('.chart-placeholder')?.remove();
+    if (typeof Chart === 'undefined') {
+      canvas.classList.add('hidden');
+      const msg = document.createElement('div');
+      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
+      msg.textContent = 'Gráfico indisponível';
+      wrapper.appendChild(msg);
+      return;
+    }
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const visits = getVisits().filter((v) => {
+      const t = new Date(v.at).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+    if (!visits.length) {
+      canvas.classList.add('hidden');
+      const msg = document.createElement('div');
+      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
+      msg.textContent = 'Sem visitas nos últimos 30 dias';
+      wrapper.appendChild(msg);
+      return;
+    }
+    canvas.classList.remove('hidden');
+    const map = new Map();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      map.set(key, 0);
+    }
+    visits.forEach((v) => {
+      const key = new Date(v.at).toISOString().slice(0, 10);
+      if (map.has(key)) map.set(key, map.get(key) + 1);
+    });
+    const labels = [];
+    const data = [];
+    map.forEach((val, key) => {
+      const d = new Date(key);
+      labels.push(
+        d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      );
+      data.push(val);
+    });
+    visitsChart?.destroy();
+    visitsChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Visitas',
+            data,
+            borderColor: '#16a34a',
+            backgroundColor: '#bbf7d0',
+            tension: 0.1,
+            fill: true,
+          },
+        ],
+      },
+      options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+    });
+  }
+
+  function renderSalesByFormula90d() {
+    const canvas = document.getElementById('chartSalesByFormula');
+    if (!canvas) return;
+    const wrapper = canvas.parentElement;
+    wrapper.querySelector('.chart-placeholder')?.remove();
+    if (typeof Chart === 'undefined') {
+      canvas.classList.add('hidden');
+      const msg = document.createElement('div');
+      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
+      msg.textContent = 'Gráfico indisponível';
+      wrapper.appendChild(msg);
+      return;
+    }
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+    const sales = getSales().filter((s) => {
+      const t = new Date(s.createdAt).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+    if (!sales.length) {
+      canvas.classList.add('hidden');
+      const msg = document.createElement('div');
+      msg.className = 'chart-placeholder text-center text-sm text-gray-500';
+      msg.textContent = 'Sem vendas nos últimos 90 dias';
+      wrapper.appendChild(msg);
+      return;
+    }
+    const totals = {};
+    sales.forEach((s) => {
+      const key = s.formulationName || s.formulationId || 'N/D';
+      const tons = parseFloat(s.tons) || 0;
+      totals[key] = (totals[key] || 0) + tons;
+    });
+    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const labels = entries.map((e) => e[0]);
+    const data = entries.map((e) => e[1]);
+    canvas.classList.remove('hidden');
+    salesByFormulaChart?.destroy();
+    salesByFormulaChart = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Toneladas',
+            data,
+            backgroundColor: '#16a34a',
+          },
+        ],
+      },
+      options: { scales: { y: { beginAtZero: true } } },
+    });
+  }
+
+  function bindHomeShortcuts() {
     document
-      .getElementById('chipAddCliente')
+      .getElementById('quickHomeAddLead')
+      ?.addEventListener('click', () => {
+        toggleModal(addLeadModal, true);
+        ensureLeadMap();
+      });
+    document
+      .getElementById('quickHomeAddClient')
       ?.addEventListener('click', () => openQuickCreateModal('cliente'));
     document
-      .getElementById('chipAddLead')
-      ?.addEventListener('click', () => openQuickCreateModal('lead'));
-    document
-      .getElementById('chipRegVisit')
+      .getElementById('quickHomeAddVisit')
       ?.addEventListener('click', () => openVisitModal());
+    document
+      .getElementById('quickHomeOpenMap')
+      ?.addEventListener('click', () => {
+        location.hash = '#mapa';
+      });
+    document
+      .getElementById('quickHomeOpenClients')
+      ?.addEventListener('click', () => {
+        location.hash = '#clientes';
+      });
+    document
+      .getElementById('quickHomeGotoAgenda')
+      ?.addEventListener('click', () => {
+        location.hash = '#home';
+        const ag = document.getElementById('agendaHome');
+        ag?.scrollIntoView({ behavior: 'smooth' });
+        if (ag) {
+          ag.classList.add('ring', 'ring-green-500');
+          setTimeout(
+            () => ag.classList.remove('ring', 'ring-green-500'),
+            2000
+          );
+        }
+      });
+  }
+
+  function renderHomeCharts() {
+    try {
+      renderVisitsChart30d();
+      renderSalesByFormula90d();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   // ===== Agenda Home =====
@@ -842,7 +1007,7 @@ export function initAgronomoDashboard() {
       btn.addEventListener('click', () => {
         updateAgenda(it.id, { done: true });
         renderAgendaHome(parseInt(select.value));
-        renderHomeMetrics();
+        renderHomeKPIs();
       });
       li.appendChild(info);
       li.appendChild(btn);
@@ -886,6 +1051,10 @@ export function initAgronomoDashboard() {
     }
   }
   function handleHashChange() {
+    if (location.hash === '#home') {
+      renderHomeKPIs();
+      renderHomeCharts();
+    }
     if (location.hash === '#mapa') {
       const focusId = sessionStorage.getItem('focusClientId');
       if (focusId) {
@@ -915,9 +1084,10 @@ export function initAgronomoDashboard() {
   renderClientsList();
   renderLeadsList();
   bindAgendaHomeEvents();
-  bindHomeQuickActions();
+  bindHomeShortcuts();
   renderAgendaHome(7);
-  renderHomeMetrics();
+  renderHomeKPIs();
+  renderHomeCharts();
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange();
 }

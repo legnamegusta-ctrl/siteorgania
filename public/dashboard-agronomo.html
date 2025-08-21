@@ -20,27 +20,81 @@
   <main id="agroMain" class="pb-16">
     <section id="view-home" data-view>
       <h2 class="p-4 font-semibold">Home</h2>
-      <div id="homeMetrics" class="p-4 grid gap-4 sm:grid-cols-3">
+      <div
+        id="homeKpis"
+        class="px-4 grid grid-cols-2 gap-4 sm:grid-cols-4"
+      >
         <div class="bg-white p-4 rounded shadow text-center">
-          <div class="text-sm text-gray-500">Clientes ativos</div>
-          <div id="metricClients" class="text-2xl font-bold">0</div>
-          <div class="text-xs text-gray-600">total</div>
+          <div class="text-sm text-gray-500">Leads</div>
+          <div id="kpiLeadsTotal" class="text-2xl font-bold">0</div>
         </div>
         <div class="bg-white p-4 rounded shadow text-center">
-          <div class="text-sm text-gray-500">Visitas</div>
-          <div id="metricVisits" class="text-2xl font-bold">0</div>
-          <div class="text-xs text-gray-600">últimos 30 dias</div>
+          <div class="text-sm text-gray-500">Clientes</div>
+          <div id="kpiClientsTotal" class="text-2xl font-bold">0</div>
         </div>
         <div class="bg-white p-4 rounded shadow text-center">
-          <div class="text-sm text-gray-500">Vendas (t)</div>
-          <div id="metricSales" class="text-2xl font-bold">0</div>
-          <div class="text-xs text-gray-600">últimos 30 dias</div>
+          <div class="text-sm text-gray-500">Visitas (30d)</div>
+          <div id="kpiVisits30d" class="text-2xl font-bold">0</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+          <div class="text-sm text-gray-500">Vendas (30d)</div>
+          <div id="kpiSales30d" class="text-2xl font-bold">0</div>
         </div>
       </div>
-      <div id="homeQuickActions" class="px-4 flex gap-2">
-        <button id="chipAddCliente" class="chip">Adicionar cliente</button>
-        <button id="chipAddLead" class="chip">Adicionar lead</button>
-        <button id="chipRegVisit" class="chip">Registrar visita</button>
+      <div
+        id="homeShortcuts"
+        class="p-4 grid grid-cols-2 gap-4 md:grid-cols-4"
+      >
+        <button
+          id="quickHomeAddLead"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-user-plus text-lg"></i>
+          <span class="text-xs mt-1">Adicionar Lead</span>
+        </button>
+        <button
+          id="quickHomeAddClient"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-user text-lg"></i>
+          <span class="text-xs mt-1">Adicionar Cliente</span>
+        </button>
+        <button
+          id="quickHomeAddVisit"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-map-marker-alt text-lg"></i>
+          <span class="text-xs mt-1">Registrar Visita</span>
+        </button>
+        <button
+          id="quickHomeOpenMap"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-map text-lg"></i>
+          <span class="text-xs mt-1">Abrir Mapa</span>
+        </button>
+        <button
+          id="quickHomeOpenClients"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-users text-lg"></i>
+          <span class="text-xs mt-1">Abrir Clientes</span>
+        </button>
+        <button
+          id="quickHomeGotoAgenda"
+          class="p-4 bg-white rounded shadow flex flex-col items-center justify-center hover:bg-gray-50"
+        >
+          <i class="fas fa-calendar-alt text-lg"></i>
+          <span class="text-xs mt-1">Agenda (7d)</span>
+        </button>
+      </div>
+      <div id="homeCharts" class="p-4 grid gap-4 md:grid-cols-2">
+        <div class="bg-white p-4 rounded shadow">
+          <canvas id="chartVisits30d"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <canvas id="chartSalesByFormula"></canvas>
+        </div>
       </div>
       <div id="agendaHome" class="p-4">
         <div class="flex items-center justify-between mb-2">
@@ -303,6 +357,7 @@
   <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="module" src="js/pages/dashboard-agronomo.js"></script>
 </body>
 </html>
