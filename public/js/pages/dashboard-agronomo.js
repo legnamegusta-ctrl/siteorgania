@@ -14,6 +14,7 @@ import { getProperties, addProperty } from '../stores/propertiesStore.js';
 import { getVisits, addVisit } from '../stores/visitsStore.js';
 import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
 import { addSale } from '../stores/salesStore.js';
+import { countVisitsLast30d, sumSalesLast30d } from '../utils/metrics.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
@@ -181,6 +182,10 @@ export function initAgronomoDashboard() {
     });
     console.log('[LEADS] novo', newLead.id);
     renderMap();
+    renderHomeMetrics();
+    renderAgendaHome(
+      parseInt(document.getElementById('agendaPeriod')?.value || '7')
+    );
     if (newLead.lat && newLead.lng) setMapCenter(newLead.lat, newLead.lng);
     location.hash = '#mapa';
     toggleModal(addLeadModal, false);
@@ -421,6 +426,10 @@ export function initAgronomoDashboard() {
         }
       }
       renderMap();
+      renderHomeMetrics();
+      renderAgendaHome(
+        parseInt(document.getElementById('agendaPeriod')?.value || '7')
+      );
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
       clearErrors(form);
@@ -530,6 +539,10 @@ export function initAgronomoDashboard() {
     clearErrors(form);
     form.reset();
     renderClientsList();
+    renderHomeMetrics();
+    renderAgendaHome(
+      parseInt(document.getElementById('agendaPeriod')?.value || '7')
+    );
     if (type === 'lead') {
       const lead = getLeads().find((l) => l.id === refId);
       if (lead && lead.lat && lead.lng) {
@@ -613,6 +626,32 @@ export function initAgronomoDashboard() {
     });
   }
 
+  function renderHomeMetrics() {
+    document.getElementById('metricClients').textContent = String(
+      getClients().length
+    );
+    document.getElementById('metricVisits').textContent = String(
+      countVisitsLast30d()
+    );
+    const sales = sumSalesLast30d();
+    document.getElementById('metricSales').textContent = sales.toLocaleString(
+      'pt-BR',
+      { maximumFractionDigits: 2 }
+    );
+  }
+
+  function bindHomeQuickActions() {
+    document
+      .getElementById('chipAddCliente')
+      ?.addEventListener('click', () => openQuickCreateModal('cliente'));
+    document
+      .getElementById('chipAddLead')
+      ?.addEventListener('click', () => openQuickCreateModal('lead'));
+    document
+      .getElementById('chipRegVisit')
+      ?.addEventListener('click', () => openVisitModal());
+  }
+
   // ===== Agenda Home =====
   function renderAgendaHome(periodDays = 7) {
     const select = document.getElementById('agendaPeriod');
@@ -671,6 +710,7 @@ export function initAgronomoDashboard() {
       btn.addEventListener('click', () => {
         updateAgenda(it.id, { done: true });
         renderAgendaHome(parseInt(select.value));
+        renderHomeMetrics();
       });
       li.appendChild(info);
       li.appendChild(btn);
@@ -738,7 +778,9 @@ export function initAgronomoDashboard() {
   bindClientsEvents();
   renderClientsList();
   bindAgendaHomeEvents();
+  bindHomeQuickActions();
   renderAgendaHome(7);
+  renderHomeMetrics();
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange();
 }
