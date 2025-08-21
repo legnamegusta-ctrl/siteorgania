@@ -21,28 +21,58 @@
     <section id="view-home" data-view>
       <h2 class="p-4 text-xl font-semibold tracking-tight text-gray-800">Home</h2>
       <div
-        id="homeKpis"
-        class="px-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        id="kpiGrid"
+        class="px-4 grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <div class="kpi-icon"><i class="fas fa-user-plus" aria-hidden="true"></i></div>
-          <div id="kpiLeadsTotal" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
-          <div class="text-sm text-gray-500">Leads</div>
+        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
+          <div id="kpiSales" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
+          <div class="text-sm text-gray-500">Vendas (t)</div>
         </div>
-        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <div class="kpi-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
-          <div id="kpiClientsTotal" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
-          <div class="text-sm text-gray-500">Clientes</div>
+        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
+          <div id="kpiVisits" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
+          <div class="text-sm text-gray-500">Visitas</div>
         </div>
-        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <div class="kpi-icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></div>
-          <div id="kpiVisits30d" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
-          <div class="text-sm text-gray-500">Visitas (30d)</div>
+        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
+          <div id="kpiLeads" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
+          <div class="text-sm text-gray-500">Novos Leads</div>
         </div>
-        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <div class="kpi-icon"><i class="fas fa-shopping-cart" aria-hidden="true"></i></div>
-          <div id="kpiSales30d" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
-          <div class="text-sm text-gray-500">Vendas (30d)</div>
+        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
+          <div id="kpiAgenda" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
+          <div class="text-sm text-gray-500">Pendências (7d)</div>
+        </div>
+      </div>
+
+      <div
+        id="chartsSection"
+        class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
+        <div
+          id="chartSales"
+          class="rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
+        >
+          <div class="p-4 space-y-2">
+            <div class="skeleton h-32 w-full"></div>
+            <div class="skeleton h-4 w-3/4"></div>
+            <div class="skeleton h-4 w-1/2"></div>
+          </div>
+        </div>
+        <div
+          id="chartVisits"
+          class="rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
+        >
+          <div class="p-4 space-y-2">
+            <div class="skeleton h-32 w-full"></div>
+            <div class="skeleton h-4 w-3/4"></div>
+            <div class="skeleton h-4 w-1/2"></div>
+          </div>
+        </div>
+        <div
+          id="chartLeadsFunnel"
+          class="flex gap-2 p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
+        >
+          <div class="skeleton h-20 flex-1"></div>
+          <div class="skeleton h-20 flex-1"></div>
+          <div class="skeleton h-20 flex-1"></div>
         </div>
       </div>
       <div
@@ -118,18 +148,6 @@
           </svg>
           <span class="text-sm text-gray-500">Agenda (7d)</span>
         </button>
-      </div>
-      <div id="homeCharts" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card-soft min-w-0 shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <h4 class="text-xl font-semibold tracking-tight mb-2">Visitas nos últimos 30 dias</h4>
-          <canvas id="chartVisits30d" class="h-64 md:h-72"></canvas>
-          <div class="text-sm text-gray-500 mt-2 text-center">Últimos 30 dias</div>
-        </div>
-        <div class="card-soft min-w-0 shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
-          <h4 class="text-xl font-semibold tracking-tight mb-2">Vendas por fórmula (90d)</h4>
-          <canvas id="chartSalesByFormula" class="h-64 md:h-72"></canvas>
-          <div class="text-sm text-gray-500 mt-2 text-center">Últimos 90 dias</div>
-        </div>
       </div>
       <div id="agendaHome" class="p-4 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
         <div class="flex items-center justify-between mb-2">
