@@ -1,5 +1,6 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
+import { showToast } from '../services/ui.js';
 import {
   initAgroMap,
   setMapCenter,
@@ -77,7 +78,7 @@ export function initAgronomoDashboard() {
   }
 
   async function renderMap() {
-    const leads = getLeads();
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
     const clients = getClientsWithProps();
     plotLeads(leads);
     plotClients(clients);
@@ -231,7 +232,10 @@ export function initAgronomoDashboard() {
 
   function populateVisitSelect(type) {
     visitSelect.innerHTML = '';
-    const items = type === 'lead' ? getLeads() : getClients();
+    const items =
+      type === 'lead'
+        ? getLeads().filter((l) => l.stage !== 'Convertido')
+        : getClients();
     items.forEach((it) => {
       const opt = document.createElement('option');
       opt.value = it.id;
@@ -358,7 +362,7 @@ export function initAgronomoDashboard() {
   }
 
   function renderLeadsSummary() {
-    const leads = getLeads();
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
     const counts = { 'Interessado': 0, 'Na dúvida': 0, 'Sem interesse': 0 };
     leads.forEach((l) => {
       if (counts[l.interest] >= 0) counts[l.interest]++;
@@ -374,7 +378,7 @@ export function initAgronomoDashboard() {
     if (!listEl || !emptyEl) return;
     const search =
       document.getElementById('leadsSearch')?.value.toLowerCase().trim() || '';
-    const leads = getLeads();
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
     const visits = getVisits();
     let items = leads.map((l) => {
       const vList = visits.filter((v) => v.type === 'lead' && v.refId === l.id);
@@ -648,10 +652,18 @@ export function initAgronomoDashboard() {
       visit.leadName = lead?.name;
     } else {
       if (!valid) return;
+      const client = getClients().find((c) => c.id === refId);
+      visit.clientName = client?.name;
     }
     if (!valid) return;
+    const pos = await getCurrentPositionSafe();
+    if (pos) {
+      visit.lat = pos.lat;
+      visit.lng = pos.lng;
+    }
     const saved = addVisit(visit);
     console.log('[VISITS] novo', saved.id);
+    showToast('Visita registrada com sucesso!', 'success');
     toggleModal(visitModal, false);
     clearErrors(form);
     form.reset();
@@ -783,7 +795,7 @@ export function initAgronomoDashboard() {
     const agenda = getAgenda();
     const now = new Date();
     const limit = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
-    const leads = getLeads();
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
     const clients = getClients();
     const items = agenda
       .filter((it) => {
