@@ -47,7 +47,7 @@ export function plotClients(clients) {
         title: c.name || 'Cliente',
       }).addTo(clientsLayer);
       marker.bindPopup(
-        `<b>${c.name || 'Cliente'}</b><br>${c.farmName || ''}<br><a href="client-details.html?clientId=${c.id}">Abrir cliente</a>`
+        `<b>${c.name || 'Cliente'}</b><br>${c.farmName || ''}<br><a href="client-details.html?clientId=${c.id}&from=agronomo">Abrir cliente</a>`
       );
       clientMarkers[c.id] = marker;
     });
