@@ -1125,3 +1125,10 @@ body.has-modal{overflow:hidden;}
 .timeline-item{position:relative;margin-bottom:1rem;}
 .timeline-badge{position:absolute;left:-0.75rem;top:0.25rem;width:0.5rem;height:0.5rem;border-radius:50%;background:var(--brand-green);}
 .card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:1rem;}
+/* Utility classes for Agronomo Home */
+.kpi-card { @apply bg-white border border-gray-100 rounded-2xl p-4 md:p-5 shadow-sm; }
+.kpi-icon { @apply w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-700; }
+.kpi-value:empty { @apply skeleton h-8 w-16; }
+.chip-action { @apply inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:shadow transition min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/40; }
+.card-soft { @apply bg-white border border-gray-100 rounded-2xl p-4 md:p-5 shadow-sm; }
+.skeleton { @apply animate-pulse bg-gray-200 rounded; }
