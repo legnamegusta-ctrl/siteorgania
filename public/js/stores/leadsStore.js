@@ -12,6 +12,7 @@ export function addLead(lead) {
     createdAt: now,
     updatedAt: now,
     stage: 'Novo',
+    interest: 'Na dúvida',
     lastVisitAt: null,
     nextAction: null,
     syncFlag: true,

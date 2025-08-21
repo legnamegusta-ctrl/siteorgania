@@ -60,18 +60,50 @@
     </section>
     <section id="view-clientes" data-view class="hidden">
       <h2 class="p-4 font-semibold">Clientes</h2>
+      <div id="clientsSummary" class="px-4 text-sm text-gray-600">Ativos: <span id="clientsTotal">0</span></div>
       <div class="p-4 flex gap-2">
-        <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar" />
-        <select id="clientsFilter" class="input w-56">
-          <option value="all">Todos</option>
-          <option value="recent">Com visitas nos últimos 30 dias</option>
-          <option value="stale">Sem contato há 30+ dias</option>
+        <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
+        <select id="clientsSort" class="input w-40">
+          <option value="az">A-Z</option>
+          <option value="recent">Mais recentes</option>
+          <option value="visits">Mais visitas</option>
         </select>
       </div>
-      <div id="clientsList" class="p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div class="px-4 flex gap-2" id="clientsFilterChips">
+        <button data-filter="active" class="chip chip--filter filter-active">Ativos</button>
+        <button data-filter="all" class="chip chip--filter">Todos</button>
+      </div>
+      <div id="clientsList" class="p-4 divide-y bg-white"></div>
       <div id="clientsEmpty" class="p-4 empty-state hidden text-center">
         <p class="mb-2">Nenhum cliente encontrado.</p>
         <button id="btnClientsQuickAdd" class="btn-primary">Cadastrar cliente</button>
+      </div>
+    </section>
+    <section id="view-leads" data-view class="hidden">
+      <h2 class="p-4 font-semibold">Leads</h2>
+      <div id="leadsSummary" class="px-4 text-sm text-gray-600 flex gap-4">
+        <div>Interessado: <span id="leadCountInteressado">0</span></div>
+        <div>Na dúvida: <span id="leadCountNaDuvida">0</span></div>
+        <div>Sem interesse: <span id="leadCountSemInteresse">0</span></div>
+      </div>
+      <div class="p-4 flex gap-2">
+        <input id="leadsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
+        <select id="leadsSort" class="input w-40">
+          <option value="az">A-Z</option>
+          <option value="recent">Mais recentes</option>
+          <option value="visits">Mais visitas</option>
+        </select>
+      </div>
+      <div class="px-4 flex gap-2" id="leadsFilterChips">
+        <button data-filter="all" class="chip chip--filter filter-active">Todos</button>
+        <button data-filter="Interessado" class="chip chip--filter">Interessado</button>
+        <button data-filter="Na dúvida" class="chip chip--filter">Na dúvida</button>
+        <button data-filter="Sem interesse" class="chip chip--filter">Sem interesse</button>
+      </div>
+      <div id="leadsList" class="p-4 divide-y bg-white"></div>
+      <div id="leadsEmpty" class="p-4 empty-state hidden text-center">
+        <p class="mb-2">Nenhum lead encontrado.</p>
+        <button id="btnLeadsQuickAdd" class="btn-primary">Cadastrar lead</button>
       </div>
     </section>
     <section id="view-mapa" data-view class="hidden">
@@ -90,6 +122,7 @@
   <nav id="bottomBar" class="bottom-bar">
     <button data-nav="#home"><i class="fas fa-home"></i></button>
     <button data-nav="#clientes"><i class="fas fa-users"></i></button>
+    <button data-nav="#leads"><i class="fas fa-user-plus"></i></button>
     <button id="navPlus" class="plus-btn"><i class="fas fa-plus"></i></button>
     <button data-nav="#mapa"><i class="fas fa-map"></i></button>
     <button data-nav="#ajustes"><i class="fas fa-cog"></i></button>
