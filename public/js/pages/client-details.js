@@ -1,4 +1,5 @@
 import { getClients } from '../stores/clientsStore.js';
+import { getLeads } from '../stores/leadsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
 import { getVisits } from '../stores/visitsStore.js';
 import { getSalesByClient, addSale } from '../stores/salesStore.js';
@@ -28,8 +29,31 @@ function setFieldError(input, message) {
 export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(location.search);
   const clientId = params.get('clientId');
+  const leadId = params.get('leadId');
   const from = params.get('from') || 'agronomo';
-  if (!clientId) return;
+  if (!clientId && !leadId) return;
+
+  if (leadId) {
+    const lead = getLeads().find((l) => l.id === leadId);
+    const header = document.getElementById('clientNameHeader');
+    if (header) header.textContent = lead?.name || 'Lead';
+    document.getElementById('backBtn')?.addEventListener('click', () => {
+      location.href = 'dashboard-agronomo.html#leads';
+    });
+    const summaryName = document.getElementById('summaryName');
+    const summaryProperty = document.getElementById('summaryProperty');
+    const summaryInterest = document.getElementById('summaryInterest');
+    if (summaryName) summaryName.textContent = lead?.name || '';
+    if (summaryProperty) summaryProperty.textContent = lead?.farmName || '—';
+    if (summaryInterest) summaryInterest.textContent = lead?.interest
+      ? `Interesse: ${lead.interest}`
+      : '';
+    document.getElementById('propertiesSection')?.classList.add('hidden');
+    document.getElementById('btnNewSale')?.classList.add('hidden');
+    document.getElementById('btnRegisterVisit')?.classList.add('hidden');
+    renderLeadTimeline(leadId);
+    return;
+  }
 
   const client = getClients().find((c) => c.id === clientId);
   const clientNameHeader = document.getElementById('clientNameHeader');
@@ -114,6 +138,33 @@ export function initClientDetails(userId, userRole) {
     toggleModal(addModal, false);
     renderProperties();
   });
+
+  function renderLeadTimeline(id) {
+    const container = document.getElementById('historyTimeline');
+    container.innerHTML = '';
+    const visits = getVisits().filter((v) => v.type === 'lead' && v.refId === id);
+    if (!visits.length) {
+      container.innerHTML = '<p class="text-gray-500">Sem histórico.</p>';
+      return;
+    }
+    const items = visits.sort((a, b) => new Date(b.at) - new Date(a.at));
+    const ul = document.createElement('ul');
+    ul.className = 'timeline';
+    items.forEach((v) => {
+      const li = document.createElement('li');
+      li.className = 'timeline-item';
+      const badge = document.createElement('span');
+      badge.className = 'timeline-badge';
+      const card = document.createElement('div');
+      card.className = 'card ml-4';
+      const dateStr = new Date(v.at).toLocaleString('pt-BR');
+      card.innerHTML = `<div class="font-semibold">Visita</div><div class="text-sm text-gray-500">${dateStr}</div><div>${v.note || ''}</div><div class="text-xs text-gray-500">${v.interest || ''}</div>`;
+      li.appendChild(badge);
+      li.appendChild(card);
+      ul.appendChild(li);
+    });
+    container.appendChild(ul);
+  }
 
   function renderTimeline() {
     const container = document.getElementById('historyTimeline');

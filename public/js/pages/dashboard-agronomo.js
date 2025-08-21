@@ -28,6 +28,14 @@ export function initAgronomoDashboard() {
 
   let currentMapFilter = 'all';
   let highlightClientId = null;
+  const CLIENTS_SORT_KEY = 'agro.clients.sort';
+  const CLIENTS_FILTER_KEY = 'agro.clients.filter';
+  const LEADS_SORT_KEY = 'agro.leads.sort';
+  const LEADS_FILTER_KEY = 'agro.leads.filter';
+  let clientsSort = localStorage.getItem(CLIENTS_SORT_KEY) || 'az';
+  let clientsFilter = localStorage.getItem(CLIENTS_FILTER_KEY) || 'active';
+  let leadsSort = localStorage.getItem(LEADS_SORT_KEY) || 'az';
+  let leadsFilter = localStorage.getItem(LEADS_FILTER_KEY) || 'all';
 
   function clearErrors(form) {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
@@ -182,6 +190,8 @@ export function initAgronomoDashboard() {
     });
     console.log('[LEADS] novo', newLead.id);
     renderMap();
+    renderLeadsList();
+    renderLeadsSummary();
     renderHomeMetrics();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
@@ -232,105 +242,192 @@ export function initAgronomoDashboard() {
     toggleModal(quickCreateModal, true);
   }
 
+  function renderClientsSummary() {
+    const clients = getClients();
+    const totalActive = clients.filter((c) => c.status !== 'inativo').length;
+    const el = document.getElementById('clientsTotal');
+    if (el) el.textContent = String(totalActive);
+  }
+
   function renderClientsList(highlightId) {
     const listEl = document.getElementById('clientsList');
     const emptyEl = document.getElementById('clientsEmpty');
     if (!listEl || !emptyEl) return;
-    const searchEl = document.getElementById('clientsSearch');
-    const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
-    const filter = document.getElementById('clientsFilter')?.value || 'all';
+    const search =
+      document.getElementById('clientsSearch')?.value.toLowerCase().trim() || '';
     const clients = getClients();
     const properties = getProperties();
     const visits = getVisits();
-    const now = Date.now();
-    const cutoff = now - 30 * 24 * 60 * 60 * 1000;
-    const data = clients.map((c) => {
+    let items = clients.map((c) => {
       const prop = properties.find((p) => p.clientId === c.id);
-      const v = visits
-        .filter((vi) => vi.type === 'cliente' && vi.refId === c.id)
-        .sort((a, b) => new Date(b.at) - new Date(a.at))[0];
-      const lastTime = v ? new Date(v.at).getTime() : 0;
-      return { client: c, prop, lastVisit: v, lastTime };
+      const vList = visits.filter(
+        (vi) => vi.type === 'cliente' && vi.refId === c.id
+      );
+      const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
+      return {
+        client: c,
+        prop,
+        visitCount: vList.length,
+        lastTime: last ? new Date(last.at).getTime() : 0,
+      };
     });
-    let items = data.filter((it) => {
-      if (search) {
-        const name = it.client.name?.toLowerCase() || '';
-        const farm = it.prop?.name?.toLowerCase() || '';
-        if (!name.includes(search) && !farm.includes(search)) return false;
-      }
-      if (filter === 'recent') return it.lastTime >= cutoff;
-      if (filter === 'stale') return it.lastTime === 0 || it.lastTime < cutoff;
-      return true;
+    if (clientsFilter === 'active')
+      items = items.filter((it) => it.client.status !== 'inativo');
+    if (search)
+      items = items.filter((it) =>
+        (it.client.name || '').toLowerCase().includes(search)
+      );
+    items.sort((a, b) => {
+      if (clientsSort === 'recent') return b.lastTime - a.lastTime;
+      if (clientsSort === 'visits') return b.visitCount - a.visitCount;
+      return (a.client.name || '').localeCompare(b.client.name || '');
     });
-    items.sort(
-      (a, b) =>
-        b.lastTime - a.lastTime ||
-        (a.client.name || '').localeCompare(b.client.name || '')
-    );
     listEl.innerHTML = '';
     items.forEach((it) => {
-      const card = document.createElement('div');
-      card.className = 'client-card-item bg-white p-4 rounded shadow flex flex-col gap-1';
-      const title = document.createElement('h3');
-      title.className = 'font-semibold';
-      title.textContent = it.client.name || '(sem nome)';
-      const sub = document.createElement('div');
-      sub.className = 'text-sm text-gray-600';
-      let subtitle = '—';
-      if (it.prop) {
-        subtitle = it.prop.name;
-        const loc = [];
-        if (it.prop.city) loc.push(it.prop.city);
-        if (it.prop.state) loc.push(it.prop.state);
-        if (loc.length) subtitle += ` - ${loc.join('/')}`;
-      }
-      sub.textContent = subtitle;
-      const last = document.createElement('div');
-      last.className = 'text-xs text-gray-500';
-      last.textContent = `Último contato: ${
-        it.lastVisit ? new Date(it.lastVisit.at).toLocaleString('pt-BR') : 'Nunca'
-      }`;
-      const actions = document.createElement('div');
-      actions.className = 'mt-2 flex gap-2';
-      const btnVisit = document.createElement('button');
-      btnVisit.className = 'btn-primary text-sm flex-1';
-      btnVisit.textContent = 'Registrar visita';
-      btnVisit.addEventListener('click', () => {
-        openVisitModal();
-        visitSelect.value = it.client.id;
-      });
-      const btnOpen = document.createElement('button');
-      btnOpen.className = 'btn-secondary text-sm flex-1';
-      btnOpen.textContent = 'Abrir';
-      btnOpen.addEventListener('click', () => {
+      const div = document.createElement('div');
+      div.className = 'py-2 cursor-pointer';
+      const loc = [];
+      if (it.prop?.city) loc.push(it.prop.city);
+      if (it.prop?.state) loc.push(it.prop.state);
+      div.innerHTML = `<div class="font-semibold">${
+        it.client.name || '(sem nome)'
+      }</div><div class="text-sm text-gray-600">${
+        it.prop?.name || ''
+      }${loc.length ? ' - ' + loc.join('/') : ''}</div><div class="text-xs text-gray-500">${
+        it.client.status === 'inativo' ? 'Inativo' : 'Ativo'
+      }</div>`;
+      div.addEventListener('click', () => {
         location.href = `client-details.html?clientId=${it.client.id}&from=agronomo`;
       });
-      actions.appendChild(btnVisit);
-      actions.appendChild(btnOpen);
-      card.appendChild(title);
-      card.appendChild(sub);
-      card.appendChild(last);
-      card.appendChild(actions);
       if (highlightId && it.client.id === highlightId) {
-        card.classList.add('highlight');
-        setTimeout(() => card.classList.remove('highlight'), 3000);
+        div.classList.add('highlight');
+        setTimeout(() => div.classList.remove('highlight'), 3000);
       }
-      listEl.appendChild(card);
+      listEl.appendChild(div);
     });
     listEl.classList.toggle('hidden', items.length === 0);
     emptyEl.classList.toggle('hidden', items.length !== 0);
+    renderClientsSummary();
   }
 
   function bindClientsEvents() {
     document
       .getElementById('clientsSearch')
       ?.addEventListener('input', () => renderClientsList());
-    document
-      .getElementById('clientsFilter')
-      ?.addEventListener('change', () => renderClientsList());
+    const sortEl = document.getElementById('clientsSort');
+    if (sortEl) {
+      sortEl.value = clientsSort;
+      sortEl.addEventListener('change', (e) => {
+        clientsSort = e.target.value;
+        localStorage.setItem(CLIENTS_SORT_KEY, clientsSort);
+        renderClientsList();
+      });
+    }
+    document.querySelectorAll('#clientsFilterChips button').forEach((b) => {
+      if (b.dataset.filter === clientsFilter) b.classList.add('filter-active');
+      b.addEventListener('click', () => {
+        clientsFilter = b.dataset.filter;
+        localStorage.setItem(CLIENTS_FILTER_KEY, clientsFilter);
+        document
+          .querySelectorAll('#clientsFilterChips button')
+          .forEach((bt) => bt.classList.remove('filter-active'));
+        b.classList.add('filter-active');
+        renderClientsList();
+      });
+    });
     document
       .getElementById('btnClientsQuickAdd')
       ?.addEventListener('click', () => openQuickCreateModal('cliente'));
+  }
+
+  function renderLeadsSummary() {
+    const leads = getLeads();
+    const counts = { 'Interessado': 0, 'Na dúvida': 0, 'Sem interesse': 0 };
+    leads.forEach((l) => {
+      if (counts[l.interest] >= 0) counts[l.interest]++;
+    });
+    document.getElementById('leadCountInteressado').textContent = counts['Interessado'];
+    document.getElementById('leadCountNaDuvida').textContent = counts['Na dúvida'];
+    document.getElementById('leadCountSemInteresse').textContent = counts['Sem interesse'];
+  }
+
+  function renderLeadsList() {
+    const listEl = document.getElementById('leadsList');
+    const emptyEl = document.getElementById('leadsEmpty');
+    if (!listEl || !emptyEl) return;
+    const search =
+      document.getElementById('leadsSearch')?.value.toLowerCase().trim() || '';
+    const leads = getLeads();
+    const visits = getVisits();
+    let items = leads.map((l) => {
+      const vList = visits.filter((v) => v.type === 'lead' && v.refId === l.id);
+      const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
+      return {
+        lead: l,
+        visitCount: vList.length,
+        lastTime: last ? new Date(last.at).getTime() : 0,
+      };
+    });
+    if (leadsFilter !== 'all')
+      items = items.filter((it) => it.lead.interest === leadsFilter);
+    if (search)
+      items = items.filter((it) =>
+        (it.lead.name || '').toLowerCase().includes(search)
+      );
+    items.sort((a, b) => {
+      if (leadsSort === 'recent') return b.lastTime - a.lastTime;
+      if (leadsSort === 'visits') return b.visitCount - a.visitCount;
+      return (a.lead.name || '').localeCompare(b.lead.name || '');
+    });
+    listEl.innerHTML = '';
+    items.forEach((it) => {
+      const div = document.createElement('div');
+      div.className = 'py-2 cursor-pointer';
+      div.innerHTML = `<div class="font-semibold">${
+        it.lead.name || '(sem nome)'
+      }</div><div class="text-sm text-gray-600">${
+        it.lead.farmName || ''
+      }</div><div class="text-xs text-gray-500">${
+        it.lead.interest || ''
+      }</div>`;
+      div.addEventListener('click', () => {
+        location.href = `client-details.html?leadId=${it.lead.id}`;
+      });
+      listEl.appendChild(div);
+    });
+    listEl.classList.toggle('hidden', items.length === 0);
+    emptyEl.classList.toggle('hidden', items.length !== 0);
+    renderLeadsSummary();
+  }
+
+  function bindLeadsEvents() {
+    document
+      .getElementById('leadsSearch')
+      ?.addEventListener('input', () => renderLeadsList());
+    const sortEl = document.getElementById('leadsSort');
+    if (sortEl) {
+      sortEl.value = leadsSort;
+      sortEl.addEventListener('change', (e) => {
+        leadsSort = e.target.value;
+        localStorage.setItem(LEADS_SORT_KEY, leadsSort);
+        renderLeadsList();
+      });
+    }
+    document.querySelectorAll('#leadsFilterChips button').forEach((b) => {
+      if (b.dataset.filter === leadsFilter) b.classList.add('filter-active');
+      b.addEventListener('click', () => {
+        leadsFilter = b.dataset.filter;
+        localStorage.setItem(LEADS_FILTER_KEY, leadsFilter);
+        document
+          .querySelectorAll('#leadsFilterChips button')
+          .forEach((bt) => bt.classList.remove('filter-active'));
+        b.classList.add('filter-active');
+        renderLeadsList();
+      });
+    });
+    document
+      .getElementById('btnLeadsQuickAdd')
+      ?.addEventListener('click', () => openQuickCreateModal('lead'));
   }
 
   document.querySelectorAll("input[name='visitTarget']").forEach((r) =>
@@ -411,6 +508,8 @@ export function initAgronomoDashboard() {
           lat: isNaN(lat) ? null : lat,
           lng: isNaN(lng) ? null : lng,
         });
+        renderLeadsList();
+        renderLeadsSummary();
       } else {
         created = addClient({ name });
         addProperty({
@@ -420,6 +519,7 @@ export function initAgronomoDashboard() {
           lng: isNaN(lng) ? null : lng,
         });
         highlightClientId = created.id;
+        renderClientsSummary();
         if (location.hash === '#clientes') {
           renderClientsList(created.id);
           highlightClientId = null;
@@ -539,11 +639,14 @@ export function initAgronomoDashboard() {
     clearErrors(form);
     form.reset();
     renderClientsList();
+    renderLeadsList();
     renderHomeMetrics();
     renderAgendaHome(
       parseInt(document.getElementById('agendaPeriod')?.value || '7')
     );
     if (type === 'lead') {
+      updateLead(refId, { interest: visit.interest, lastVisitAt: visit.at });
+      renderLeadsSummary();
       const lead = getLeads().find((l) => l.id === refId);
       if (lead && lead.lat && lead.lng) {
         setMapCenter(lead.lat, lead.lng);
@@ -765,6 +868,9 @@ export function initAgronomoDashboard() {
       renderClientsList(highlightClientId);
       highlightClientId = null;
     }
+    if (location.hash === '#leads') {
+      renderLeadsList();
+    }
     if (location.hash === '#visita') {
       const target = sessionStorage.getItem('visitForClientId');
       openVisitModal();
@@ -776,7 +882,9 @@ export function initAgronomoDashboard() {
   }
 
   bindClientsEvents();
+  bindLeadsEvents();
   renderClientsList();
+  renderLeadsList();
   bindAgendaHomeEvents();
   bindHomeQuickActions();
   renderAgendaHome(7);
