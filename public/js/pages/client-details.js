@@ -25,7 +25,7 @@ function setFieldError(input, message) {
   span.textContent = message;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(location.search);
   const clientId = params.get('clientId');
   if (!clientId) return;
@@ -228,4 +228,4 @@ document.addEventListener('DOMContentLoaded', () => {
       sel.appendChild(opt);
     });
   }
-});
+}
