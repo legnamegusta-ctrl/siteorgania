@@ -298,7 +298,7 @@ export function initAgronomoDashboard() {
       btnOpen.className = 'btn-secondary text-sm flex-1';
       btnOpen.textContent = 'Abrir';
       btnOpen.addEventListener('click', () => {
-        location.href = `client-details.html?clientId=${it.client.id}`;
+        location.href = `client-details.html?clientId=${it.client.id}&from=agronomo`;
       });
       actions.appendChild(btnVisit);
       actions.appendChild(btnOpen);
