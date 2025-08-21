@@ -19,100 +19,121 @@
 
   <main id="agroMain" class="pb-16">
     <section id="view-home" data-view>
-      <h2 class="p-4 text-xl font-bold text-gray-800">Home</h2>
+      <h2 class="p-4 text-xl font-semibold tracking-tight text-gray-800">Home</h2>
       <div
         id="homeKpis"
         class="px-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <div class="kpi-card space-y-2">
+        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
           <div class="kpi-icon"><i class="fas fa-user-plus" aria-hidden="true"></i></div>
-          <div id="kpiLeadsTotal" class="kpi-value text-2xl md:text-3xl font-bold text-gray-800"></div>
-          <div class="text-xs text-gray-500">Leads</div>
+          <div id="kpiLeadsTotal" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
+          <div class="text-sm text-gray-500">Leads</div>
         </div>
-        <div class="kpi-card space-y-2">
+        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
           <div class="kpi-icon"><i class="fas fa-users" aria-hidden="true"></i></div>
-          <div id="kpiClientsTotal" class="kpi-value text-2xl md:text-3xl font-bold text-gray-800"></div>
-          <div class="text-xs text-gray-500">Clientes</div>
+          <div id="kpiClientsTotal" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
+          <div class="text-sm text-gray-500">Clientes</div>
         </div>
-        <div class="kpi-card space-y-2">
+        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
           <div class="kpi-icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></div>
-          <div id="kpiVisits30d" class="kpi-value text-2xl md:text-3xl font-bold text-gray-800"></div>
-          <div class="text-xs text-gray-500">Visitas (30d)</div>
+          <div id="kpiVisits30d" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
+          <div class="text-sm text-gray-500">Visitas (30d)</div>
         </div>
-        <div class="kpi-card space-y-2">
+        <div class="kpi-card space-y-2 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
           <div class="kpi-icon"><i class="fas fa-shopping-cart" aria-hidden="true"></i></div>
-          <div id="kpiSales30d" class="kpi-value text-2xl md:text-3xl font-bold text-gray-800"></div>
-          <div class="text-xs text-gray-500">Vendas (30d)</div>
+          <div id="kpiSales30d" class="kpi-value text-3xl font-bold text-gray-800 transition hover:underline hover:text-emerald-700"></div>
+          <div class="text-sm text-gray-500">Vendas (30d)</div>
         </div>
       </div>
       <div
         id="homeShortcuts"
-        class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3"
+        class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"
       >
         <button
           id="quickHomeAddLead"
           aria-label="Adicionar Lead"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-user-plus text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Adicionar Lead</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+            <line x1="20" y1="8" x2="20" y2="14" />
+            <line x1="17" y1="11" x2="23" y2="11" />
+          </svg>
+          <span class="text-sm text-gray-500">Adicionar Lead</span>
         </button>
         <button
           id="quickHomeAddClient"
           aria-label="Adicionar Cliente"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-user text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Adicionar Cliente</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span class="text-sm text-gray-500">Adicionar Cliente</span>
         </button>
         <button
           id="quickHomeAddVisit"
           aria-label="Registrar Visita"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-map-marker-alt text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Registrar Visita</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-7.58-7-12.5a7 7 0 1114 0C19 13.42 12 21 12 21z" />
+            <circle cx="12" cy="8.5" r="3.5" />
+          </svg>
+          <span class="text-sm text-gray-500">Registrar Visita</span>
         </button>
         <button
           id="quickHomeOpenMap"
           aria-label="Abrir Mapa"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-map text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Abrir Mapa</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3l6 2 6-2v16l-6 2-6-2-6 2V5l6-2v16" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v16" />
+          </svg>
+          <span class="text-sm text-gray-500">Abrir Mapa</span>
         </button>
         <button
           id="quickHomeOpenClients"
           aria-label="Abrir Clientes"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-users text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Abrir Clientes</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 21v-2a4 4 0 00-4-4h-2" />
+            <circle cx="12" cy="7" r="4" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 21v-2a4 4 0 00-3-3.87" />
+            <circle cx="6" cy="10" r="3" />
+          </svg>
+          <span class="text-sm text-gray-500">Abrir Clientes</span>
         </button>
         <button
           id="quickHomeGotoAgenda"
           aria-label="Agenda (7d)"
-          class="chip-action w-full"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
-          <i class="fas fa-calendar-alt text-emerald-700" aria-hidden="true"></i>
-          <span class="text-sm text-gray-600">Agenda (7d)</span>
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M7 3v4m10-4v4M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z" />
+          </svg>
+          <span class="text-sm text-gray-500">Agenda (7d)</span>
         </button>
       </div>
       <div id="homeCharts" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card-soft min-w-0">
-          <h4 class="text-sm font-semibold text-gray-800 mb-2">Visitas nos últimos 30 dias</h4>
+        <div class="card-soft min-w-0 shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
+          <h4 class="text-xl font-semibold tracking-tight mb-2">Visitas nos últimos 30 dias</h4>
           <canvas id="chartVisits30d" class="h-64 md:h-72"></canvas>
-          <div class="text-xs text-gray-500 mt-2 text-center">Últimos 30 dias</div>
+          <div class="text-sm text-gray-500 mt-2 text-center">Últimos 30 dias</div>
         </div>
-        <div class="card-soft min-w-0">
-          <h4 class="text-sm font-semibold text-gray-800 mb-2">Vendas por fórmula (90d)</h4>
+        <div class="card-soft min-w-0 shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
+          <h4 class="text-xl font-semibold tracking-tight mb-2">Vendas por fórmula (90d)</h4>
           <canvas id="chartSalesByFormula" class="h-64 md:h-72"></canvas>
-          <div class="text-xs text-gray-500 mt-2 text-center">Últimos 90 dias</div>
+          <div class="text-sm text-gray-500 mt-2 text-center">Últimos 90 dias</div>
         </div>
       </div>
-      <div id="agendaHome" class="p-4">
+      <div id="agendaHome" class="p-4 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xl font-bold text-gray-800">Próximos compromissos</h3>
+          <h3 class="text-xl font-semibold tracking-tight text-gray-800">Próximos compromissos</h3>
           <select id="agendaPeriod" class="input w-32">
             <option value="7">7 dias</option>
             <option value="30">30 dias</option>
@@ -122,7 +143,7 @@
         <ul id="agendaList" class="space-y-3"></ul>
         <div
           id="agendaEmpty"
-          class="hidden text-center bg-white border border-dashed rounded-2xl p-6 text-gray-600"
+          class="hidden text-center bg-white border border-dashed rounded-2xl p-6 text-gray-500"
         >
           <i class="fas fa-calendar text-3xl mb-2 text-gray-400" aria-hidden="true"></i>
           <p class="mb-2">Nenhum compromisso futuro.</p>
@@ -131,8 +152,8 @@
       </div>
     </section>
     <section id="view-clientes" data-view class="hidden">
-      <h2 class="p-4 font-semibold">Clientes</h2>
-      <div id="clientsSummary" class="px-4 text-sm text-gray-600">Ativos: <span id="clientsTotal">0</span></div>
+      <h2 class="p-4 text-xl font-semibold tracking-tight">Clientes</h2>
+      <div id="clientsSummary" class="px-4 text-sm text-gray-500">Ativos: <span id="clientsTotal">0</span></div>
       <div class="p-4 flex gap-2">
         <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
         <select id="clientsSort" class="input w-40">
@@ -152,8 +173,8 @@
       </div>
     </section>
     <section id="view-leads" data-view class="hidden">
-      <h2 class="p-4 font-semibold">Leads</h2>
-      <div id="leadsSummary" class="px-4 text-sm text-gray-600 flex gap-4">
+      <h2 class="p-4 text-xl font-semibold tracking-tight">Leads</h2>
+      <div id="leadsSummary" class="px-4 text-sm text-gray-500 flex gap-4">
         <div>Interessado: <span id="leadCountInteressado">0</span></div>
         <div>Na dúvida: <span id="leadCountNaDuvida">0</span></div>
         <div>Sem interesse: <span id="leadCountSemInteresse">0</span></div>
@@ -187,7 +208,7 @@
       <div id="agroMap" style="height: calc(100vh - 196px)"></div>
     </section>
     <section id="view-ajustes" data-view class="hidden">
-      <h2 class="p-4 font-semibold">Ajustes</h2>
+      <h2 class="p-4 text-xl font-semibold tracking-tight">Ajustes</h2>
     </section>
   </main>
 

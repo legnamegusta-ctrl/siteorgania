@@ -40,6 +40,15 @@ export function initAgronomoDashboard() {
   let visitsChart;
   let salesByFormulaChart;
 
+  function runStagger() {
+    const items = document.querySelectorAll('.stagger-item');
+    items.forEach((el, index) => {
+      setTimeout(() => {
+        el.classList.remove('opacity-0', 'translate-y-4');
+      }, index * 100);
+    });
+  }
+
   function clearErrors(form) {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
   }
@@ -132,6 +141,7 @@ export function initAgronomoDashboard() {
   initBottomNav();
   initAgroMap();
   renderMap();
+  runStagger();
 
   bindPlus(() => toggleModal(quickModal, true));
   document.getElementById('btnQuickClose')?.addEventListener('click', () => toggleModal(quickModal, false));
