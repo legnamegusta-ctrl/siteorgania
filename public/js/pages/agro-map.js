@@ -113,3 +113,7 @@ export function fitMapToPoints(points) {
   const bounds = L.latLngBounds(points);
   map.fitBounds(bounds, { padding: [20, 20] });
 }
+
+export function invalidateMapSize() {
+  if (map) map.invalidateSize();
+}
