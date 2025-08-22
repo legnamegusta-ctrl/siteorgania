@@ -115,8 +115,8 @@
           <span class="text-sm text-gray-500">Abrir Mapa</span>
         </button>
         <button
-          id="quickHomeOpenClients"
-          aria-label="Abrir Clientes"
+          id="quickHomeOpenContacts"
+          aria-label="Abrir Contatos"
           class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
         >
           <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -125,7 +125,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 21v-2a4 4 0 00-3-3.87" />
             <circle cx="6" cy="10" r="3" />
           </svg>
-          <span class="text-sm text-gray-500">Abrir Clientes</span>
+          <span class="text-sm text-gray-500">Abrir Contatos</span>
         </button>
         <button
           id="quickHomeGotoAgenda"
@@ -156,6 +156,22 @@
           <p class="mb-2">Nenhum compromisso futuro.</p>
           <button id="btnAgendaAddVisit" class="btn-primary">Registrar visita</button>
         </div>
+      </div>
+    </section>
+    <section id="view-contatos" data-view class="hidden">
+      <h2 class="p-4 font-semibold">Contatos</h2>
+      <div class="p-4 flex gap-2">
+        <input id="contactsSearch" type="text" class="input flex-1" placeholder="Buscar" />
+        <div class="flex gap-2">
+          <button id="contactsFilterAll" class="chip chip--filter filter-active">Todos</button>
+          <button id="contactsFilterClients" class="chip chip--filter">Clientes</button>
+          <button id="contactsFilterLeads" class="chip chip--filter">Leads</button>
+        </div>
+      </div>
+      <div id="contactsList" class="p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="contactsEmpty" class="p-4 empty-state hidden text-center">
+        <p class="mb-2">Nenhum contato encontrado.</p>
+        <button id="btnContactsQuickAdd" class="btn-primary">Adicionar contato</button>
       </div>
     </section>
     <section id="view-clientes" data-view class="hidden">
@@ -221,8 +237,7 @@
 
   <nav id="bottomBar" class="bottom-bar">
     <button data-nav="#home"><i class="fas fa-home"></i></button>
-    <button data-nav="#clientes"><i class="fas fa-users"></i></button>
-    <button data-nav="#leads"><i class="fas fa-user-plus"></i></button>
+    <button data-nav="#contatos"><i class="fas fa-users"></i></button>
     <button id="navPlus" class="plus-btn"><i class="fas fa-plus"></i></button>
     <button data-nav="#mapa"><i class="fas fa-map"></i></button>
     <button data-nav="#ajustes"><i class="fas fa-cog"></i></button>
