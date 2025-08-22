@@ -9,6 +9,7 @@ import {
   setVisibleLayers,
   focusClient,
   fitMapToPoints,
+  invalidateMapSize,
 } from './agro-map.js';
 import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
@@ -80,6 +81,25 @@ export function initAgronomoDashboard() {
     });
   }
 
+  function replotMap() {
+    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
+    const clients = getClientsWithProps();
+    plotLeads(leads);
+    plotClients(clients);
+    applyMapFilter();
+    return { leads, clients };
+  }
+
+  function adjustMapHeight() {
+    const mapEl = document.getElementById('agroMap');
+    const filtersEl = document.getElementById('mapFilters');
+    const bottom = document.getElementById('bottomBar');
+    if (!mapEl || !filtersEl || !bottom) return;
+    const height = window.innerHeight - filtersEl.offsetHeight - bottom.offsetHeight;
+    mapEl.style.height = `${height}px`;
+    requestAnimationFrame(() => invalidateMapSize());
+  }
+
   function applyMapFilter() {
     if (currentMapFilter === 'all')
       setVisibleLayers({ showLeads: true, showClients: true });
@@ -89,11 +109,7 @@ export function initAgronomoDashboard() {
   }
 
   async function renderMap() {
-    const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const clients = getClientsWithProps();
-    plotLeads(leads);
-    plotClients(clients);
-    applyMapFilter();
+    const { leads, clients } = replotMap();
 
     // Center the map on existing markers or use current location when empty
     const points = [
@@ -123,21 +139,21 @@ export function initAgronomoDashboard() {
     else document.getElementById('mapFilterLeads')?.classList.add('filter-active');
   }
 
-  document.getElementById('mapFilterAll')?.addEventListener('click', () => {
-    currentMapFilter = 'all';
+  function handleMapFilterChange(f) {
+    currentMapFilter = f;
     updateMapChips();
-    applyMapFilter();
-  });
-  document.getElementById('mapFilterClients')?.addEventListener('click', () => {
-    currentMapFilter = 'clients';
-    updateMapChips();
-    applyMapFilter();
-  });
-  document.getElementById('mapFilterLeads')?.addEventListener('click', () => {
-    currentMapFilter = 'leads';
-    updateMapChips();
-    applyMapFilter();
-  });
+    replotMap();
+    adjustMapHeight();
+  }
+  document
+    .getElementById('mapFilterAll')
+    ?.addEventListener('click', () => handleMapFilterChange('all'));
+  document
+    .getElementById('mapFilterClients')
+    ?.addEventListener('click', () => handleMapFilterChange('clients'));
+  document
+    .getElementById('mapFilterLeads')
+    ?.addEventListener('click', () => handleMapFilterChange('leads'));
 
   initBottomNav();
   initAgroMap();
@@ -145,21 +161,28 @@ export function initAgronomoDashboard() {
   runStagger();
 
   bindPlus(() => toggleModal(quickModal, true));
-  document.getElementById('btnQuickClose')?.addEventListener('click', () => toggleModal(quickModal, false));
-  document.getElementById('btnQuickAddLead')?.addEventListener('click', () => {
-    toggleModal(quickModal, false);
-    toggleModal(addLeadModal, true);
-    ensureLeadMap();
-  });
-  document.getElementById('btnQuickAddCliente')?.addEventListener('click', () => {
-    toggleModal(quickModal, false);
-    openQuickCreateModal('cliente');
-  });
+  document
+    .getElementById('btnQuickClose')
+    ?.addEventListener('click', () => {
+      toggleModal(quickModal, false);
+      if (location.hash === '#mapa') adjustMapHeight();
+    });
+  document
+    .getElementById('btnQuickAddContato')
+    ?.addEventListener('click', () => {
+      toggleModal(quickModal, false);
+      openQuickCreateModal('cliente');
+      if (location.hash === '#mapa') adjustMapHeight();
+    });
   document.getElementById('btnQuickRegVisita')?.addEventListener('click', () => {
     toggleModal(quickModal, false);
     openVisitModal();
+    if (location.hash === '#mapa') adjustMapHeight();
   });
-  document.getElementById('btnCancelLead')?.addEventListener('click', () => toggleModal(addLeadModal, false));
+  document.getElementById('btnCancelLead')?.addEventListener('click', () => {
+    toggleModal(addLeadModal, false);
+    if (location.hash === '#mapa') adjustMapHeight();
+  });
 
   let leadMap;
   let leadMarker;
@@ -499,6 +522,7 @@ export function initAgronomoDashboard() {
   document.getElementById('btnQCCancel')?.addEventListener('click', () => {
     toggleModal(quickCreateModal, false);
     toggleModal(visitModal, true);
+    if (location.hash === '#mapa') adjustMapHeight();
   });
 
   document.getElementById('qcUseLocation')?.addEventListener('click', async () => {
@@ -559,7 +583,10 @@ export function initAgronomoDashboard() {
           highlightClientId = null;
         }
       }
-      renderMap();
+      if (location.hash === '#mapa') {
+        replotMap();
+        adjustMapHeight();
+      }
       renderHomeKPIs();
       renderHomeCharts();
       renderAgendaHome(
@@ -567,6 +594,7 @@ export function initAgronomoDashboard() {
       );
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
+      if (location.hash === '#mapa') adjustMapHeight();
       clearErrors(form);
       form.reset();
       if (reopen) {
@@ -644,7 +672,10 @@ export function initAgronomoDashboard() {
           renderHomeKPIs();
           renderHomeCharts();
           updateLead(refId, { stage: 'Convertido' });
-          renderMap();
+          if (location.hash === '#mapa') {
+            replotMap();
+            adjustMapHeight();
+          }
         }
       } else {
         if (interest === 'Interessado' || interest === 'Na dúvida') {
@@ -1053,13 +1084,7 @@ export function initAgronomoDashboard() {
 
   function bindHomeShortcuts() {
     document
-      .getElementById('quickHomeAddLead')
-      ?.addEventListener('click', () => {
-        toggleModal(addLeadModal, true);
-        ensureLeadMap();
-      });
-    document
-      .getElementById('quickHomeAddClient')
+      .getElementById('quickHomeAddContato')
       ?.addEventListener('click', () => openQuickCreateModal('cliente'));
     document
       .getElementById('quickHomeAddVisit')
@@ -1197,11 +1222,15 @@ export function initAgronomoDashboard() {
       renderHomeCharts();
     }
     if (location.hash === '#mapa') {
-      const focusId = sessionStorage.getItem('focusClientId');
-      if (focusId) {
-        focusClient(focusId);
-        sessionStorage.removeItem('focusClientId');
-      }
+      adjustMapHeight();
+      replotMap();
+      requestAnimationFrame(() => {
+        const focusId = sessionStorage.getItem('focusClientId');
+        if (focusId) {
+          focusClient(focusId);
+          sessionStorage.removeItem('focusClientId');
+        }
+      });
     }
     if (location.hash === '#clientes') {
       renderClientsList(highlightClientId);
@@ -1230,5 +1259,8 @@ export function initAgronomoDashboard() {
   renderHomeKPIs();
   renderHomeCharts();
   window.addEventListener('hashchange', handleHashChange);
+  window.addEventListener('resize', () => {
+    if (location.hash === '#mapa') adjustMapHeight();
+  });
   handleHashChange();
 }
