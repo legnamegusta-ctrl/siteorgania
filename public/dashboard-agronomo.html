@@ -239,41 +239,6 @@
     </div>
   </div>
 
-  <div id="addLeadModal" class="modal hidden">
-    <div class="modal-card max-w-2xl w-full">
-      <h3 class="mb-4 font-semibold">Adicionar Lead</h3>
-      <form id="leadForm" class="grid gap-4 md:grid-cols-2">
-        <div class="flex flex-col gap-2">
-          <div class="field">
-            <label for="leadNome">Nome do lead*</label>
-            <input id="leadNome" required class="input" />
-          </div>
-          <div class="field">
-            <label for="leadPropriedade">Propriedade/Fazenda*</label>
-            <input id="leadPropriedade" required class="input" />
-          </div>
-          <div class="field">
-            <label for="leadNotas">Notas</label>
-            <textarea id="leadNotas" class="input"></textarea>
-          </div>
-          <div class="field">
-            <label>Localização</label>
-            <button type="button" id="btnUseLocation" class="btn-secondary mb-2">Usar minha localização</button>
-            <div class="flex gap-2">
-              <input id="leadLat" class="input flex-1" placeholder="Lat" readonly />
-              <input id="leadLng" class="input flex-1" placeholder="Lng" readonly />
-            </div>
-          </div>
-        </div>
-        <div id="leadMap" class="h-48 md:h-full"></div>
-        <div class="flex gap-2 justify-end md:col-span-2">
-          <button type="button" id="btnCancelLead" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <div id="visitModal" class="modal hidden">
     <div class="modal-card max-w-xl w-full">
       <h3 class="mb-4 font-semibold">Registrar Visita</h3>
