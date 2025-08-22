@@ -20,10 +20,6 @@ import { getSales, addSale } from '../stores/salesStore.js';
 
 export function initAgronomoDashboard() {
   const quickModal = document.getElementById('quickActionsModal');
-  const addLeadModal = document.getElementById('addLeadModal');
-  const latInput = document.getElementById('leadLat');
-  const lngInput = document.getElementById('leadLng');
-  const btnUseLocation = document.getElementById('btnUseLocation');
   const visitModal = document.getElementById('visitModal');
   const saleModal = document.getElementById('saleModal');
   const quickCreateModal = document.getElementById('quickCreateModal');
@@ -179,84 +175,6 @@ export function initAgronomoDashboard() {
     openVisitModal();
     if (location.hash === '#mapa') adjustMapHeight();
   });
-  document.getElementById('btnCancelLead')?.addEventListener('click', () => {
-    toggleModal(addLeadModal, false);
-    if (location.hash === '#mapa') adjustMapHeight();
-  });
-
-  let leadMap;
-  let leadMarker;
-  function ensureLeadMap() {
-    if (typeof L === 'undefined') return;
-    if (!leadMap) {
-      leadMap = L.map('leadMap').setView([0, 0], 2);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leadMap);
-    }
-    if (latInput.value && lngInput.value) {
-      setLeadMarker(parseFloat(latInput.value), parseFloat(lngInput.value));
-    }
-  }
-  function setLeadMarker(lat, lng) {
-    if (!leadMap || typeof L === 'undefined') return;
-    if (leadMarker) leadMarker.setLatLng([lat, lng]);
-    else leadMarker = L.marker([lat, lng]).addTo(leadMap);
-    leadMap.setView([lat, lng], 14);
-  }
-
-  btnUseLocation?.addEventListener('click', async () => {
-    const pos = await getCurrentPositionSafe();
-    if (pos) {
-      latInput.value = pos.lat.toFixed(6);
-      lngInput.value = pos.lng.toFixed(6);
-      ensureLeadMap();
-      setLeadMarker(pos.lat, pos.lng);
-    }
-  });
-
-  document.getElementById('leadForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const form = e.target;
-    clearErrors(form);
-    const nomeEl = document.getElementById('leadNome');
-    const propEl = document.getElementById('leadPropriedade');
-    const nome = nomeEl.value.trim();
-    const propriedade = propEl.value.trim();
-    let valid = true;
-    if (!nome) {
-      setFieldError(nomeEl, 'Campo obrigatório');
-      valid = false;
-    }
-    if (!propriedade) {
-      setFieldError(propEl, 'Campo obrigatório');
-      valid = false;
-    }
-    if (!valid) return;
-    const notas = document.getElementById('leadNotas').value.trim();
-    const lat = parseFloat(latInput.value);
-    const lng = parseFloat(lngInput.value);
-    const newLead = addLead({
-      name: nome,
-      farmName: propriedade,
-      notes: notas,
-      lat: isNaN(lat) ? null : lat,
-      lng: isNaN(lng) ? null : lng,
-    });
-    console.log('[LEADS] novo', newLead.id);
-    renderMap();
-    renderLeadsList();
-    renderLeadsSummary();
-    renderHomeKPIs();
-    renderHomeCharts();
-    renderAgendaHome(
-      parseInt(document.getElementById('agendaPeriod')?.value || '7')
-    );
-    if (newLead.lat && newLead.lng) setMapCenter(newLead.lat, newLead.lng);
-    location.hash = '#mapa';
-    toggleModal(addLeadModal, false);
-    clearErrors(form);
-    form.reset();
-  });
-
   // ===== Visit Flow =====
   const visitSelect = document.getElementById('visitTargetSelect');
   const visitForm = document.getElementById('visitForm');
