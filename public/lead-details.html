@@ -41,7 +41,12 @@
         <h2 class="text-xl font-bold">Visitas</h2>
         <button id="btnAddVisit" class="btn-primary hidden">Adicionar visita</button>
       </div>
-      <div id="visitsTimeline"></div>
+      <div id="visitFilters" class="flex gap-2 mb-4">
+        <button class="btn-primary" data-filter="all">Todas</button>
+        <button class="btn-secondary" data-filter="future">Futuras</button>
+        <button class="btn-secondary" data-filter="past">Passadas</button>
+      </div>
+      <ul id="visitsTimeline" class="timeline"></ul>
     </section>
   </main>
   <!-- Modal de registro de visita -->
