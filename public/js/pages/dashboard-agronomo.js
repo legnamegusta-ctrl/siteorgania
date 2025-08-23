@@ -406,7 +406,7 @@ export function initAgronomoDashboard() {
         it.lead.interest || ''
       }</div>`;
       div.addEventListener('click', () => {
-        location.href = `client-details.html?leadId=${it.lead.id}`;
+        location.href = `lead-details.html?id=${it.lead.id}`;
       });
       listEl.appendChild(div);
     });

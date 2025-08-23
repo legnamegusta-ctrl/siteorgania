@@ -62,7 +62,7 @@ export function plotLeads(leads) {
       const loc = l.farmName || `(${l.lat.toFixed(4)}, ${l.lng.toFixed(4)})`;
       const interest = l.interest ? `<br>Interesse: ${l.interest}` : '';
       marker.bindPopup(
-        `<b>${l.name || 'Lead'}</b>${interest}<br>${loc}<br><a href="client-details.html?leadId=${l.id}&from=agronomo">Ver detalhes</a>`
+        `<b>${l.name || 'Lead'}</b>${interest}<br>${loc}<br><a href="lead-details.html?id=${l.id}">Ver detalhes</a>`
       );
     });
 }

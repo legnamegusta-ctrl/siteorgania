@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta name="theme-color" content="#166534">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orgânia - Detalhes do Lead</title>
+  <script type="module" src="js/app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100">
+  <div id="lead-details-marker" class="hidden"></div>
+  <header class="bg-white shadow-lg sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-4">
+          <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar"><i class="fas fa-arrow-left"></i></a>
+          <h1 id="leadNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
+        </div>
+        <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+    <section class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Dados do Lead</h2>
+      <div class="space-y-1">
+        <div id="leadName" class="font-semibold"></div>
+        <div id="leadPhone" class="text-sm text-gray-600"></div>
+        <span id="leadStage" class="hidden text-xs font-semibold px-2 py-1 rounded"></span>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Visitas</h2>
+      <form id="addVisitForm" class="grid gap-4 mb-6">
+        <div class="field">
+          <label for="visitDate">Data/Hora</label>
+          <input id="visitDate" type="datetime-local" class="input" required />
+        </div>
+        <div class="field">
+          <label for="visitSummary">Resumo*</label>
+          <input id="visitSummary" class="input" required />
+        </div>
+        <div class="field">
+          <label for="visitNotes">Notas</label>
+          <textarea id="visitNotes" class="input"></textarea>
+        </div>
+        <div class="field">
+          <label for="visitOutcome">Resultado</label>
+          <select id="visitOutcome" class="input">
+            <option value="realizada">Realizada</option>
+            <option value="reagendada">Reagendada</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="sem_contato">Sem contato</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="visitNextStep">Próximo passo</label>
+          <input id="visitNextStep" class="input" />
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+      <div id="visitsTimeline"></div>
+    </section>
+  </main>
+
+  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
+  <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script type="module" src="js/services/auth.js"></script>
+  <script type="module" src="js/pages/lead-details.js"></script>
+</body>
+</html>
