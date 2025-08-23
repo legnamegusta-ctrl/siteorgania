@@ -27,14 +27,34 @@
   </header>
 
   <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
-    <section class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow p-6">
       <h2 class="text-xl font-bold mb-4">Dados do Lead</h2>
-      <div class="space-y-1">
-        <div id="leadName" class="font-semibold"></div>
-        <div id="leadPhone" class="text-sm text-gray-600"></div>
-        <span id="leadStage" class="hidden text-xs font-semibold px-2 py-1 rounded"></span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <span class="block text-xs text-gray-500">Nome</span>
+          <div id="leadName" class="font-semibold"></div>
+        </div>
+        <div>
+          <span class="block text-xs text-gray-500">Telefone</span>
+          <div id="leadPhone" class="text-sm text-gray-600"></div>
+        </div>
+        <div>
+          <span class="block text-xs text-gray-500">E-mail</span>
+          <div id="leadEmail" class="text-sm text-gray-600"></div>
+        </div>
+        <div>
+          <span class="block text-xs text-gray-500">Propriedade</span>
+          <div id="leadProperty" class="text-sm text-gray-600"></div>
+        </div>
+        <div>
+          <span class="block text-xs text-gray-500">Origem</span>
+          <div id="leadOrigin" class="text-sm text-gray-600"></div>
+        </div>
+        <div class="flex items-center">
+          <span id="leadStage" class="hidden text-xs font-semibold px-2 py-1 rounded"></span>
+        </div>
       </div>
-    </section>
+    </div>
 
     <section class="bg-white rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-4">

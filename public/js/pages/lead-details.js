@@ -30,6 +30,9 @@ export function initLeadDetails(userId, userRole) {
   const leadNameHeader = document.getElementById('leadNameHeader');
   const leadName = document.getElementById('leadName');
   const leadPhone = document.getElementById('leadPhone');
+  const leadEmail = document.getElementById('leadEmail');
+  const leadProperty = document.getElementById('leadProperty');
+  const leadOrigin = document.getElementById('leadOrigin');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
   const visitFilters = document.getElementById('visitFilters');
@@ -49,6 +52,14 @@ export function initLeadDetails(userId, userRole) {
 
   const leadRef = doc(db, 'leads', leadId);
 
+  const STAGE_COLORS = {
+    Novo: 'bg-yellow-100 text-yellow-800',
+    Interessado: 'bg-blue-100 text-blue-800',
+    'Na dúvida': 'bg-purple-100 text-purple-800',
+    Convertido: 'bg-green-100 text-green-800',
+    'Sem interesse': 'bg-gray-200 text-gray-800',
+  };
+
   let leadLoaded = false;
   let usingLocalData = false;
   let visitsCache = [];
@@ -61,9 +72,14 @@ export function initLeadDetails(userId, userRole) {
     if (leadName) leadName.textContent = name;
     if (leadPhone)
       leadPhone.textContent = lead.phone || lead.phoneNumber || '';
+    if (leadEmail) leadEmail.textContent = lead.email || '';
+    if (leadProperty)
+      leadProperty.textContent = lead.propertyName || lead.property || '';
+    if (leadOrigin) leadOrigin.textContent = lead.origin || lead.source || '';
     if (leadStage && lead.stage) {
+      const color = STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800';
       leadStage.textContent = lead.stage;
-      leadStage.classList.remove('hidden');
+      leadStage.className = `inline-block text-xs font-semibold px-2 py-1 rounded ${color}`;
     }
     if (visitsTimeline) {
       hideSpinner(visitsTimeline);
@@ -100,9 +116,14 @@ export function initLeadDetails(userId, userRole) {
     if (leadName) leadName.textContent = name;
     if (leadPhone)
       leadPhone.textContent = data.phone || data.phoneNumber || '';
+    if (leadEmail) leadEmail.textContent = data.email || '';
+    if (leadProperty)
+      leadProperty.textContent = data.propertyName || data.property || '';
+    if (leadOrigin) leadOrigin.textContent = data.origin || data.source || '';
     if (leadStage && data.stage) {
+      const color = STAGE_COLORS[data.stage] || 'bg-gray-100 text-gray-800';
       leadStage.textContent = data.stage;
-      leadStage.classList.remove('hidden');
+      leadStage.className = `inline-block text-xs font-semibold px-2 py-1 rounded ${color}`;
     }
     const canAdd =
       userRole === 'admin' ||
