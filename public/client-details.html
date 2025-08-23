@@ -32,7 +32,7 @@
       <div class="space-y-1">
         <div id="summaryName" class="font-semibold"></div>
         <div id="summaryProperty" class="text-sm text-gray-600"></div>
-        <div id="summaryInterest" class="text-sm text-gray-600"></div>
+        <span id="summaryInterest" class="hidden text-xs font-semibold px-2 py-1 rounded"></span>
       </div>
       <button id="btnViewMap" class="btn-secondary mt-4">Ver no mapa</button>
     </section>
@@ -46,13 +46,7 @@
     </section>
 
     <section id="historySection" class="bg-white rounded-lg shadow p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Histórico</h2>
-        <div class="flex gap-2">
-          <button id="btnRegisterVisit" class="btn-secondary text-sm">Registrar visita</button>
-          <button id="btnNewSale" class="btn-primary text-sm">Nova venda</button>
-        </div>
-      </div>
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Histórico de visitas</h2>
       <div id="historyTimeline"></div>
     </section>
   </main>
