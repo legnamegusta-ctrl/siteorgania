@@ -24,7 +24,7 @@ export function initMapaGeral() {
         if (lead.lat && lead.lng) {
           const color = lead.stage === 'Visitado' ? 'green' : 'blue';
           const marker = L.circleMarker([lead.lat, lead.lng], { color }).addTo(map);
-          const popup = `<b>${lead.nomeContato || 'Lead'}</b><br><a href="dashboard-agronomo.html?leadId=${docSnap.id}" class="text-blue-600 underline">Abrir lead</a>`;
+          const popup = `<b>${lead.nomeContato || 'Lead'}</b><br><a href="lead-details.html?id=${docSnap.id}" class="text-blue-600 underline">Abrir lead</a>`;
           marker.bindPopup(popup);
         }
       });

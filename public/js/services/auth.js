@@ -12,6 +12,7 @@ import { initFormulasAdmin } from '../pages/formulas-admin.js';
 import { initAgronomoDashboard } from '../pages/dashboard-agronomo.js';
 import { initClienteDashboard } from '../pages/dashboard-cliente.js';
 import { initClientDetails } from '../pages/client-details.js';
+import { initLeadDetails } from '../pages/lead-details.js';
 import { initPropertyDetails } from '../pages/property-details.js';
 import { initPlotDetails } from '../pages/plot-details.js';
 import { initPlotReport } from '../pages/plot-report.js';
@@ -149,6 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 initClienteDashboard(user.uid, userRole);
             } else if (document.getElementById('client-details-marker')) {
                 initClientDetails(user.uid, userRole);
+            } else if (document.getElementById('lead-details-marker')) {
+                initLeadDetails(user.uid, userRole);
             } else if (document.getElementById('property-details-marker')) {
                 initPropertyDetails(user.uid, userRole);
             } else if (document.getElementById('plot-details-marker')) {
