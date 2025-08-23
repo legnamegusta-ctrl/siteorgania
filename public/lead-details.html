@@ -37,23 +37,33 @@
     </section>
 
     <section class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-bold mb-4">Visitas</h2>
-      <form id="addVisitForm" class="grid gap-4 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Visitas</h2>
+        <button id="btnAddVisit" class="btn-primary hidden">Adicionar visita</button>
+      </div>
+      <div id="visitsTimeline"></div>
+    </section>
+  </main>
+  <!-- Modal de registro de visita -->
+  <div id="leadAddVisitModal" class="modal hidden">
+    <div class="modal-card w-full max-w-md">
+      <h3 class="font-semibold mb-4">Registrar visita</h3>
+      <form id="leadAddVisitForm" class="grid gap-4">
         <div class="field">
-          <label for="visitDate">Data/Hora</label>
-          <input id="visitDate" type="datetime-local" class="input" required />
+          <label for="leadVisitDate">Data/Hora</label>
+          <input id="leadVisitDate" type="datetime-local" class="input" />
         </div>
         <div class="field">
-          <label for="visitSummary">Resumo*</label>
-          <input id="visitSummary" class="input" required />
+          <label for="leadVisitSummary">Resumo*</label>
+          <input id="leadVisitSummary" class="input" required />
         </div>
         <div class="field">
-          <label for="visitNotes">Notas</label>
-          <textarea id="visitNotes" class="input"></textarea>
+          <label for="leadVisitNotes">Notas</label>
+          <textarea id="leadVisitNotes" class="input"></textarea>
         </div>
         <div class="field">
-          <label for="visitOutcome">Resultado</label>
-          <select id="visitOutcome" class="input">
+          <label for="leadVisitOutcome">Resultado</label>
+          <select id="leadVisitOutcome" class="input">
             <option value="realizada">Realizada</option>
             <option value="reagendada">Reagendada</option>
             <option value="cancelada">Cancelada</option>
@@ -61,20 +71,17 @@
           </select>
         </div>
         <div class="field">
-          <label for="visitNextStep">Próximo passo</label>
-          <input id="visitNextStep" class="input" />
+          <label for="leadVisitNextStep">Próximo passo</label>
+          <input id="leadVisitNextStep" class="input" />
         </div>
         <div class="flex gap-2 justify-end">
+          <button type="button" id="btnLeadVisitClose" class="btn-secondary">Cancelar</button>
           <button type="submit" class="btn-primary">Salvar</button>
         </div>
       </form>
-      <div id="visitsTimeline"></div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
-  <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
-  <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
   <script type="module" src="js/pages/lead-details.js"></script>

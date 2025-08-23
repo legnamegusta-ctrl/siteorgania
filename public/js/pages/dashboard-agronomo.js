@@ -347,6 +347,10 @@ export function initAgronomoDashboard(userId, userRole) {
     items.forEach((it) => {
       const div = document.createElement('div');
       div.className = 'p-4 bg-white rounded-2xl shadow-md';
+      if (it.type === 'lead') {
+        div.classList.add('lead-card');
+        div.dataset.id = it.id;
+      }
       div.innerHTML = `<div class="font-semibold">${
         it.name || '(sem nome)'
       }</div><div class="text-sm text-gray-600">${it.farmName || ''}</div>`;
@@ -355,14 +359,19 @@ export function initAgronomoDashboard(userId, userRole) {
       const visitBtn = document.createElement('button');
       visitBtn.className = 'btn-secondary flex-1';
       visitBtn.textContent = 'Registrar visita';
-      visitBtn.addEventListener('click', () => {
-        openVisitModal();
-        document.querySelector(
-          `input[name='visitTarget'][value='${it.type}']`
-        ).checked = true;
-        populateVisitSelect(it.type);
-        visitSelect.value = it.id;
-      });
+      if (it.type === 'lead') {
+        visitBtn.classList.add('btn-registrar-visita');
+        visitBtn.dataset.id = it.id;
+      } else {
+        visitBtn.addEventListener('click', () => {
+          openVisitModal();
+          document.querySelector(
+            `input[name='visitTarget'][value='${it.type}']`
+          ).checked = true;
+          populateVisitSelect(it.type);
+          visitSelect.value = it.id;
+        });
+      }
       actions.appendChild(visitBtn);
       if (it.type === 'cliente') {
         const openBtn = document.createElement('button');
@@ -372,12 +381,6 @@ export function initAgronomoDashboard(userId, userRole) {
           location.href = `client-details.html?clientId=${it.id}&from=agronomo`;
         });
         actions.appendChild(openBtn);
-      } else if (it.type === 'lead') {
-        const openLink = document.createElement('a');
-        openLink.className = 'btn-secondary flex-1 text-center';
-        openLink.textContent = 'Abrir';
-        openLink.href = `lead-details.html?id=${it.id}`;
-        actions.appendChild(openLink);
       }
       div.appendChild(actions);
       if (highlightId && it.id === highlightId) {
@@ -389,6 +392,20 @@ export function initAgronomoDashboard(userId, userRole) {
     listEl.classList.toggle('hidden', items.length === 0);
     emptyEl.classList.toggle('hidden', items.length !== 0);
   }
+
+  const contactsEl = document.getElementById('contactsList');
+  contactsEl?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-registrar-visita');
+    if (btn) {
+      e.stopPropagation();
+      openLeadVisitModal(btn.dataset.id);
+      return;
+    }
+    const card = e.target.closest('.lead-card');
+    if (card) {
+      location.href = `lead-details.html?id=${card.dataset.id}`;
+    }
+  });
 
   function bindContactsEvents() {
     const searchEl = document.getElementById('contactsSearch');
