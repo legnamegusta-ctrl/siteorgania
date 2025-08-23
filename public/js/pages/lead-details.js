@@ -36,12 +36,16 @@ export function initLeadDetails(userId, userRole) {
   const btnAddVisit = document.getElementById('btnAddVisit');
   const leadAddVisitModal = document.getElementById('leadAddVisitModal');
   const btnLeadVisitClose = document.getElementById('btnLeadVisitClose');
+  const btnLeadVisitCloseIcon = document.getElementById('btnLeadVisitCloseIcon');
   const leadAddVisitForm = document.getElementById('leadAddVisitForm');
   const leadVisitDate = document.getElementById('leadVisitDate');
   const leadVisitSummary = document.getElementById('leadVisitSummary');
   const leadVisitNotes = document.getElementById('leadVisitNotes');
   const leadVisitOutcome = document.getElementById('leadVisitOutcome');
   const leadVisitNextStep = document.getElementById('leadVisitNextStep');
+  const leadVisitDateError = document.getElementById('leadVisitDateError');
+  const leadVisitSummaryError = document.getElementById('leadVisitSummaryError');
+  const leadVisitOutcomeError = document.getElementById('leadVisitOutcomeError');
 
   const leadRef = doc(db, 'leads', leadId);
 
@@ -226,6 +230,71 @@ export function initLeadDetails(userId, userRole) {
     renderVisits(applyFilter(visitsCache));
   });
 
+  function validateDate() {
+    if (!leadVisitDate) return true;
+    const value = leadVisitDate.value;
+    if (!value) {
+      leadVisitDate.classList.add('border-red-500');
+      if (leadVisitDateError) {
+        leadVisitDateError.textContent = 'Informe a data da visita.';
+        leadVisitDateError.classList.remove('hidden');
+      }
+      return false;
+    }
+    const selected = new Date(value);
+    const now = new Date();
+    if (selected < now) {
+      leadVisitDate.classList.add('border-red-500');
+      if (leadVisitDateError) {
+        leadVisitDateError.textContent = 'A data não pode estar no passado.';
+        leadVisitDateError.classList.remove('hidden');
+      }
+      return false;
+    }
+    leadVisitDate.classList.remove('border-red-500');
+    leadVisitDate.classList.add('border-green-500');
+    leadVisitDateError?.classList.add('hidden');
+    return true;
+  }
+
+  function validateSummary() {
+    if (!leadVisitSummary) return true;
+    const value = leadVisitSummary.value.trim();
+    if (!value) {
+      leadVisitSummary.classList.add('border-red-500');
+      if (leadVisitSummaryError) {
+        leadVisitSummaryError.textContent = 'Informe o resumo da visita.';
+        leadVisitSummaryError.classList.remove('hidden');
+      }
+      return false;
+    }
+    leadVisitSummary.classList.remove('border-red-500');
+    leadVisitSummary.classList.add('border-green-500');
+    leadVisitSummaryError?.classList.add('hidden');
+    return true;
+  }
+
+  function validateOutcome() {
+    if (!leadVisitOutcome) return true;
+    const value = leadVisitOutcome.value;
+    if (!value) {
+      leadVisitOutcome.classList.add('border-red-500');
+      if (leadVisitOutcomeError) {
+        leadVisitOutcomeError.textContent = 'Selecione o resultado.';
+        leadVisitOutcomeError.classList.remove('hidden');
+      }
+      return false;
+    }
+    leadVisitOutcome.classList.remove('border-red-500');
+    leadVisitOutcome.classList.add('border-green-500');
+    leadVisitOutcomeError?.classList.add('hidden');
+    return true;
+  }
+
+  leadVisitDate?.addEventListener('input', validateDate);
+  leadVisitSummary?.addEventListener('input', validateSummary);
+  leadVisitOutcome?.addEventListener('change', validateOutcome);
+
   visitFilters?.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-filter]');
     if (!btn) return;
@@ -240,21 +309,38 @@ export function initLeadDetails(userId, userRole) {
   });
 
   btnAddVisit?.addEventListener('click', () => {
-    if (leadVisitDate)
-      leadVisitDate.value = new Date().toISOString().slice(0, 16);
+    const nowIso = new Date().toISOString().slice(0, 16);
+    if (leadVisitDate) {
+      leadVisitDate.min = nowIso;
+      leadVisitDate.value = nowIso;
+    }
+    if (leadVisitOutcome) leadVisitOutcome.value = '';
+    leadVisitDate?.classList.remove('border-red-500', 'border-green-500');
+    leadVisitSummary?.classList.remove('border-red-500', 'border-green-500');
+    leadVisitOutcome?.classList.remove('border-red-500', 'border-green-500');
+    leadVisitDateError?.classList.add('hidden');
+    leadVisitSummaryError?.classList.add('hidden');
+    leadVisitOutcomeError?.classList.add('hidden');
     toggleModal(leadAddVisitModal, true);
+    leadVisitDate?.focus();
   });
 
   btnLeadVisitClose?.addEventListener('click', () =>
     toggleModal(leadAddVisitModal, false)
   );
 
+  btnLeadVisitCloseIcon?.addEventListener('click', () =>
+    toggleModal(leadAddVisitModal, false)
+  );
+
   leadAddVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (usingLocalData) return;
-    const summary = leadVisitSummary?.value.trim();
-    if (!summary) {
-      showToast('Informe o resumo da visita.', 'error');
+    const validDate = validateDate();
+    const validSummary = validateSummary();
+    const validOutcome = validateOutcome();
+    if (!validDate || !validSummary || !validOutcome) {
+      showToast('Corrija os erros antes de salvar.', 'error');
       return;
     }
     try {
@@ -263,7 +349,7 @@ export function initLeadDetails(userId, userRole) {
         date: value ? Timestamp.fromDate(new Date(value)) : Timestamp.now(),
         authorId: auth.currentUser.uid,
         authorRole: userRole,
-        summary,
+        summary: leadVisitSummary?.value.trim(),
         notes: leadVisitNotes?.value.trim() || '',
         outcome: leadVisitOutcome?.value || 'realizada',
         nextStep: leadVisitNextStep?.value.trim() || null,
@@ -275,6 +361,9 @@ export function initLeadDetails(userId, userRole) {
       });
       toggleModal(leadAddVisitModal, false);
       leadAddVisitForm?.reset();
+      leadVisitDate?.classList.remove('border-green-500');
+      leadVisitSummary?.classList.remove('border-green-500');
+      leadVisitOutcome?.classList.remove('border-green-500');
       showToast('Visita registrada com sucesso!', 'success');
     } catch (err) {
       console.error('Erro ao adicionar visita:', err);

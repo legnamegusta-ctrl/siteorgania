@@ -51,33 +51,45 @@
   </main>
   <!-- Modal de registro de visita -->
   <div id="leadAddVisitModal" class="modal hidden">
-    <div class="modal-card w-full max-w-md">
+    <div class="modal-card w-full max-w-md relative">
+      <button type="button" id="btnLeadVisitCloseIcon" aria-label="Fechar" class="btn-icon absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
       <h3 class="font-semibold mb-4">Registrar visita</h3>
       <form id="leadAddVisitForm" class="grid gap-4">
         <div class="field">
-          <label for="leadVisitDate">Data/Hora</label>
-          <input id="leadVisitDate" type="datetime-local" class="input" />
+          <label for="leadVisitDate">Data/Hora*</label>
+          <input id="leadVisitDate" type="datetime-local" class="input" required placeholder="Selecione a data e hora" />
+          <small class="text-xs text-gray-500">Informe uma data futura para a visita.</small>
+          <p id="leadVisitDateError" class="error hidden"></p>
         </div>
         <div class="field">
           <label for="leadVisitSummary">Resumo*</label>
-          <input id="leadVisitSummary" class="input" required />
+          <input id="leadVisitSummary" class="input" required placeholder="Descreva brevemente a visita" />
+          <small class="text-xs text-gray-500">Insira um resumo curto da visita.</small>
+          <p id="leadVisitSummaryError" class="error hidden"></p>
         </div>
         <div class="field">
           <label for="leadVisitNotes">Notas</label>
-          <textarea id="leadVisitNotes" class="input"></textarea>
+          <textarea id="leadVisitNotes" class="input" placeholder="Observações adicionais"></textarea>
+          <small class="text-xs text-gray-500">Opcional: detalhes extras sobre a visita.</small>
         </div>
         <div class="field">
-          <label for="leadVisitOutcome">Resultado</label>
-          <select id="leadVisitOutcome" class="input">
+          <label for="leadVisitOutcome">Resultado*</label>
+          <select id="leadVisitOutcome" class="input" required>
+            <option value="" disabled selected>Selecione o resultado</option>
             <option value="realizada">Realizada</option>
             <option value="reagendada">Reagendada</option>
             <option value="cancelada">Cancelada</option>
             <option value="sem_contato">Sem contato</option>
           </select>
+          <small class="text-xs text-gray-500">Escolha o status da visita.</small>
+          <p id="leadVisitOutcomeError" class="error hidden"></p>
         </div>
         <div class="field">
           <label for="leadVisitNextStep">Próximo passo</label>
-          <input id="leadVisitNextStep" class="input" />
+          <input id="leadVisitNextStep" class="input" placeholder="Ex.: Agendar nova visita" />
+          <small class="text-xs text-gray-500">Defina o próximo passo, se houver.</small>
         </div>
         <div class="flex gap-2 justify-end">
           <button type="button" id="btnLeadVisitClose" class="btn-secondary">Cancelar</button>
