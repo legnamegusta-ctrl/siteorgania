@@ -310,6 +310,12 @@ export function initAgronomoDashboard() {
           location.href = `client-details.html?clientId=${it.id}&from=agronomo`;
         });
         actions.appendChild(openBtn);
+      } else if (it.type === 'lead') {
+        const openLink = document.createElement('a');
+        openLink.className = 'btn-secondary flex-1 text-center';
+        openLink.textContent = 'Abrir';
+        openLink.href = `lead-details.html?id=${it.id}`;
+        actions.appendChild(openLink);
       }
       div.appendChild(actions);
       if (highlightId && it.id === highlightId) {
