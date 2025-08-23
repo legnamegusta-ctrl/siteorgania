@@ -93,6 +93,8 @@
 .btn-secondary{background-color:#E5E7EB;color:#374151;}
 .btn-secondary:hover{background-color:#D1D5DB;}
 .btn-icon{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;}
+.action-icon{color:#6B7280;transition:color var(--transition-base);}
+.action-icon:hover{color:#374151;}
 .select,.input{height:var(--input-h);}
 .details-btn{white-space:nowrap;}
 
