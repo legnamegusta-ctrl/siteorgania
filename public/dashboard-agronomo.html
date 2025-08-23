@@ -341,6 +341,43 @@
     </div>
   </div>
 
+  <div id="leadVisitModal" class="modal hidden">
+    <div class="modal-card max-w-md w-full">
+      <h3 class="mb-4 font-semibold">Registrar Visita</h3>
+      <form id="leadVisitForm" class="grid gap-4">
+        <div class="field">
+          <label for="leadVisitDate">Data/Hora</label>
+          <input id="leadVisitDate" type="datetime-local" class="input" required />
+        </div>
+        <div class="field">
+          <label for="leadVisitSummary">Resumo*</label>
+          <textarea id="leadVisitSummary" class="input" required></textarea>
+        </div>
+        <div class="field">
+          <label for="leadVisitNotes">Notas</label>
+          <textarea id="leadVisitNotes" class="input"></textarea>
+        </div>
+        <div class="field">
+          <label for="leadVisitOutcome">Resultado</label>
+          <select id="leadVisitOutcome" class="input">
+            <option value="realizada">Realizada</option>
+            <option value="reagendada">Reagendada</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="sem_contato">Sem contato</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="leadVisitNextStep">Próximo passo</label>
+          <input id="leadVisitNextStep" class="input" />
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnLeadVisitCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="quickCreateModal" class="modal hidden">
     <div class="modal-card max-w-xl w-full">
       <h3 class="mb-4 font-semibold">Cadastro Rápido</h3>

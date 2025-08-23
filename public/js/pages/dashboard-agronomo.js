@@ -1,6 +1,13 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
 import { showToast } from '../services/ui.js';
+import { db, auth } from '../config/firebase.js';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  Timestamp
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import {
   initAgroMap,
   setMapCenter,
@@ -18,11 +25,20 @@ import { getVisits, addVisit } from '../stores/visitsStore.js';
 import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 
-export function initAgronomoDashboard() {
+export function initAgronomoDashboard(userId, userRole) {
   const quickModal = document.getElementById('quickActionsModal');
   const visitModal = document.getElementById('visitModal');
   const saleModal = document.getElementById('saleModal');
   const quickCreateModal = document.getElementById('quickCreateModal');
+  const leadVisitModal = document.getElementById('leadVisitModal');
+  const leadVisitForm = document.getElementById('leadVisitForm');
+  const leadVisitDate = document.getElementById('leadVisitDate');
+  const leadVisitSummary = document.getElementById('leadVisitSummary');
+  const leadVisitNotes = document.getElementById('leadVisitNotes');
+  const leadVisitOutcome = document.getElementById('leadVisitOutcome');
+  const leadVisitNextStep = document.getElementById('leadVisitNextStep');
+
+  let currentLeadId = null;
 
   let currentMapFilter = 'all';
   let highlightContactId = null;
@@ -218,6 +234,52 @@ export function initAgronomoDashboard() {
     toggleModal(quickCreateModal, true);
   }
 
+  function openLeadVisitModal(leadId) {
+    currentLeadId = leadId;
+    leadVisitForm?.reset();
+    if (leadVisitDate)
+      leadVisitDate.value = new Date().toISOString().slice(0, 16);
+    toggleModal(leadVisitModal, true);
+  }
+
+  document
+    .getElementById('btnLeadVisitCancel')
+    ?.addEventListener('click', () => toggleModal(leadVisitModal, false));
+
+  leadVisitForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const summary = leadVisitSummary?.value.trim();
+    if (!summary) {
+      showToast('Informe o resumo da visita.', 'error');
+      return;
+    }
+    try {
+      const visitsRef = collection(db, `leads/${currentLeadId}/visits`);
+      await addDoc(visitsRef, {
+        date: leadVisitDate?.value
+          ? Timestamp.fromDate(new Date(leadVisitDate.value))
+          : Timestamp.fromDate(new Date()),
+        authorId: auth.currentUser.uid,
+        authorRole: userRole,
+        summary,
+        notes: leadVisitNotes?.value.trim() || '',
+        outcome: leadVisitOutcome?.value || 'realizada',
+        nextStep: leadVisitNextStep?.value.trim() || null,
+        attachments: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        relatedType: 'lead',
+        relatedId: currentLeadId,
+      });
+      toggleModal(leadVisitModal, false);
+      leadVisitForm?.reset();
+      showToast('Visita registrada com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao registrar visita:', err);
+      showToast('Erro ao registrar visita.', 'error');
+    }
+  });
+
   function renderClientsSummary() {
     const clients = getClients();
     const totalActive = clients.filter((c) => c.status !== 'inativo').length;
@@ -403,7 +465,8 @@ export function initAgronomoDashboard() {
     listEl.innerHTML = '';
     items.forEach((it) => {
       const div = document.createElement('div');
-      div.className = 'py-2 cursor-pointer';
+      div.className = 'py-2 cursor-pointer lead-card';
+      div.dataset.id = it.lead.id;
       div.innerHTML = `<div class="font-semibold">${
         it.lead.name || '(sem nome)'
       }</div><div class="text-sm text-gray-600">${
@@ -411,9 +474,17 @@ export function initAgronomoDashboard() {
       }</div><div class="text-xs text-gray-500">${
         it.lead.interest || ''
       }</div>`;
-      div.addEventListener('click', () => {
-        location.href = `lead-details.html?id=${it.lead.id}`;
-      });
+      const canVisit =
+        userRole === 'admin' ||
+        userRole === 'agronomo' ||
+        (userRole === 'operador' && it.lead.assignedTo === userId);
+      if (canVisit) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-secondary mt-2 btn-registrar-visita';
+        btn.dataset.id = it.lead.id;
+        btn.textContent = 'Registrar visita';
+        div.appendChild(btn);
+      }
       listEl.appendChild(div);
     });
     listEl.classList.toggle('hidden', items.length === 0);
@@ -449,6 +520,19 @@ export function initAgronomoDashboard() {
     document
       .getElementById('btnLeadsQuickAdd')
       ?.addEventListener('click', () => openQuickCreateModal('lead'));
+    const listEl = document.getElementById('leadsList');
+    listEl?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-registrar-visita');
+      if (btn) {
+        e.stopPropagation();
+        openLeadVisitModal(btn.dataset.id);
+        return;
+      }
+      const card = e.target.closest('.lead-card');
+      if (card) {
+        location.href = `lead-details.html?id=${card.dataset.id}`;
+      }
+    });
   }
 
   document.querySelectorAll("input[name='visitTarget']").forEach((r) =>
