@@ -15,11 +15,24 @@
 <body class="bg-gray-100">
   <div id="lead-details-marker" class="hidden"></div>
   <header class="bg-white shadow-lg sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center gap-4">
-          <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar"><i class="fas fa-arrow-left"></i></a>
-          <h1 id="leadNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <nav class="text-xs text-gray-500 mb-2">
+        <a href="dashboard-agronomo.html" class="hover:text-gray-700">Leads</a>
+        <span class="mx-1">/</span>
+        <span>Detalhes do Lead</span>
+      </nav>
+      <div class="flex justify-between items-start">
+        <div class="flex items-start gap-4">
+          <a id="backBtn" class="text-gray-500 hover:text-gray-800 mt-1" title="Voltar"><i class="fas fa-arrow-left"></i></a>
+          <div>
+            <h1 class="text-2xl font-bold" style="color: var(--brand-green);">Detalhes do Lead</h1>
+            <div class="flex items-center gap-2 mt-1">
+              <span id="leadNameHeader" class="text-lg font-semibold text-gray-800">Carregando...</span>
+              <a id="editLead" class="action-icon" title="Editar"><i class="fas fa-edit"></i></a>
+              <a id="callLead" class="action-icon" title="Ligar"><i class="fas fa-phone"></i></a>
+              <a id="messageLead" class="action-icon" title="Mensagem"><i class="fas fa-comment-dots"></i></a>
+            </div>
+          </div>
         </div>
         <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
       </div>
