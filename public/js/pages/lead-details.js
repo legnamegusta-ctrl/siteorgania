@@ -1,6 +1,7 @@
 // js/pages/lead-details.js
 
 import { db, auth } from '../config/firebase.js';
+import { toggleModal } from './agro-bottom-nav.js';
 import {
   doc,
   getDoc,
@@ -29,37 +30,57 @@ export function initLeadDetails(userId, userRole) {
   const leadPhone = document.getElementById('leadPhone');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
-  const addVisitForm = document.getElementById('addVisitForm');
-  const visitDate = document.getElementById('visitDate');
-  const visitSummary = document.getElementById('visitSummary');
-  const visitNotes = document.getElementById('visitNotes');
-  const visitOutcome = document.getElementById('visitOutcome');
-  const visitNextStep = document.getElementById('visitNextStep');
-
-  if (visitDate) {
-    const now = new Date();
-    visitDate.value = now.toISOString().slice(0, 16);
-  }
+  const btnAddVisit = document.getElementById('btnAddVisit');
+  const leadAddVisitModal = document.getElementById('leadAddVisitModal');
+  const btnLeadVisitClose = document.getElementById('btnLeadVisitClose');
+  const leadAddVisitForm = document.getElementById('leadAddVisitForm');
+  const leadVisitDate = document.getElementById('leadVisitDate');
+  const leadVisitSummary = document.getElementById('leadVisitSummary');
+  const leadVisitNotes = document.getElementById('leadVisitNotes');
+  const leadVisitOutcome = document.getElementById('leadVisitOutcome');
+  const leadVisitNextStep = document.getElementById('leadVisitNextStep');
 
   const leadRef = doc(db, 'leads', leadId);
-  onSnapshot(leadRef, (snap) => {
+
+  let leadLoaded = false;
+
+  function handleLeadSnap(snap) {
+    leadLoaded = true;
+    if (!snap.exists()) {
+      showToast('Lead não encontrado.', 'error');
+      setTimeout(() => (window.location.href = 'dashboard-agronomo.html'), 1500);
+      return;
+    }
     const data = snap.data();
-    if (!data) return;
-    const name = data.name || data.nomeContato || 'Lead';
+    const name =
+      data.name || data.nomeContato || data.displayName || '(Sem nome)';
     if (leadNameHeader) leadNameHeader.textContent = name;
     if (leadName) leadName.textContent = name;
-    if (leadPhone) leadPhone.textContent = data.phone || data.phoneNumber || '';
+    if (leadPhone)
+      leadPhone.textContent = data.phone || data.phoneNumber || '';
     if (leadStage && data.stage) {
       leadStage.textContent = data.stage;
       leadStage.classList.remove('hidden');
     }
-
     const canAdd =
       userRole === 'admin' ||
       userRole === 'agronomo' ||
       (userRole === 'operador' && data.assignedTo === userId);
-    addVisitForm?.classList.toggle('hidden', !canAdd);
-  });
+    btnAddVisit?.classList.toggle('hidden', !canAdd);
+  }
+
+  onSnapshot(leadRef, handleLeadSnap);
+
+  setTimeout(async () => {
+    if (!leadLoaded) {
+      try {
+        const snap = await getDoc(leadRef);
+        handleLeadSnap(snap);
+      } catch (err) {
+        console.error('Erro ao buscar lead:', err);
+      }
+    }
+  }, 2000);
 
   function formatDate(ts) {
     if (!ts) return '';
@@ -107,30 +128,41 @@ export function initLeadDetails(userId, userRole) {
     });
   });
 
-  addVisitForm?.addEventListener('submit', async (e) => {
+  btnAddVisit?.addEventListener('click', () => {
+    if (leadVisitDate)
+      leadVisitDate.value = new Date().toISOString().slice(0, 16);
+    toggleModal(leadAddVisitModal, true);
+  });
+
+  btnLeadVisitClose?.addEventListener('click', () =>
+    toggleModal(leadAddVisitModal, false)
+  );
+
+  leadAddVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const summary = visitSummary?.value.trim();
+    const summary = leadVisitSummary?.value.trim();
     if (!summary) {
       showToast('Informe o resumo da visita.', 'error');
       return;
     }
     try {
+      const value = leadVisitDate?.value;
       await addDoc(visitsRef, {
-        date: visitDate?.value ? Timestamp.fromDate(new Date(visitDate.value)) : Timestamp.now(),
+        date: value ? Timestamp.fromDate(new Date(value)) : Timestamp.now(),
         authorId: auth.currentUser.uid,
         authorRole: userRole,
         summary,
-        notes: visitNotes?.value.trim() || '',
-        outcome: visitOutcome?.value || 'realizada',
-        nextStep: visitNextStep?.value.trim() || null,
+        notes: leadVisitNotes?.value.trim() || '',
+        outcome: leadVisitOutcome?.value || 'realizada',
+        nextStep: leadVisitNextStep?.value.trim() || null,
         attachments: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         relatedType: 'lead',
-        relatedId: leadId
+        relatedId: leadId,
       });
-      addVisitForm.reset();
-      if (visitDate) visitDate.value = new Date().toISOString().slice(0, 16);
+      toggleModal(leadAddVisitModal, false);
+      leadAddVisitForm?.reset();
       showToast('Visita registrada com sucesso!', 'success');
     } catch (err) {
       console.error('Erro ao adicionar visita:', err);
