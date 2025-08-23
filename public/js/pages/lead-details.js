@@ -7,6 +7,7 @@ import { getVisits } from '../stores/visitsStore.js';
 import {
   doc,
   getDoc,
+  updateDoc,
   collection,
   addDoc,
   onSnapshot,
@@ -37,6 +38,7 @@ export function initLeadDetails(userId, userRole) {
   const visitsTimeline = document.getElementById('visitsTimeline');
   const visitFilters = document.getElementById('visitFilters');
   const btnAddVisit = document.getElementById('btnAddVisit');
+  const btnConvertLead = document.getElementById('convertLead');
   const leadAddVisitModal = document.getElementById('leadAddVisitModal');
   const btnLeadVisitClose = document.getElementById('btnLeadVisitClose');
   const btnLeadVisitCloseIcon = document.getElementById('btnLeadVisitCloseIcon');
@@ -353,6 +355,43 @@ export function initLeadDetails(userId, userRole) {
   btnLeadVisitCloseIcon?.addEventListener('click', () =>
     toggleModal(leadAddVisitModal, false)
   );
+
+  btnConvertLead?.addEventListener('click', async () => {
+    if (usingLocalData) {
+      showToast('Não é possível converter offline.', 'error');
+      return;
+    }
+    try {
+      const snap = await getDoc(leadRef);
+      if (!snap.exists()) {
+        showToast('Lead não encontrado.', 'error');
+        return;
+      }
+      const data = snap.data();
+      const clientRef = await addDoc(collection(db, 'clients'), {
+        name: data.name || data.nomeContato || data.displayName || '',
+        phone: data.phone || data.phoneNumber || '',
+        email: data.email || '',
+        origin: data.origin || data.source || '',
+        propertyName: data.propertyName || data.property || '',
+        status: 'ativo',
+        isFavorite: false,
+        tier: 'standard',
+        createdAt: serverTimestamp(),
+        propertyCount: 0,
+        cultureCount: 0,
+        enabledModules: {},
+      });
+      await updateDoc(leadRef, { stage: 'Convertido', clientId: clientRef.id });
+      showToast('Lead convertido em cliente!', 'success');
+      setTimeout(() => {
+        window.location.href = `client-details.html?clientId=${clientRef.id}`;
+      }, 1200);
+    } catch (err) {
+      console.error('Erro ao converter lead:', err);
+      showToast('Erro ao converter lead.', 'error');
+    }
+  });
 
   leadAddVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
