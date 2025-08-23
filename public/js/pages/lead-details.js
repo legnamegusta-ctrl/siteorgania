@@ -2,6 +2,8 @@
 
 import { db, auth } from '../config/firebase.js';
 import { toggleModal } from './agro-bottom-nav.js';
+import { getLeads } from '../stores/leadsStore.js';
+import { getVisits } from '../stores/visitsStore.js';
 import {
   doc,
   getDoc,
@@ -43,10 +45,53 @@ export function initLeadDetails(userId, userRole) {
   const leadRef = doc(db, 'leads', leadId);
 
   let leadLoaded = false;
+  let usingLocalData = false;
+
+  function renderLocalLead(lead) {
+    const name =
+      lead.name || lead.nomeContato || lead.displayName || '(Sem nome)';
+    if (leadNameHeader) leadNameHeader.textContent = name;
+    if (leadName) leadName.textContent = name;
+    if (leadPhone)
+      leadPhone.textContent = lead.phone || lead.phoneNumber || '';
+    if (leadStage && lead.stage) {
+      leadStage.textContent = lead.stage;
+      leadStage.classList.remove('hidden');
+    }
+    if (visitsTimeline) {
+      hideSpinner(visitsTimeline);
+      const visits = getVisits().filter(
+        (v) => v.refId === leadId && v.type === 'lead'
+      );
+      if (!visits.length) {
+        visitsTimeline.innerHTML =
+          '<p class="text-gray-500">Nenhuma visita registrada.</p>';
+      } else {
+        visits.sort((a, b) => new Date(b.at) - new Date(a.at));
+        visitsTimeline.innerHTML = '';
+        visits.forEach((v) => {
+          const card = document.createElement('div');
+          card.className = 'mb-4 pl-4 border-l-2 border-green-600';
+          card.innerHTML = `
+        <div class="text-sm text-gray-500">${formatDate(v.at)}</div>
+        <div class="font-semibold">${v.notes || ''}</div>
+      `;
+          visitsTimeline.appendChild(card);
+        });
+      }
+    }
+    btnAddVisit?.classList.add('hidden');
+  }
 
   function handleLeadSnap(snap) {
     leadLoaded = true;
     if (!snap.exists()) {
+      const localLead = getLeads().find((l) => l.id === leadId);
+      if (localLead) {
+        usingLocalData = true;
+        renderLocalLead(localLead);
+        return;
+      }
       showToast('Lead não encontrado.', 'error');
       setTimeout(() => (window.location.href = 'dashboard-agronomo.html'), 1500);
       return;
@@ -106,7 +151,7 @@ export function initLeadDetails(userId, userRole) {
   const visitsRef = collection(db, `leads/${leadId}/visits`);
   const visitsQuery = query(visitsRef, orderBy('date', 'desc'));
   onSnapshot(visitsQuery, (snap) => {
-    if (!visitsTimeline) return;
+    if (usingLocalData || !visitsTimeline) return;
     hideSpinner(visitsTimeline);
     if (snap.empty) {
       visitsTimeline.innerHTML = '<p class="text-gray-500">Nenhuma visita registrada.</p>';
@@ -140,6 +185,7 @@ export function initLeadDetails(userId, userRole) {
 
   leadAddVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (usingLocalData) return;
     const summary = leadVisitSummary?.value.trim();
     if (!summary) {
       showToast('Informe o resumo da visita.', 'error');
