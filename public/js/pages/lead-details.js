@@ -32,6 +32,7 @@ export function initLeadDetails(userId, userRole) {
   const leadPhone = document.getElementById('leadPhone');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
+  const visitFilters = document.getElementById('visitFilters');
   const btnAddVisit = document.getElementById('btnAddVisit');
   const leadAddVisitModal = document.getElementById('leadAddVisitModal');
   const btnLeadVisitClose = document.getElementById('btnLeadVisitClose');
@@ -46,6 +47,8 @@ export function initLeadDetails(userId, userRole) {
 
   let leadLoaded = false;
   let usingLocalData = false;
+  let visitsCache = [];
+  let currentFilter = 'all';
 
   function renderLocalLead(lead) {
     const name =
@@ -60,24 +63,14 @@ export function initLeadDetails(userId, userRole) {
     }
     if (visitsTimeline) {
       hideSpinner(visitsTimeline);
-      const visits = getVisits().filter(
+      visitsCache = getVisits().filter(
         (v) => v.refId === leadId && v.type === 'lead'
       );
-      if (!visits.length) {
+      if (!visitsCache.length) {
         visitsTimeline.innerHTML =
           '<p class="text-gray-500">Nenhuma visita registrada.</p>';
       } else {
-        visits.sort((a, b) => new Date(b.at) - new Date(a.at));
-        visitsTimeline.innerHTML = '';
-        visits.forEach((v) => {
-          const card = document.createElement('div');
-          card.className = 'mb-4 pl-4 border-l-2 border-green-600';
-          card.innerHTML = `
-        <div class="text-sm text-gray-500">${formatDate(v.at)}</div>
-        <div class="font-semibold">${v.notes || ''}</div>
-      `;
-          visitsTimeline.appendChild(card);
-        });
+        renderVisits(applyFilter(visitsCache));
       }
     }
     btnAddVisit?.classList.add('hidden');
@@ -127,15 +120,6 @@ export function initLeadDetails(userId, userRole) {
     }
   }, 2000);
 
-  function formatDate(ts) {
-    if (!ts) return '';
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    return d.toLocaleString('pt-BR', {
-      dateStyle: 'short',
-      timeStyle: 'short'
-    });
-  }
-
   function formatRole(role) {
     const roles = {
       admin: 'Admin',
@@ -146,6 +130,86 @@ export function initLeadDetails(userId, userRole) {
     return roles[role] || role || '';
   }
 
+  function getVisitDate(v) {
+    const ts = v.date || v.createdAt || v.at;
+    return ts?.toDate ? ts.toDate() : new Date(ts);
+  }
+
+  function groupVisitsByDate(visits) {
+    return visits.reduce((acc, v) => {
+      const d = getVisitDate(v);
+      const key = d.toLocaleDateString('pt-BR');
+      (acc[key] = acc[key] || []).push({ ...v, __date: d });
+      return acc;
+    }, {});
+  }
+
+  function iconForOutcome(outcome) {
+    const icons = {
+      realizada: 'fas fa-check',
+      reagendada: 'fas fa-redo',
+      cancelada: 'fas fa-times',
+      sem_contato: 'fas fa-phone-slash'
+    };
+    return icons[outcome] || 'fas fa-circle';
+  }
+
+  function applyFilter(visits) {
+    const now = new Date();
+    return visits.filter((v) => {
+      const d = getVisitDate(v);
+      if (currentFilter === 'future') return d >= now;
+      if (currentFilter === 'past') return d < now;
+      return true;
+    });
+  }
+
+  function renderVisits(visits) {
+    if (!visitsTimeline) return;
+    if (!visits.length) {
+      visitsTimeline.innerHTML =
+        '<p class="text-gray-500">Nenhuma visita registrada.</p>';
+      return;
+    }
+    const grouped = groupVisitsByDate(visits);
+    visitsTimeline.innerHTML = '';
+    Object.keys(grouped)
+      .sort(
+        (a, b) =>
+          new Date(b.split('/').reverse().join('-')) -
+          new Date(a.split('/').reverse().join('-'))
+      )
+      .forEach((dateStr) => {
+        const header = document.createElement('li');
+        header.className = 'timeline-date';
+        header.textContent = dateStr;
+        visitsTimeline.appendChild(header);
+        grouped[dateStr]
+          .sort((a, b) => b.__date - a.__date)
+          .forEach((v) => {
+            const li = document.createElement('li');
+            li.className = 'timeline-item';
+            const icon = iconForOutcome(v.outcome);
+            const statusClass = v.outcome ? `status-${v.outcome}` : '';
+            const time = v.__date.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            li.innerHTML = `
+              <span class="timeline-icon ${statusClass}"><i class="${icon}"></i></span>
+              <div class="text-sm text-gray-500">${time}${
+                v.authorRole ? ` por ${formatRole(v.authorRole)}` : ''
+              }</div>
+              <div class="font-semibold">${v.summary || ''}</div>
+              ${v.notes ? `<div class="mt-1 text-sm">${v.notes}</div>` : ''}
+              ${v.outcome ? `<div class="mt-1 text-sm text-gray-600">Resultado: ${v.outcome}</div>` : ''}
+              ${v.nextStep ? `<div class="mt-1 text-sm text-gray-600">Próximo passo: ${v.nextStep}</div>` : ''}
+            `;
+            visitsTimeline.appendChild(li);
+          });
+      });
+  }
+
   if (visitsTimeline) showSpinner(visitsTimeline);
 
   const visitsRef = collection(db, `leads/${leadId}/visits`);
@@ -153,24 +217,26 @@ export function initLeadDetails(userId, userRole) {
   onSnapshot(visitsQuery, (snap) => {
     if (usingLocalData || !visitsTimeline) return;
     hideSpinner(visitsTimeline);
-    if (snap.empty) {
+    visitsCache = [];
+    snap.forEach((docSnap) => visitsCache.push(docSnap.data()));
+    if (!visitsCache.length) {
       visitsTimeline.innerHTML = '<p class="text-gray-500">Nenhuma visita registrada.</p>';
       return;
     }
-    visitsTimeline.innerHTML = '';
-    snap.forEach((docSnap) => {
-      const v = docSnap.data();
-      const card = document.createElement('div');
-      card.className = 'mb-4 pl-4 border-l-2 border-green-600';
-      card.innerHTML = `
-        <div class="text-sm text-gray-500">${formatDate(v.date || v.createdAt)} por ${formatRole(v.authorRole)}</div>
-        <div class="font-semibold">${v.summary || ''}</div>
-        ${v.notes ? `<div class="mt-1 text-sm">${v.notes}</div>` : ''}
-        ${v.outcome ? `<div class="mt-1 text-sm text-gray-600">Resultado: ${v.outcome}</div>` : ''}
-        ${v.nextStep ? `<div class="mt-1 text-sm text-gray-600">Próximo passo: ${v.nextStep}</div>` : ''}
-      `;
-      visitsTimeline.appendChild(card);
-    });
+    renderVisits(applyFilter(visitsCache));
+  });
+
+  visitFilters?.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-filter]');
+    if (!btn) return;
+    currentFilter = btn.dataset.filter;
+    visitFilters
+      .querySelectorAll('button')
+      .forEach((b) => {
+        b.classList.toggle('btn-primary', b === btn);
+        b.classList.toggle('btn-secondary', b !== btn);
+      });
+    renderVisits(applyFilter(visitsCache));
   });
 
   btnAddVisit?.addEventListener('click', () => {

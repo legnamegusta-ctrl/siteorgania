@@ -1120,10 +1120,14 @@ body.has-modal{overflow:hidden;}
 }
 
 /* Timeline components */
-.timeline{position:relative;margin-left:1rem;}
-.timeline::before{content:"";position:absolute;top:0;bottom:0;left:-0.5rem;width:2px;background:#E5E7EB;}
-.timeline-item{position:relative;margin-bottom:1rem;}
-.timeline-badge{position:absolute;left:-0.75rem;top:0.25rem;width:0.5rem;height:0.5rem;border-radius:50%;background:var(--brand-green);}
+.timeline{position:relative;margin-left:1rem;list-style:none;padding-left:1rem;}
+.timeline::before{content:"";position:absolute;top:0;bottom:0;left:0;width:2px;background:#E5E7EB;}
+.timeline-item{position:relative;margin-bottom:1rem;padding-left:1.5rem;}
+.timeline-icon{position:absolute;left:-0.75rem;top:0;width:1.25rem;height:1.25rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid var(--brand-green);color:var(--brand-green);font-size:0.625rem;}
+.timeline-date{margin:1rem 0 0.5rem 1.5rem;font-size:0.875rem;font-weight:600;color:#6B7280;}
+.timeline-icon.status-reagendada{border-color:#FBBF24;color:#FBBF24;}
+.timeline-icon.status-cancelada{border-color:#DC2626;color:#DC2626;}
+.timeline-icon.status-sem_contato{border-color:#9CA3AF;color:#9CA3AF;}
 .card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:1rem;}
 /* Utility classes for Agronomo Home */
 .kpi-card { @apply bg-white border border-gray-100 rounded-2xl p-4 md:p-5 shadow-sm; }
