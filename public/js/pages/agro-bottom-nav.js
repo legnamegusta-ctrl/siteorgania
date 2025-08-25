@@ -8,8 +8,13 @@ export function initBottomNav() {
     const id = `view-${target.replace('#','')}`;
     document.getElementById(id)?.classList.remove('hidden');
     buttons.forEach((b) => {
-      if (b.dataset.nav === target) b.classList.add('active');
-      else b.classList.remove('active');
+      if (b.dataset.nav === target) {
+        b.classList.add('active');
+        b.setAttribute('aria-current', 'page');
+      } else {
+        b.classList.remove('active');
+        b.removeAttribute('aria-current');
+      }
     });
   }
 

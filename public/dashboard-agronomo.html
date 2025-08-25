@@ -236,11 +236,26 @@
   </main>
 
   <nav id="bottomBar" class="bottom-bar">
-    <button data-nav="#home"><i class="fas fa-home"></i></button>
-    <button data-nav="#contatos"><i class="fas fa-users"></i></button>
-    <button id="navPlus" class="plus-btn"><i class="fas fa-plus"></i></button>
-    <button data-nav="#mapa"><i class="fas fa-map"></i></button>
-    <button data-nav="#ajustes"><i class="fas fa-cog"></i></button>
+    <button data-nav="#home" aria-label="Home">
+      <i class="fas fa-home" aria-hidden="true"></i>
+      <span class="sr-only">Home</span>
+    </button>
+    <button data-nav="#contatos" aria-label="Contatos">
+      <i class="fas fa-users" aria-hidden="true"></i>
+      <span class="sr-only">Contatos</span>
+    </button>
+    <button id="navPlus" class="plus-btn" aria-label="Ações rápidas">
+      <i class="fas fa-plus" aria-hidden="true"></i>
+      <span class="sr-only">Ações rápidas</span>
+    </button>
+    <button data-nav="#mapa" aria-label="Mapa">
+      <i class="fas fa-map" aria-hidden="true"></i>
+      <span class="sr-only">Mapa</span>
+    </button>
+    <button data-nav="#ajustes" aria-label="Ajustes">
+      <i class="fas fa-cog" aria-hidden="true"></i>
+      <span class="sr-only">Ajustes</span>
+    </button>
   </nav>
 
   <div id="quickActionsModal" class="modal hidden">
