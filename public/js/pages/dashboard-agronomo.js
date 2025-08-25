@@ -1192,7 +1192,7 @@ export function initAgronomoDashboard(userId, userRole) {
     const listEl = document.getElementById('agendaList');
     const emptyEl = document.getElementById('agendaEmpty');
     if (!listEl || !emptyEl) return;
-    listEl.innerHTML = '';
+    listEl.textContent = '';
     const agenda = getAgenda();
     const now = new Date();
     const limit = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000);
@@ -1228,7 +1228,12 @@ export function initAgronomoDashboard(userId, userRole) {
         name = l?.name || '(sem nome)';
         type = 'Lead';
       }
-      nameDiv.innerHTML = `<span class="text-xs rounded px-1.5 py-0.5 bg-blue-50 text-blue-700 mr-1">${type}</span>${name}`;
+      const badge = document.createElement('span');
+      badge.className = 'text-xs rounded px-1.5 py-0.5 bg-blue-50 text-blue-700 mr-1';
+      badge.textContent = type;
+      nameDiv.textContent = '';
+      nameDiv.appendChild(badge);
+      nameDiv.appendChild(document.createTextNode(name));
       info.appendChild(dt);
       info.appendChild(nameDiv);
       if (it.note) {
