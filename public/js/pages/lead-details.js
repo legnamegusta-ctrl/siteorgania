@@ -36,7 +36,6 @@ export function initLeadDetails(userId, userRole) {
   const leadOrigin = document.getElementById('leadOrigin');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
-  const visitFilters = document.getElementById('visitFilters');
   const btnAddVisit = document.getElementById('btnAddVisit');
   const btnConvertLead = document.getElementById('convertLead');
   const leadAddVisitModal = document.getElementById('leadAddVisitModal');
@@ -52,6 +51,17 @@ export function initLeadDetails(userId, userRole) {
   const leadVisitSummaryError = document.getElementById('leadVisitSummaryError');
   const leadVisitOutcomeError = document.getElementById('leadVisitOutcomeError');
 
+  const editLeadBtn = document.getElementById('editLead');
+  const editLeadModal = document.getElementById('editLeadModal');
+  const btnEditLeadCloseIcon = document.getElementById('btnEditLeadCloseIcon');
+  const btnEditLeadCancel = document.getElementById('btnEditLeadCancel');
+  const editLeadForm = document.getElementById('editLeadForm');
+  const editLeadName = document.getElementById('editLeadName');
+  const editLeadPhone = document.getElementById('editLeadPhone');
+  const editLeadEmail = document.getElementById('editLeadEmail');
+  const editLeadProperty = document.getElementById('editLeadProperty');
+  const editLeadOrigin = document.getElementById('editLeadOrigin');
+
   const leadRef = doc(db, 'leads', leadId);
 
   const STAGE_COLORS = {
@@ -65,7 +75,7 @@ export function initLeadDetails(userId, userRole) {
   let leadLoaded = false;
   let usingLocalData = false;
   let visitsCache = [];
-  let currentFilter = 'all';
+  let currentLeadData = null;
 
   function renderLocalLead(lead) {
     const name =
@@ -83,6 +93,7 @@ export function initLeadDetails(userId, userRole) {
       leadStage.textContent = lead.stage;
       leadStage.className = `inline-block text-xs font-semibold px-2 py-1 rounded ${color}`;
     }
+    currentLeadData = lead;
     if (visitsTimeline) {
       hideSpinner(visitsTimeline);
       visitsCache = getVisits().filter(
@@ -92,7 +103,7 @@ export function initLeadDetails(userId, userRole) {
         visitsTimeline.innerHTML =
           '<p class="text-gray-500">Nenhuma visita registrada.</p>';
       } else {
-        renderVisits(applyFilter(visitsCache));
+        renderVisits(visitsCache);
       }
     }
     btnAddVisit?.classList.add('hidden');
@@ -112,6 +123,7 @@ export function initLeadDetails(userId, userRole) {
       return;
     }
     const data = snap.data();
+    currentLeadData = data;
     const name =
       data.name || data.nomeContato || data.displayName || '(Sem nome)';
     if (leadNameHeader) leadNameHeader.textContent = name;
@@ -181,15 +193,6 @@ export function initLeadDetails(userId, userRole) {
     return icons[outcome] || 'fas fa-circle';
   }
 
-  function applyFilter(visits) {
-    const now = new Date();
-    return visits.filter((v) => {
-      const d = getVisitDate(v);
-      if (currentFilter === 'future') return d >= now;
-      if (currentFilter === 'past') return d < now;
-      return true;
-    });
-  }
 
   function renderVisits(visits) {
     if (!visitsTimeline) return;
@@ -250,7 +253,7 @@ export function initLeadDetails(userId, userRole) {
       visitsTimeline.innerHTML = '<p class="text-gray-500">Nenhuma visita registrada.</p>';
       return;
     }
-    renderVisits(applyFilter(visitsCache));
+    renderVisits(visitsCache);
   });
 
   function validateDate() {
@@ -318,18 +321,60 @@ export function initLeadDetails(userId, userRole) {
   leadVisitSummary?.addEventListener('input', validateSummary);
   leadVisitOutcome?.addEventListener('change', validateOutcome);
 
-  visitFilters?.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-filter]');
-    if (!btn) return;
-    currentFilter = btn.dataset.filter;
-    visitFilters
-      .querySelectorAll('button')
-      .forEach((b) => {
-        b.classList.toggle('btn-primary', b === btn);
-        b.classList.toggle('btn-secondary', b !== btn);
-      });
-    renderVisits(applyFilter(visitsCache));
+  editLeadBtn?.addEventListener('click', () => {
+    if (usingLocalData) {
+      showToast('Não é possível editar offline.', 'error');
+      return;
+    }
+    if (editLeadName)
+      editLeadName.value =
+        currentLeadData?.name ||
+        currentLeadData?.nomeContato ||
+        currentLeadData?.displayName ||
+        '';
+    if (editLeadPhone)
+      editLeadPhone.value =
+        currentLeadData?.phone || currentLeadData?.phoneNumber || '';
+    if (editLeadEmail)
+      editLeadEmail.value = currentLeadData?.email || '';
+    if (editLeadProperty)
+      editLeadProperty.value =
+        currentLeadData?.propertyName || currentLeadData?.property || '';
+    if (editLeadOrigin)
+      editLeadOrigin.value =
+        currentLeadData?.origin || currentLeadData?.source || '';
+    toggleModal(editLeadModal, true);
   });
+
+  btnEditLeadCancel?.addEventListener('click', () =>
+    toggleModal(editLeadModal, false)
+  );
+  btnEditLeadCloseIcon?.addEventListener('click', () =>
+    toggleModal(editLeadModal, false)
+  );
+
+  editLeadForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (usingLocalData) {
+      showToast('Não é possível editar offline.', 'error');
+      return;
+    }
+    try {
+      await updateDoc(leadRef, {
+        name: editLeadName?.value.trim() || '',
+        phone: editLeadPhone?.value.trim() || '',
+        email: editLeadEmail?.value.trim() || '',
+        propertyName: editLeadProperty?.value.trim() || '',
+        origin: editLeadOrigin?.value.trim() || ''
+      });
+      toggleModal(editLeadModal, false);
+      showToast('Lead atualizado com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao atualizar lead:', err);
+      showToast('Erro ao atualizar lead.', 'error');
+    }
+  });
+
 
   btnAddVisit?.addEventListener('click', () => {
     const nowIso = new Date().toISOString().slice(0, 16);
