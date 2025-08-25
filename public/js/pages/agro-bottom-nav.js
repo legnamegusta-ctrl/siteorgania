@@ -31,7 +31,51 @@ export function bindPlus(handler) {
   btn?.addEventListener('click', handler);
 }
 
+let lastFocusedElement;
+let currentModal;
+let focusableElements = [];
+
+function handleKeydown(e) {
+  if (!currentModal) return;
+  if (e.key === 'Escape') {
+    toggleModal(currentModal, false);
+  } else if (e.key === 'Tab') {
+    if (focusableElements.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+}
+
 export function toggleModal(el, open) {
   if (!el) return;
-  el.classList.toggle('hidden', !open);
+  if (open) {
+    lastFocusedElement = document.activeElement;
+    currentModal = el;
+    el.classList.remove('hidden');
+    focusableElements = el.querySelectorAll(
+      'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+    );
+    focusableElements[0]?.focus();
+    document.addEventListener('keydown', handleKeydown);
+  } else {
+    el.classList.add('hidden');
+    document.removeEventListener('keydown', handleKeydown);
+    currentModal = null;
+    focusableElements = [];
+    lastFocusedElement?.focus();
+  }
 }
