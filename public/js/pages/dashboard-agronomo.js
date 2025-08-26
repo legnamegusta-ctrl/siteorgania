@@ -142,14 +142,18 @@ export function initAgronomoDashboard(userId, userRole) {
   function updateMapChips() {
     document
       .querySelectorAll('#mapFilters .chip')
-      .forEach((c) => c.classList.remove('filter-active'));
+      .forEach((c) => {
+        c.classList.remove('filter-active');
+        c.setAttribute('aria-pressed', 'false');
+      });
+    let active;
     if (currentMapFilter === 'all')
-      document.getElementById('mapFilterAll')?.classList.add('filter-active');
+      active = document.getElementById('mapFilterAll');
     else if (currentMapFilter === 'clients')
-      document
-        .getElementById('mapFilterClients')
-        ?.classList.add('filter-active');
-    else document.getElementById('mapFilterLeads')?.classList.add('filter-active');
+      active = document.getElementById('mapFilterClients');
+    else active = document.getElementById('mapFilterLeads');
+    active?.classList.add('filter-active');
+    active?.setAttribute('aria-pressed', 'true');
   }
 
   function handleMapFilterChange(f) {
