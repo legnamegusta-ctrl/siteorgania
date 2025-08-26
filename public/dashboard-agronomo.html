@@ -224,10 +224,10 @@
       </div>
     </section>
     <section id="view-mapa" data-view class="hidden">
-      <div id="mapFilters" class="p-4 flex gap-2">
-        <button id="mapFilterAll" class="chip chip--filter filter-active">Todos</button>
-        <button id="mapFilterClients" class="chip chip--filter">Clientes</button>
-        <button id="mapFilterLeads" class="chip chip--filter">Leads</button>
+      <div id="mapFilters" class="p-4 flex gap-2" role="radiogroup">
+        <button id="mapFilterAll" class="chip chip--filter filter-active" aria-pressed="true">Todos</button>
+        <button id="mapFilterClients" class="chip chip--filter" aria-pressed="false">Clientes</button>
+        <button id="mapFilterLeads" class="chip chip--filter" aria-pressed="false">Leads</button>
       </div>
       <div id="agroMap"></div>
     </section>
