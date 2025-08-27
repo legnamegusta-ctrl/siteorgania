@@ -43,6 +43,7 @@
                 <button data-tab-target="dashboard" class="tab-btn active-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Dashboard</button>
                 <button data-tab-target="producao" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Produção</button>
                 <button data-tab-target="ferramentas" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Ferramentas</button>
+                <button data-tab-target="agronomos" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Agrônomos</button>
                 <button data-tab-target="clientes" class="tab-btn whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Clientes</button>
             </nav>
         </div>
@@ -82,6 +83,30 @@
                         </a>
                     </div>
                     <div id="formulas-admin-container"></div>
+                </div>
+            </div>
+
+            <div id="agronomos-content" class="tab-content hidden">
+                <div class="dashboard-card">
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                        <h3 class="text-xl font-bold text-gray-800">Agrônomos</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="reportStartDate" class="p-2 border border-gray-300 rounded-md" />
+                            <input type="date" id="reportEndDate" class="p-2 border border-gray-300 rounded-md" />
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white dashboard-table responsive-table">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Relatório</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAgronomistsList" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -164,6 +189,7 @@
     <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
     <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module" src="js/services/auth.js"></script>
 </body>
 </html>
