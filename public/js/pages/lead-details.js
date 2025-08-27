@@ -96,8 +96,8 @@ export function initLeadDetails(userId, userRole) {
     currentLeadData = lead;
     if (visitsTimeline) {
       hideSpinner(visitsTimeline);
-      const all = await getVisits();
-      visitsCache = all.filter(
+      const allVisits = await getVisits();
+      visitsCache = allVisits.filter(
         (v) => v.refId === leadId && v.type === 'lead'
       );
       if (!visitsCache.length) {
@@ -262,8 +262,10 @@ export function initLeadDetails(userId, userRole) {
     const btn = e.target.closest('.edit-visit');
     if (!btn) return;
     const visitId = btn.dataset.id;
-    const visit = visitsCache.find((v) => v.id === visitId) ||
-      (await getVisits()).find((v) => v.id === visitId);
+    const localVisits = await getVisits();
+    const visit =
+      visitsCache.find((v) => v.id === visitId) ||
+      localVisits.find((v) => v.id === visitId);
     if (!visit) return;
     const currentText = visit.summary ?? visit.notes ?? '';
     const newText = await promptModal({

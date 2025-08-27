@@ -87,7 +87,8 @@ export function initAgronomoDashboard(userId, userRole) {
 
   async function renderHistory() {
     if (!historyTimeline) return;
-    const visits = (await getVisits()).map((v) => ({
+    const visitList = await getVisits();
+    const visits = visitList.map((v) => ({
       id: v.id,
       type: 'visit',
       at: v.at,
@@ -155,7 +156,8 @@ export function initAgronomoDashboard(userId, userRole) {
       const btn = e.target.closest('.edit-visit');
       if (!btn) return;
       const visitId = btn.dataset.id;
-      const visit = (await getVisits()).find((v) => v.id === visitId);
+      const allVisits = await getVisits();
+      const visit = allVisits.find((v) => v.id === visitId);
       if (!visit) return;
       const newText = await promptModal({
         title: 'Editar texto da visita',
@@ -396,12 +398,12 @@ export function initAgronomoDashboard(userId, userRole) {
     const clients = getClients();
     const properties = getProperties();
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visits = await getVisits();
+    const visitList = await getVisits();
     let items = [];
     items.push(
       ...clients.map((c) => {
         const prop = properties.find((p) => p.clientId === c.id);
-        const vList = visits.filter(
+        const vList = visitList.filter(
           (vi) => vi.type === 'cliente' && vi.refId === c.id
         );
         const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
@@ -416,7 +418,7 @@ export function initAgronomoDashboard(userId, userRole) {
     );
     items.push(
       ...leads.map((l) => {
-        const vList = visits.filter(
+        const vList = visitList.filter(
           (vi) => vi.type === 'lead' && vi.refId === l.id
         );
         const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
@@ -558,9 +560,9 @@ export function initAgronomoDashboard(userId, userRole) {
     const search =
       document.getElementById('leadsSearch')?.value.toLowerCase().trim() || '';
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visits = await getVisits();
+    const visitList = await getVisits();
     let items = leads.map((l) => {
-      const vList = visits.filter((v) => v.type === 'lead' && v.refId === l.id);
+      const vList = visitList.filter((v) => v.type === 'lead' && v.refId === l.id);
       const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
       return {
         lead: l,
@@ -1001,7 +1003,8 @@ export function initAgronomoDashboard(userId, userRole) {
       document.getElementById('kpiSales').textContent = String(salesTons);
 
       const visitsCut = now.getTime() - 28 * 24 * 60 * 60 * 1000;
-      const visitsCount = (await getVisits()).filter((v) => {
+      const allVisits = await getVisits();
+      const visitsCount = allVisits.filter((v) => {
         const t = new Date(v.at).getTime();
         return !isNaN(t) && t >= visitsCut;
       }).length;
@@ -1149,7 +1152,8 @@ export function initAgronomoDashboard(userId, userRole) {
     }
     const weeks = weekLabels();
     const map = new Map(weeks.map((w) => [w.key, 0]));
-    (await getVisits()).forEach((v) => {
+    const allVisits = await getVisits();
+    allVisits.forEach((v) => {
       const d = new Date(v.at);
       const key = `${d.getFullYear()}-${getISOWeek(d)}`;
       if (map.has(key)) map.set(key, map.get(key) + 1);
