@@ -1,6 +1,6 @@
-// Não fazer takeover agressivo; update será natural/seguro.
+// Forçar takeover imediato e garantir modo offline.
 
-const CACHE_NAME = 'organia-v11'; // bump de versão
+const CACHE_NAME = 'organia-v12'; // bump de versão
 const OFFLINE_URL = '/index.html';
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -129,18 +129,22 @@ try {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([...PRECACHE_URLS, ...THIRD_PARTY_URLS]))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll([...PRECACHE_URLS, ...THIRD_PARTY_URLS]))
+      .then(() => self.skipWaiting())
   );
-  // sem skipWaiting
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(key => (key !== CACHE_NAME ? caches.delete(key) : undefined)))
-    )
+    caches
+      .keys()
+      .then(keys =>
+        Promise.all(keys.map(key => (key !== CACHE_NAME ? caches.delete(key) : undefined)))
+      )
+      .then(() => self.clients.claim())
   );
-  // sem clients.claim
 });
 
 self.addEventListener('fetch', (event) => {
