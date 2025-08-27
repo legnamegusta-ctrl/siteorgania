@@ -231,8 +231,14 @@
       </div>
       <div id="agroMap"></div>
     </section>
-    <section id="view-ajustes" data-view class="hidden">
-      <h2 class="p-4 text-xl font-semibold tracking-tight">Ajustes</h2>
+    <section id="view-historico" data-view class="hidden">
+      <h2 class="p-4 text-xl font-semibold tracking-tight">Histórico</h2>
+      <div id="historyFilters" class="px-4 flex gap-2 mb-4" role="radiogroup">
+        <button id="historyFilterAll" class="chip chip--filter filter-active" aria-pressed="true">Todos</button>
+        <button id="historyFilterVisits" class="chip chip--filter" aria-pressed="false">Visitas</button>
+        <button id="historyFilterAdds" class="chip chip--filter" aria-pressed="false">Cadastros</button>
+      </div>
+      <div id="historyTimeline" class="p-4 divide-y bg-white"></div>
     </section>
   </main>
 
@@ -253,9 +259,9 @@
       <i class="fas fa-map" aria-hidden="true"></i>
       <span class="sr-only">Mapa</span>
     </button>
-    <button data-nav="#ajustes" aria-label="Ajustes">
-      <i class="fas fa-cog" aria-hidden="true"></i>
-      <span class="sr-only">Ajustes</span>
+    <button data-nav="#historico" aria-label="Histórico">
+      <i class="fas fa-history" aria-hidden="true"></i>
+      <span class="sr-only">Histórico</span>
     </button>
   </nav>
 

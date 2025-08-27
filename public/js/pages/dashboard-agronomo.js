@@ -21,7 +21,7 @@ import {
 import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
 import { getClients, addClient } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
-import { getVisits, addVisit } from '../stores/visitsStore.js';
+import { getVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
 import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 
@@ -37,6 +37,12 @@ export function initAgronomoDashboard(userId, userRole) {
   const leadVisitNotes = document.getElementById('leadVisitNotes');
   const leadVisitOutcome = document.getElementById('leadVisitOutcome');
   const leadVisitNextStep = document.getElementById('leadVisitNextStep');
+
+  const historyTimeline = document.getElementById('historyTimeline');
+  const historyFilterAll = document.getElementById('historyFilterAll');
+  const historyFilterVisits = document.getElementById('historyFilterVisits');
+  const historyFilterAdds = document.getElementById('historyFilterAdds');
+  let historyFilter = 'all';
 
   let currentLeadId = null;
 
@@ -77,6 +83,85 @@ export function initAgronomoDashboard(userId, userRole) {
       field.appendChild(span);
     }
     span.textContent = message;
+  }
+
+  function renderHistory() {
+    if (!historyTimeline) return;
+    const visits = getVisits().map((v) => ({
+      id: v.id,
+      type: 'visit',
+      at: v.at,
+      name: v.clientName || v.leadName || '',
+      text: v.notes || ''
+    }));
+    const leads = getLeads().map((l) => ({
+      id: `lead-${l.id}`,
+      type: 'add',
+      at: l.createdAt,
+      text: `Lead cadastrado: ${l.name}`
+    }));
+    const clients = getClients().map((c) => ({
+      id: `client-${c.id}`,
+      type: 'add',
+      at: c.createdAt,
+      text: `Cliente cadastrado: ${c.name}`
+    }));
+    let events = [...visits, ...leads, ...clients].filter((e) => e.at);
+    if (historyFilter === 'visits') events = events.filter((e) => e.type === 'visit');
+    if (historyFilter === 'adds') events = events.filter((e) => e.type === 'add');
+    events.sort((a, b) => new Date(b.at) - new Date(a.at));
+    if (!events.length) {
+      historyTimeline.innerHTML = '<p class="text-gray-500">Nenhum evento.</p>';
+      return;
+    }
+    historyTimeline.innerHTML = '';
+    events.forEach((ev) => {
+      const card = document.createElement('div');
+      card.className = 'mb-4 pl-4 border-l-2 border-green-600';
+      const dateStr = new Date(ev.at).toLocaleString('pt-BR');
+      if (ev.type === 'visit') {
+        const name = ev.name ? `<strong>${ev.name}</strong> - ` : '';
+        card.innerHTML = `
+          <div class="text-sm text-gray-500">${dateStr}</div>
+          <div class="mt-1">${name}${ev.text}</div>
+          <button class="text-xs text-green-700 mt-1 edit-visit" data-id="${ev.id}">Editar</button>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="text-sm text-gray-500">${dateStr}</div>
+          <div class="mt-1">${ev.text}</div>
+        `;
+      }
+      historyTimeline.appendChild(card);
+    });
+  }
+
+  function setHistoryFilter(f) {
+    historyFilter = f;
+    historyFilterAll?.classList.toggle('filter-active', f === 'all');
+    historyFilterAll?.setAttribute('aria-pressed', f === 'all');
+    historyFilterVisits?.classList.toggle('filter-active', f === 'visits');
+    historyFilterVisits?.setAttribute('aria-pressed', f === 'visits');
+    historyFilterAdds?.classList.toggle('filter-active', f === 'adds');
+    historyFilterAdds?.setAttribute('aria-pressed', f === 'adds');
+    renderHistory();
+  }
+
+  function bindHistoryEvents() {
+    historyFilterAll?.addEventListener('click', () => setHistoryFilter('all'));
+    historyFilterVisits?.addEventListener('click', () => setHistoryFilter('visits'));
+    historyFilterAdds?.addEventListener('click', () => setHistoryFilter('adds'));
+    historyTimeline?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.edit-visit');
+      if (!btn) return;
+      const visitId = btn.dataset.id;
+      const visit = getVisits().find((v) => v.id === visitId);
+      if (!visit) return;
+      const newText = prompt('Editar texto da visita', visit.notes || '');
+      if (newText === null) return;
+      updateVisit(visitId, { notes: newText.trim() });
+      renderHistory();
+    });
   }
 
   function getClientsWithProps() {
@@ -275,6 +360,14 @@ export function initAgronomoDashboard(userId, userRole) {
         relatedType: 'lead',
         relatedId: currentLeadId,
       });
+      addVisit({
+        type: 'lead',
+        refId: currentLeadId,
+        at: leadVisitDate?.value || new Date().toISOString(),
+        notes: summary,
+        leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
+      });
+      if (location.hash === '#historico') renderHistory();
       toggleModal(leadVisitModal, false);
       leadVisitForm?.reset();
       showToast('Visita registrada com sucesso!', 'success');
@@ -666,6 +759,7 @@ export function initAgronomoDashboard(userId, userRole) {
       renderAgendaHome(
         parseInt(document.getElementById('agendaPeriod')?.value || '7')
       );
+      if (location.hash === '#historico') renderHistory();
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
       if (location.hash === '#mapa') adjustMapHeight();
@@ -785,6 +879,7 @@ export function initAgronomoDashboard(userId, userRole) {
     const saved = addVisit(visit);
     console.log('[VISITS] novo', saved.id);
     showToast('Visita registrada com sucesso!', 'success');
+    if (location.hash === '#historico') renderHistory();
     toggleModal(visitModal, false);
     clearErrors(form);
     form.reset();
@@ -1319,6 +1414,9 @@ export function initAgronomoDashboard(userId, userRole) {
       renderContactsList(highlightContactId);
       highlightContactId = null;
     }
+    if (location.hash === '#historico') {
+      renderHistory();
+    }
     if (location.hash === '#visita') {
       const target = sessionStorage.getItem('visitForClientId');
       openVisitModal();
@@ -1332,6 +1430,7 @@ export function initAgronomoDashboard(userId, userRole) {
   bindContactsEvents();
   bindAgendaHomeEvents();
   bindHomeShortcuts();
+  bindHistoryEvents();
   renderAgendaHome(7);
   renderHomeKPIs();
   renderHomeCharts();

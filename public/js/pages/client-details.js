@@ -6,7 +6,7 @@
 // project.
 
 import { getLeads } from '../stores/leadsStore.js';
-import { getVisits } from '../stores/visitsStore.js';
+import { getVisits, updateVisit } from '../stores/visitsStore.js';
 
 export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(window.location.search);
@@ -101,10 +101,23 @@ export function initClientDetails(userId, userRole) {
       card.innerHTML = `
         <div class="text-sm text-gray-500">${formatDate(v.at)}${interest}</div>
         <div class="mt-1">${v.notes || ''}</div>
+        <button class="text-xs text-green-700 mt-1 edit-visit" data-id="${v.id}">Editar</button>
       `;
       historyTimeline.appendChild(card);
     });
   }
+
+  historyTimeline?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.edit-visit');
+    if (!btn) return;
+    const visitId = btn.dataset.id;
+    const visit = getVisits().find((v) => v.id === visitId);
+    if (!visit) return;
+    const newText = prompt('Editar texto da visita', visit.notes || '');
+    if (newText === null) return;
+    updateVisit(visitId, { notes: newText.trim() });
+    loadVisits();
+  });
 
   // --- Lista propriedades -------------------------------------------------
   async function loadProperties() {

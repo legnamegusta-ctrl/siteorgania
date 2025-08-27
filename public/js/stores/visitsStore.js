@@ -20,3 +20,17 @@ export function addVisit(visit) {
   );
   return newVisit;
 }
+
+export function updateVisit(id, changes) {
+  const visits = getVisits();
+  const idx = visits.findIndex((v) => v.id === id);
+  if (idx >= 0) {
+    visits[idx] = { ...visits[idx], ...changes };
+    localStorage.setItem(KEY, JSON.stringify(visits));
+    setDoc(doc(db, 'visits', id), visits[idx], { merge: true }).catch((err) =>
+      console.error('Erro ao atualizar visita no Firestore', err)
+    );
+    return visits[idx];
+  }
+  return null;
+}
