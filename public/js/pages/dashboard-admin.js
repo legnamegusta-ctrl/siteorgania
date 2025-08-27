@@ -5,7 +5,7 @@ import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../s
 import { initProductionOrders } from './ordens-producao.js';
 import { initFormulasAdmin } from './formulas-admin.js';
 // CORREÇÃO: Adicionado 'onSnapshot', 'writeBatch', e 'collectionGroup' ao import do firebase/firestore
-import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup, setDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
 export function initAdminDashboard(userId, userRole) {
     // --- CONTROLE DAS ABAS ---
@@ -17,6 +17,7 @@ export function initAdminDashboard(userId, userRole) {
     let isClientesTabInitialized = false;
     let isProducaoTabInitialized = false;
     let isFerramentasTabInitialized = false;
+    let isAgronomosTabInitialized = false;
 
     // --- Variáveis de Estado Globais ---
     let allAgronomists = [];
@@ -37,6 +38,7 @@ export function initAdminDashboard(userId, userRole) {
             case 'clientes': if (!isClientesTabInitialized) initClientesTab(); break;
             case 'producao': if (!isProducaoTabInitialized) initProducaoTab(userId, userRole); break;
             case 'ferramentas': if (!isFerramentasTabInitialized) initFerramentasTab(userId, userRole); break;
+            case 'agronomos': if (!isAgronomosTabInitialized) initAgronomosTab(); break;
         }
     };
 
@@ -174,9 +176,78 @@ export function initAdminDashboard(userId, userRole) {
         `;
         initFormulasAdmin(currentUserId, currentUserRole);
     }
-    
+
     /**
-     * ABA 4: CLIENTES (Gestão de Clientes) - CORRIGIDA
+     * ABA 4: AGRÔNOMOS (Listagem e Relatórios)
+     */
+    function initAgronomosTab() {
+        isAgronomosTabInitialized = true;
+        const listEl = document.getElementById('adminAgronomistsList');
+        const contentEl = document.getElementById('agronomos-content');
+        const startInput = document.getElementById('reportStartDate');
+        const endInput = document.getElementById('reportEndDate');
+
+        async function renderAgronomists() {
+            if (!listEl) return;
+            showSpinner(listEl);
+            try {
+                const snapshot = await getDocs(query(collection(db, 'users'), where('role', '==', 'agronomo'), orderBy('name')));
+                listEl.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    listEl.innerHTML += `<tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${data.name || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${data.email || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right"><button class="btn btn-secondary text-xs" data-action="download-report" data-agronomist-id="${docSnap.id}" data-agronomist-name="${data.name || 'agronomo'}"><i class="fas fa-file-pdf mr-1"></i>Relatório</button></td>
+                    </tr>`;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar agrônomos:', error);
+                listEl.innerHTML = '<tr><td colspan="3" class="text-center text-red-500 py-4">Erro ao carregar agrônomos.</td></tr>';
+            } finally {
+                hideSpinner(listEl);
+            }
+        }
+
+        async function downloadVisitsReport(agronomistId, agronomistName) {
+            try {
+                let q = query(collectionGroup(db, 'visits'), where('authorId', '==', agronomistId));
+                const startVal = startInput?.value;
+                const endVal = endInput?.value;
+                if (startVal) q = query(q, where('date', '>=', Timestamp.fromDate(new Date(startVal))));
+                if (endVal) q = query(q, where('date', '<=', Timestamp.fromDate(new Date(endVal))));
+                const snap = await getDocs(q);
+                const { jsPDF } = window.jspdf;
+                const docPdf = new jsPDF();
+                docPdf.setFontSize(14);
+                docPdf.text(`Relatório de visitas - ${agronomistName}`, 10, 10);
+                let y = 20;
+                snap.forEach((d, idx) => {
+                    const data = d.data();
+                    const dateStr = data.date?.toDate ? data.date.toDate().toLocaleDateString('pt-BR') : '';
+                    const summary = data.summary || data.notes || '';
+                    docPdf.text(`${idx + 1}. ${dateStr} - ${summary}`, 10, y);
+                    y += 8;
+                    if (y > 280) { docPdf.addPage(); y = 20; }
+                });
+                docPdf.save(`visitas-${agronomistName}.pdf`);
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                showToast('Erro ao gerar relatório de visitas.', 'error');
+            }
+        }
+
+        contentEl?.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action="download-report"]');
+            if (!btn) return;
+            downloadVisitsReport(btn.dataset.agronomistId, btn.dataset.agronomistName);
+        });
+
+        renderAgronomists();
+    }
+
+    /**
+     * ABA 5: CLIENTES (Gestão de Clientes) - CORRIGIDA
      */
     async function initClientesTab() {
         if (isClientesTabInitialized) return;
