@@ -1,5 +1,10 @@
 import { db } from '../config/firebase.js';
-import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import {
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.leads';
 
@@ -42,4 +47,16 @@ export function updateLead(id, changes) {
     return leads[idx];
   }
   return null;
+}
+
+export async function syncLeadsFromFirestore() {
+  try {
+    const snap = await getDocs(collection(db, 'leads'));
+    const leads = snap.docs.map((d) => d.data());
+    localStorage.setItem(KEY, JSON.stringify(leads));
+    return leads;
+  } catch (err) {
+    console.error('Erro ao buscar leads do Firestore', err);
+    return [];
+  }
 }
