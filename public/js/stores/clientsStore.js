@@ -1,5 +1,10 @@
 import { db } from '../config/firebase.js';
-import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import {
+  doc,
+  setDoc,
+  collection,
+  getDocs,
+} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.clients';
 
@@ -23,4 +28,16 @@ export function addClient(client) {
     console.error('Erro ao salvar cliente no Firestore', err)
   );
   return newClient;
+}
+
+export async function syncClientsFromFirestore() {
+  try {
+    const snap = await getDocs(collection(db, 'clients'));
+    const clients = snap.docs.map((d) => d.data());
+    localStorage.setItem(KEY, JSON.stringify(clients));
+    return clients;
+  } catch (err) {
+    console.error('Erro ao buscar clientes do Firestore', err);
+    return [];
+  }
 }

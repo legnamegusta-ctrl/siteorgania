@@ -30,6 +30,8 @@ import { initOperadorTarefas } from '../pages/operador-tarefas.js';
 import { initOperadorAgenda } from '../pages/operador-agenda.js';
 import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
+import { syncClientsFromFirestore } from '../stores/clientsStore.js';
+import { syncLeadsFromFirestore } from '../stores/leadsStore.js';
 
 // ===== Detectores robustos de "tela de login" e redirect seguro =====
 function isLoginRoute() {
@@ -221,7 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             await logout();
                         }
                     } else {
-                        console.log('[auth] usuário autenticado, inicializando página', userRole);
+                        console.log('[auth] usuário autenticado, sincronizando dados locais');
+                        await Promise.all([
+                          syncClientsFromFirestore(),
+                          syncLeadsFromFirestore(),
+                        ]);
+                        console.log('[auth] dados sincronizados, inicializando página', userRole);
                         initializePage(user, userRole);
                     }
                 } else {
