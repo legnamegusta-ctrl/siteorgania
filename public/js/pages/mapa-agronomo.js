@@ -3,7 +3,7 @@
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
 // IMPORTADO: GeoPoint e serverTimestamp para Firebase v9
-import { collection, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, collectionGroup, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 export function initMapaAgronomo(userId, userRole) {
     // Declaração de variáveis no topo para que sejam acessíveis por todas as funções
@@ -113,7 +113,7 @@ export function initMapaAgronomo(userId, userRole) {
 
             // A consulta Collection Group para 'properties' já é um índice composto, se não for, Firebase vai pedir
             const allPropertiesSnapshot = await getDocs(
-                query(collection(db, 'properties'), where('coordenadas', '!=', null)) // Correção: Coleção 'properties' no nível superior
+                query(collectionGroup(db, 'properties'), where('coordenadas', '!=', null))
             );
             
             allPropertiesSnapshot.forEach(propDoc => {
@@ -218,9 +218,16 @@ export function initMapaAgronomo(userId, userRole) {
 
         // Inicializa o mapa Leaflet
         agronomistClientsLeafletMap = L.map('agronomistClientsMap').setView([-14.235, -51.925], 4); // Centro do Brasil
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(agronomistClientsLeafletMap);
+
+        const satelliteLayer = L.tileLayer(
+            'https://{s}.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+                subdomains: ['server', 'services', 'tiles'],
+                maxZoom: 19,
+                attribution: 'Tiles © Esri — Sources: Esri, Airbus DS, Earthstar Geographics'
+            }
+        );
+        satelliteLayer.addTo(agronomistClientsLeafletMap);
 
         // Inicializa o cluster de marcadores apenas uma vez com o mapa
         agronomistClientsMapMarkers = L.markerClusterGroup(); 
