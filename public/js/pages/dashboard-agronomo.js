@@ -1,6 +1,6 @@
 import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
-import { showToast } from '../services/ui.js';
+import { showToast, promptModal } from '../services/ui.js';
 import { db, auth } from '../config/firebase.js';
 import {
   collection,
@@ -151,13 +151,16 @@ export function initAgronomoDashboard(userId, userRole) {
     historyFilterAll?.addEventListener('click', () => setHistoryFilter('all'));
     historyFilterVisits?.addEventListener('click', () => setHistoryFilter('visits'));
     historyFilterAdds?.addEventListener('click', () => setHistoryFilter('adds'));
-    historyTimeline?.addEventListener('click', (e) => {
+    historyTimeline?.addEventListener('click', async (e) => {
       const btn = e.target.closest('.edit-visit');
       if (!btn) return;
       const visitId = btn.dataset.id;
       const visit = getVisits().find((v) => v.id === visitId);
       if (!visit) return;
-      const newText = prompt('Editar texto da visita', visit.notes || '');
+      const newText = await promptModal({
+        title: 'Editar texto da visita',
+        initialValue: visit.notes || '',
+      });
       if (newText === null) return;
       updateVisit(visitId, { notes: newText.trim() });
       renderHistory();

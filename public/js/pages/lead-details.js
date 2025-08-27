@@ -16,7 +16,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { showToast, showSpinner, hideSpinner } from '../services/ui.js';
+import { showToast, showSpinner, hideSpinner, promptModal } from '../services/ui.js';
 
 export function initLeadDetails(userId, userRole) {
   const params = new URLSearchParams(window.location.search);
@@ -265,7 +265,10 @@ export function initLeadDetails(userId, userRole) {
       getVisits().find((v) => v.id === visitId);
     if (!visit) return;
     const currentText = visit.summary ?? visit.notes ?? '';
-    const newText = prompt('Editar texto da visita', currentText);
+    const newText = await promptModal({
+      title: 'Editar texto da visita',
+      initialValue: currentText,
+    });
     if (newText === null) return;
     try {
       if (usingLocalData) {
