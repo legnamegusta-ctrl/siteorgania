@@ -1,6 +1,7 @@
 // Não fazer takeover agressivo; update será natural/seguro.
 
-const CACHE_NAME = 'organia-v8'; // bump de versão
+const CACHE_NAME = 'organia-v9'; // bump de versão
+const OFFLINE_URL = '/index.html';
 
 // Firebase Messaging (compat) no Service Worker
 self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js');
@@ -22,6 +23,9 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll([OFFLINE_URL]))
+  );
   // sem skipWaiting
 });
 
@@ -41,9 +45,25 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   // Nunca interceptar o próprio SW
   if (url.pathname === '/sw.js') return;
-  // Não cachear navegação/HTML (para evitar versões presas)
+  // Estratégia de network-first para navegação/HTML
   const isHTML = req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html');
-  if (isHTML) return;
+  if (isHTML) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        try {
+          const resp = await fetch(req);
+          if (resp && resp.status === 200) {
+            cache.put(req, resp.clone());
+          }
+          return resp;
+        } catch (e) {
+          const cached = await cache.match(req);
+          return cached || cache.match(OFFLINE_URL);
+        }
+      })
+    );
+    return;
+  }
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       try {
