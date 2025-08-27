@@ -1,6 +1,6 @@
 // Não fazer takeover agressivo; update será natural/seguro.
 
-const CACHE_NAME = 'organia-v10'; // bump de versão
+const CACHE_NAME = 'organia-v11'; // bump de versão
 const OFFLINE_URL = '/index.html';
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -93,6 +93,16 @@ const PRECACHE_URLS = [
   '/manifest.json'
 ];
 
+const THIRD_PARTY_URLS = [
+  new Request('https://cdn.tailwindcss.com', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js', { mode: 'no-cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js', { mode: 'no-cors' })
+];
+
 // Firebase Messaging (compat) no Service Worker
 let messaging;
 try {
@@ -119,7 +129,7 @@ try {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll([...PRECACHE_URLS, ...THIRD_PARTY_URLS]))
   );
   // sem skipWaiting
 });
@@ -163,7 +173,7 @@ self.addEventListener('fetch', (event) => {
     caches.open(CACHE_NAME).then(async (cache) => {
       try {
         const resp = await fetch(req);
-        if (resp && resp.status === 200 && resp.type === 'basic') {
+        if (resp && (resp.status === 200 || resp.type === 'opaque')) {
           cache.put(req, resp.clone());
         }
         return resp;
