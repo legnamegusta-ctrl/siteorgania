@@ -1,3 +1,6 @@
+import { db } from '../config/firebase.js';
+import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+
 const KEY = 'agro.sales';
 
 export function getSales() {
@@ -14,6 +17,9 @@ export function addSale(sale) {
   };
   sales.push(newSale);
   localStorage.setItem(KEY, JSON.stringify(sales));
+  setDoc(doc(db, 'sales', newSale.id), newSale).catch((err) =>
+    console.error('Erro ao salvar venda no Firestore', err)
+  );
   return newSale;
 }
 
