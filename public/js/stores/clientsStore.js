@@ -1,3 +1,6 @@
+import { db } from '../config/firebase.js';
+import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+
 const KEY = 'agro.clients';
 
 export function getClients() {
@@ -15,5 +18,9 @@ export function addClient(client) {
   };
   clients.push(newClient);
   localStorage.setItem(KEY, JSON.stringify(clients));
+  // Persistir no Firestore
+  setDoc(doc(db, 'clients', newClient.id), newClient).catch((err) =>
+    console.error('Erro ao salvar cliente no Firestore', err)
+  );
   return newClient;
 }

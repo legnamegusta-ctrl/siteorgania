@@ -1,3 +1,6 @@
+import { db } from '../config/firebase.js';
+import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+
 const KEY = 'agro.leads';
 
 export function getLeads() {
@@ -20,6 +23,10 @@ export function addLead(lead) {
   };
   leads.push(newLead);
   localStorage.setItem(KEY, JSON.stringify(leads));
+  // Persistir no Firestore
+  setDoc(doc(db, 'leads', newLead.id), newLead).catch((err) =>
+    console.error('Erro ao salvar lead no Firestore', err)
+  );
   return newLead;
 }
 
@@ -29,6 +36,9 @@ export function updateLead(id, changes) {
   if (idx >= 0) {
     leads[idx] = { ...leads[idx], ...changes, updatedAt: new Date().toISOString() };
     localStorage.setItem(KEY, JSON.stringify(leads));
+    setDoc(doc(db, 'leads', id), leads[idx], { merge: true }).catch((err) =>
+      console.error('Erro ao atualizar lead no Firestore', err)
+    );
     return leads[idx];
   }
   return null;
