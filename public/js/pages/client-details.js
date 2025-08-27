@@ -82,9 +82,9 @@ export function initClientDetails(userId, userRole) {
     document.getElementById('propertiesSection')?.classList.add('hidden');
   }
 
-  function loadVisits() {
+  async function loadVisits() {
     if (!historyTimeline) return;
-    const visits = getVisits().filter(
+    const visits = (await getVisits()).filter(
       (v) => v.refId === id && v.type === (isLead ? 'lead' : 'cliente')
     );
     if (!visits.length) {
@@ -112,15 +112,15 @@ export function initClientDetails(userId, userRole) {
     const btn = e.target.closest('.edit-visit');
     if (!btn) return;
     const visitId = btn.dataset.id;
-    const visit = getVisits().find((v) => v.id === visitId);
+    const visit = (await getVisits()).find((v) => v.id === visitId);
     if (!visit) return;
     const newText = await promptModal({
       title: 'Editar texto da visita',
       initialValue: visit.notes || '',
     });
     if (newText === null) return;
-    updateVisit(visitId, { notes: newText.trim() });
-    loadVisits();
+    await updateVisit(visitId, { notes: newText.trim() });
+    await loadVisits();
   });
 
   // --- Lista propriedades -------------------------------------------------

@@ -85,9 +85,9 @@ export function initAgronomoDashboard(userId, userRole) {
     span.textContent = message;
   }
 
-  function renderHistory() {
+  async function renderHistory() {
     if (!historyTimeline) return;
-    const visits = getVisits().map((v) => ({
+    const visits = (await getVisits()).map((v) => ({
       id: v.id,
       type: 'visit',
       at: v.at,
@@ -136,7 +136,7 @@ export function initAgronomoDashboard(userId, userRole) {
     });
   }
 
-  function setHistoryFilter(f) {
+  async function setHistoryFilter(f) {
     historyFilter = f;
     historyFilterAll?.classList.toggle('filter-active', f === 'all');
     historyFilterAll?.setAttribute('aria-pressed', f === 'all');
@@ -144,7 +144,7 @@ export function initAgronomoDashboard(userId, userRole) {
     historyFilterVisits?.setAttribute('aria-pressed', f === 'visits');
     historyFilterAdds?.classList.toggle('filter-active', f === 'adds');
     historyFilterAdds?.setAttribute('aria-pressed', f === 'adds');
-    renderHistory();
+    await renderHistory();
   }
 
   function bindHistoryEvents() {
@@ -155,15 +155,15 @@ export function initAgronomoDashboard(userId, userRole) {
       const btn = e.target.closest('.edit-visit');
       if (!btn) return;
       const visitId = btn.dataset.id;
-      const visit = getVisits().find((v) => v.id === visitId);
+      const visit = (await getVisits()).find((v) => v.id === visitId);
       if (!visit) return;
       const newText = await promptModal({
         title: 'Editar texto da visita',
         initialValue: visit.notes || '',
       });
       if (newText === null) return;
-      updateVisit(visitId, { notes: newText.trim() });
-      renderHistory();
+      await updateVisit(visitId, { notes: newText.trim() });
+      await renderHistory();
     });
   }
 
@@ -363,14 +363,14 @@ export function initAgronomoDashboard(userId, userRole) {
         relatedType: 'lead',
         relatedId: currentLeadId,
       });
-      addVisit({
+      await addVisit({
         type: 'lead',
         refId: currentLeadId,
         at: leadVisitDate?.value || new Date().toISOString(),
         notes: summary,
         leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
       });
-      if (location.hash === '#historico') renderHistory();
+      if (location.hash === '#historico') await renderHistory();
       toggleModal(leadVisitModal, false);
       leadVisitForm?.reset();
       showToast('Visita registrada com sucesso!', 'success');
@@ -387,7 +387,7 @@ export function initAgronomoDashboard(userId, userRole) {
     if (el) el.textContent = String(totalActive);
   }
 
-  function renderContactsList(highlightId) {
+  async function renderContactsList(highlightId) {
     const listEl = document.getElementById('contactsList');
     const emptyEl = document.getElementById('contactsEmpty');
     if (!listEl || !emptyEl) return;
@@ -396,7 +396,7 @@ export function initAgronomoDashboard(userId, userRole) {
     const clients = getClients();
     const properties = getProperties();
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visits = getVisits();
+    const visits = await getVisits();
     let items = [];
     items.push(
       ...clients.map((c) => {
@@ -551,14 +551,14 @@ export function initAgronomoDashboard(userId, userRole) {
     document.getElementById('leadCountSemInteresse').textContent = counts['Sem interesse'];
   }
 
-  function renderLeadsList() {
+  async function renderLeadsList() {
     const listEl = document.getElementById('leadsList');
     const emptyEl = document.getElementById('leadsEmpty');
     if (!listEl || !emptyEl) return;
     const search =
       document.getElementById('leadsSearch')?.value.toLowerCase().trim() || '';
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visits = getVisits();
+    const visits = await getVisits();
     let items = leads.map((l) => {
       const vList = visits.filter((v) => v.type === 'lead' && v.refId === l.id);
       const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
@@ -879,10 +879,10 @@ export function initAgronomoDashboard(userId, userRole) {
       visit.lat = pos.lat;
       visit.lng = pos.lng;
     }
-    const saved = addVisit(visit);
+    const saved = await addVisit(visit);
     console.log('[VISITS] novo', saved.id);
     showToast('Visita registrada com sucesso!', 'success');
-    if (location.hash === '#historico') renderHistory();
+    if (location.hash === '#historico') await renderHistory();
     toggleModal(visitModal, false);
     clearErrors(form);
     form.reset();
@@ -992,7 +992,7 @@ export function initAgronomoDashboard(userId, userRole) {
   }
 
   function renderHomeKPIs() {
-    const exec = () => {
+    const exec = async () => {
       const now = new Date();
       const salesStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const salesTons = getSales()
@@ -1001,7 +1001,7 @@ export function initAgronomoDashboard(userId, userRole) {
       document.getElementById('kpiSales').textContent = String(salesTons);
 
       const visitsCut = now.getTime() - 28 * 24 * 60 * 60 * 1000;
-      const visitsCount = getVisits().filter((v) => {
+      const visitsCount = (await getVisits()).filter((v) => {
         const t = new Date(v.at).getTime();
         return !isNaN(t) && t >= visitsCut;
       }).length;
@@ -1149,7 +1149,7 @@ export function initAgronomoDashboard(userId, userRole) {
     }
     const weeks = weekLabels();
     const map = new Map(weeks.map((w) => [w.key, 0]));
-    getVisits().forEach((v) => {
+    (await getVisits()).forEach((v) => {
       const d = new Date(v.at);
       const key = `${d.getFullYear()}-${getISOWeek(d)}`;
       if (map.has(key)) map.set(key, map.get(key) + 1);

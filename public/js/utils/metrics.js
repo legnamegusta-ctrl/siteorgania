@@ -1,8 +1,8 @@
 import { getVisits } from '../stores/visitsStore.js';
 import { getSales } from '../stores/salesStore.js';
 
-export function countVisitsLast30d() {
-  const visits = getVisits();
+export async function countVisitsLast30d() {
+  const visits = await getVisits();
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
   return visits.filter((v) => {
     const at = new Date(v.at).getTime();
