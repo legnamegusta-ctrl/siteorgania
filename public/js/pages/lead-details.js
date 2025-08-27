@@ -3,7 +3,7 @@
 import { db, auth } from '../config/firebase.js';
 import { toggleModal } from './agro-bottom-nav.js';
 import { getLeads } from '../stores/leadsStore.js';
-import { getVisits } from '../stores/visitsStore.js';
+import { getVisits, updateVisit } from '../stores/visitsStore.js';
 import {
   doc,
   getDoc,
@@ -234,6 +234,7 @@ export function initLeadDetails(userId, userRole) {
               ${v.notes ? `<div class="mt-1 text-sm">${v.notes}</div>` : ''}
               ${v.outcome ? `<div class="mt-1 text-sm text-gray-600">Resultado: ${v.outcome}</div>` : ''}
               ${v.nextStep ? `<div class="mt-1 text-sm text-gray-600">Próximo passo: ${v.nextStep}</div>` : ''}
+              <button class="text-xs text-green-700 mt-1 edit-visit" data-id="${v.id}">Editar</button>
             `;
             visitsTimeline.appendChild(li);
           });
@@ -248,12 +249,37 @@ export function initLeadDetails(userId, userRole) {
     if (usingLocalData || !visitsTimeline) return;
     hideSpinner(visitsTimeline);
     visitsCache = [];
-    snap.forEach((docSnap) => visitsCache.push(docSnap.data()));
+    snap.forEach((docSnap) => visitsCache.push({ id: docSnap.id, ...docSnap.data() }));
     if (!visitsCache.length) {
       visitsTimeline.innerHTML = '<p class="text-gray-500">Nenhuma visita registrada.</p>';
       return;
     }
     renderVisits(visitsCache);
+  });
+
+  visitsTimeline?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.edit-visit');
+    if (!btn) return;
+    const visitId = btn.dataset.id;
+    const visit = visitsCache.find((v) => v.id === visitId) ||
+      getVisits().find((v) => v.id === visitId);
+    if (!visit) return;
+    const currentText = visit.summary ?? visit.notes ?? '';
+    const newText = prompt('Editar texto da visita', currentText);
+    if (newText === null) return;
+    try {
+      if (usingLocalData) {
+        updateVisit(visitId, visit.summary !== undefined ? { summary: newText.trim() } : { notes: newText.trim() });
+      } else {
+        const ref = doc(db, `leads/${leadId}/visits`, visitId);
+        await updateDoc(ref, visit.summary !== undefined ? { summary: newText.trim() } : { notes: newText.trim() });
+      }
+      visit.summary !== undefined ? (visit.summary = newText.trim()) : (visit.notes = newText.trim());
+      renderVisits(visitsCache);
+    } catch (err) {
+      console.error('Erro ao atualizar visita:', err);
+      showToast('Erro ao atualizar visita.', 'error');
+    }
   });
 
   function validateDate() {
