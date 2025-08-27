@@ -77,7 +77,7 @@ export function initLeadDetails(userId, userRole) {
   let visitsCache = [];
   let currentLeadData = null;
 
-  function renderLocalLead(lead) {
+  async function renderLocalLead(lead) {
     const name =
       lead.name || lead.nomeContato || lead.displayName || '(Sem nome)';
     if (leadNameHeader) leadNameHeader.textContent = name;
@@ -96,7 +96,8 @@ export function initLeadDetails(userId, userRole) {
     currentLeadData = lead;
     if (visitsTimeline) {
       hideSpinner(visitsTimeline);
-      visitsCache = getVisits().filter(
+      const all = await getVisits();
+      visitsCache = all.filter(
         (v) => v.refId === leadId && v.type === 'lead'
       );
       if (!visitsCache.length) {
@@ -109,13 +110,13 @@ export function initLeadDetails(userId, userRole) {
     btnAddVisit?.classList.add('hidden');
   }
 
-  function handleLeadSnap(snap) {
+  async function handleLeadSnap(snap) {
     leadLoaded = true;
     if (!snap.exists()) {
       const localLead = getLeads().find((l) => l.id === leadId);
       if (localLead) {
         usingLocalData = true;
-        renderLocalLead(localLead);
+        await renderLocalLead(localLead);
         return;
       }
       showToast('Lead não encontrado.', 'error');
@@ -146,13 +147,13 @@ export function initLeadDetails(userId, userRole) {
     btnAddVisit?.classList.toggle('hidden', !canAdd);
   }
 
-  onSnapshot(leadRef, handleLeadSnap);
+  onSnapshot(leadRef, (snap) => { handleLeadSnap(snap); });
 
   setTimeout(async () => {
     if (!leadLoaded) {
       try {
         const snap = await getDoc(leadRef);
-        handleLeadSnap(snap);
+        await handleLeadSnap(snap);
       } catch (err) {
         console.error('Erro ao buscar lead:', err);
       }
@@ -262,7 +263,7 @@ export function initLeadDetails(userId, userRole) {
     if (!btn) return;
     const visitId = btn.dataset.id;
     const visit = visitsCache.find((v) => v.id === visitId) ||
-      getVisits().find((v) => v.id === visitId);
+      (await getVisits()).find((v) => v.id === visitId);
     if (!visit) return;
     const currentText = visit.summary ?? visit.notes ?? '';
     const newText = await promptModal({
@@ -272,7 +273,7 @@ export function initLeadDetails(userId, userRole) {
     if (newText === null) return;
     try {
       if (usingLocalData) {
-        updateVisit(visitId, visit.summary !== undefined ? { summary: newText.trim() } : { notes: newText.trim() });
+        await updateVisit(visitId, visit.summary !== undefined ? { summary: newText.trim() } : { notes: newText.trim() });
       } else {
         const ref = doc(db, `leads/${leadId}/visits`, visitId);
         await updateDoc(ref, visit.summary !== undefined ? { summary: newText.trim() } : { notes: newText.trim() });
