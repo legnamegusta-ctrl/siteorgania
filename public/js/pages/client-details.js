@@ -84,7 +84,8 @@ export function initClientDetails(userId, userRole) {
 
   async function loadVisits() {
     if (!historyTimeline) return;
-    const visits = (await getVisits()).filter(
+    const allVisits = await getVisits();
+    const visits = allVisits.filter(
       (v) => v.refId === id && v.type === (isLead ? 'lead' : 'cliente')
     );
     if (!visits.length) {
@@ -112,7 +113,8 @@ export function initClientDetails(userId, userRole) {
     const btn = e.target.closest('.edit-visit');
     if (!btn) return;
     const visitId = btn.dataset.id;
-    const visit = (await getVisits()).find((v) => v.id === visitId);
+    const allVisits = await getVisits();
+    const visit = allVisits.find((v) => v.id === visitId);
     if (!visit) return;
     const newText = await promptModal({
       title: 'Editar texto da visita',
