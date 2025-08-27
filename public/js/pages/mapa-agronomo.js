@@ -3,7 +3,7 @@
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
 // IMPORTADO: GeoPoint e serverTimestamp para Firebase v9
-import { collection, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, collectionGroup, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 export function initMapaAgronomo(userId, userRole) {
     // Declaração de variáveis no topo para que sejam acessíveis por todas as funções
@@ -113,7 +113,7 @@ export function initMapaAgronomo(userId, userRole) {
 
             // A consulta Collection Group para 'properties' já é um índice composto, se não for, Firebase vai pedir
             const allPropertiesSnapshot = await getDocs(
-                query(collection(db, 'properties'), where('coordenadas', '!=', null)) // Correção: Coleção 'properties' no nível superior
+                query(collectionGroup(db, 'properties'), where('coordenadas', '!=', null))
             );
             
             allPropertiesSnapshot.forEach(propDoc => {
