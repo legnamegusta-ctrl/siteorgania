@@ -1,24 +1,30 @@
-import { db } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
 import {
   doc,
   setDoc,
   collection,
   getDocs,
+  query,
+  where,
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.leads';
 
 export function getLeads() {
-  return JSON.parse(localStorage.getItem(KEY) || '[]');
+  const userId = auth.currentUser?.uid;
+  const leads = JSON.parse(localStorage.getItem(KEY) || '[]');
+  return userId ? leads.filter((l) => l.agronomistId === userId) : leads;
 }
 
 export function addLead(lead) {
+  const userId = auth.currentUser?.uid || null;
   const leads = getLeads();
   const now = new Date().toISOString();
   const newLead = {
     id: Date.now().toString(36),
     createdAt: now,
     updatedAt: now,
+    agronomistId: userId,
     stage: 'Novo',
     interest: 'Na dúvida',
     lastVisitAt: null,
@@ -51,7 +57,13 @@ export function updateLead(id, changes) {
 
 export async function syncLeadsFromFirestore() {
   try {
-    const snap = await getDocs(collection(db, 'leads'));
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      console.warn('syncLeadsFromFirestore: usuário não autenticado');
+      return [];
+    }
+    const q = query(collection(db, 'leads'), where('agronomistId', '==', userId));
+    const snap = await getDocs(q);
     const leads = snap.docs.map((d) => d.data());
     localStorage.setItem(KEY, JSON.stringify(leads));
     return leads;
