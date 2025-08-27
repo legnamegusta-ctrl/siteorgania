@@ -220,9 +220,8 @@ export function initMapaAgronomo(userId, userRole) {
         agronomistClientsLeafletMap = L.map('agronomistClientsMap').setView([-14.235, -51.925], 4); // Centro do Brasil
 
         const satelliteLayer = L.tileLayer(
-            'https://{s}.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             {
-                subdomains: ['server', 'services', 'tiles'],
                 maxZoom: 19,
                 attribution: 'Tiles © Esri — Sources: Esri, Airbus DS, Earthstar Geographics'
             }
