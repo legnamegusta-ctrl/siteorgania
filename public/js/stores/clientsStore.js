@@ -1,24 +1,30 @@
-import { db } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
 import {
   doc,
   setDoc,
   collection,
   getDocs,
+  query,
+  where,
 } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.clients';
 
 export function getClients() {
-  return JSON.parse(localStorage.getItem(KEY) || '[]');
+  const userId = auth.currentUser?.uid;
+  const clients = JSON.parse(localStorage.getItem(KEY) || '[]');
+  return userId ? clients.filter((c) => c.agronomistId === userId) : clients;
 }
 
 export function addClient(client) {
+  const userId = auth.currentUser?.uid || null;
   const clients = getClients();
   const now = new Date().toISOString();
   const newClient = {
     id: Date.now().toString(36),
     createdAt: now,
     updatedAt: now,
+    agronomistId: userId,
     ...client
   };
   clients.push(newClient);
@@ -32,7 +38,13 @@ export function addClient(client) {
 
 export async function syncClientsFromFirestore() {
   try {
-    const snap = await getDocs(collection(db, 'clients'));
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      console.warn('syncClientsFromFirestore: usuário não autenticado');
+      return [];
+    }
+    const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
+    const snap = await getDocs(q);
     const clients = snap.docs.map((d) => d.data());
     localStorage.setItem(KEY, JSON.stringify(clients));
     return clients;
