@@ -156,3 +156,68 @@ export function closeModal(modalElement) {
         modalElement.classList.add('hidden');
     }
 }
+
+/**
+ * Exibe um modal com campo de texto e retorna o valor informado.
+ * @param {Object} opts
+ * @param {string} opts.title - Título exibido no modal.
+ * @param {string} [opts.initialValue=''] - Valor inicial do campo.
+ * @param {boolean} [opts.multiline=true] - Usa textarea quando verdadeiro.
+ * @returns {Promise<string|null>} Valor digitado ou null se cancelado.
+ */
+export function promptModal({
+    title,
+    initialValue = '',
+    multiline = true,
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal hidden';
+        modal.innerHTML = `
+      <div class="modal-card w-full max-w-md">
+        ${title ? `<h3 class="font-semibold mb-4">${title}</h3>` : ''}
+        <form class="grid gap-4">
+          <div class="field">
+            ${multiline
+                ? `<textarea class="input" rows="4">${initialValue}</textarea>`
+                : `<input class="input" value="${initialValue}" />`}
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button type="button" class="btn-secondary">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>`;
+
+        document.body.appendChild(modal);
+
+        const input = modal.querySelector(multiline ? 'textarea' : 'input');
+        const form = modal.querySelector('form');
+        const btnCancel = modal.querySelector('button[type="button"]');
+
+        function close(result) {
+            modal.remove();
+            document.removeEventListener('keydown', onKeyDown);
+            resolve(result);
+        }
+
+        function onKeyDown(e) {
+            if (e.key === 'Escape') {
+                close(null);
+            }
+        }
+
+        btnCancel.addEventListener('click', () => close(null));
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            close(input.value);
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) close(null);
+        });
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.classList.remove('hidden');
+        input.focus();
+    });
+}

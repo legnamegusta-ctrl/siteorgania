@@ -7,6 +7,7 @@
 
 import { getLeads } from '../stores/leadsStore.js';
 import { getVisits, updateVisit } from '../stores/visitsStore.js';
+import { promptModal } from '../services/ui.js';
 
 export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(window.location.search);
@@ -107,13 +108,16 @@ export function initClientDetails(userId, userRole) {
     });
   }
 
-  historyTimeline?.addEventListener('click', (e) => {
+  historyTimeline?.addEventListener('click', async (e) => {
     const btn = e.target.closest('.edit-visit');
     if (!btn) return;
     const visitId = btn.dataset.id;
     const visit = getVisits().find((v) => v.id === visitId);
     if (!visit) return;
-    const newText = prompt('Editar texto da visita', visit.notes || '');
+    const newText = await promptModal({
+      title: 'Editar texto da visita',
+      initialValue: visit.notes || '',
+    });
     if (newText === null) return;
     updateVisit(visitId, { notes: newText.trim() });
     loadVisits();
@@ -167,7 +171,10 @@ export function initClientDetails(userId, userRole) {
 
   // --- Adiciona nova propriedade -----------------------------------------
   async function addProperty() {
-    const name = prompt('Nome da propriedade');
+    const name = await promptModal({
+      title: 'Nome da propriedade',
+      multiline: false,
+    });
     if (!name) return;
 
     try {
