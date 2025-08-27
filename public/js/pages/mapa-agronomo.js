@@ -218,9 +218,15 @@ export function initMapaAgronomo(userId, userRole) {
 
         // Inicializa o mapa Leaflet
         agronomistClientsLeafletMap = L.map('agronomistClientsMap').setView([-14.235, -51.925], 4); // Centro do Brasil
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(agronomistClientsLeafletMap);
+
+        const satelliteLayer = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+                maxZoom: 19,
+                attribution: 'Tiles © Esri — Sources: Esri, Airbus DS, Earthstar Geographics'
+            }
+        );
+        satelliteLayer.addTo(agronomistClientsLeafletMap);
 
         // Inicializa o cluster de marcadores apenas uma vez com o mapa
         agronomistClientsMapMarkers = L.markerClusterGroup(); 
