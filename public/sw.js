@@ -1,30 +1,125 @@
 // Não fazer takeover agressivo; update será natural/seguro.
 
-const CACHE_NAME = 'organia-v9'; // bump de versão
+const CACHE_NAME = 'organia-v10'; // bump de versão
 const OFFLINE_URL = '/index.html';
+const PRECACHE_URLS = [
+  OFFLINE_URL,
+  '/404.html',
+  '/activity-details.html',
+  '/agenda.html',
+  '/agronomo-farm.html',
+  '/client-details.html',
+  '/client-list.html',
+  '/dashboard-admin.html',
+  '/dashboard-agronomo.html',
+  '/dashboard-cliente.html',
+  '/formulas-admin.html',
+  '/lead-details.html',
+  '/mapa-agronomo.html',
+  '/mapa-geral.html',
+  '/operador-agenda.html',
+  '/operador-dashboard.html',
+  '/operador-ordens.html',
+  '/operador-perfil.html',
+  '/operador-tarefas.html',
+  '/ordens-producao.html',
+  '/order-details.html',
+  '/plot-details.html',
+  '/property-details.html',
+  '/property-employees.html',
+  '/relatorio-talhao.html',
+  '/task-viewer.html',
+  '/css/base.css',
+  '/css/components.css',
+  '/css/theme.css',
+  '/css/tokens.css',
+  '/style.css',
+  '/js/app.js',
+  '/js/config/Livefirebase.js',
+  '/js/config/firebase.js',
+  '/js/lib/dashboardUtils.js',
+  '/js/lib/date-utils.js',
+  '/js/lib/orderUtils.js',
+  '/js/lib/router.js',
+  '/js/lib/taskUtils.js',
+  '/js/lib/uiGuards.js',
+  '/js/pages/activity-details.js',
+  '/js/pages/agenda.js',
+  '/js/pages/agro-bottom-nav.js',
+  '/js/pages/agro-map.js',
+  '/js/pages/agronomo-farm.js',
+  '/js/pages/client-details.js',
+  '/js/pages/client-list.js',
+  '/js/pages/dashboard-admin.js',
+  '/js/pages/dashboard-agronomo.js',
+  '/js/pages/dashboard-cliente.js',
+  '/js/pages/formulas-admin.js',
+  '/js/pages/lead-details.js',
+  '/js/pages/mapa-agronomo.js',
+  '/js/pages/mapa-geral.js',
+  '/js/pages/operador-agenda.js',
+  '/js/pages/operador-dashboard.js',
+  '/js/pages/operador-ordens.js',
+  '/js/pages/operador-perfil.js',
+  '/js/pages/operador-tarefas.js',
+  '/js/pages/ordens-producao.js',
+  '/js/pages/order-details.js',
+  '/js/pages/plot-details.js',
+  '/js/pages/plot-report.js',
+  '/js/pages/property-details.js',
+  '/js/pages/property-employees.js',
+  '/js/pages/task-viewer.js',
+  '/js/services/auth.js',
+  '/js/services/notifications.js',
+  '/js/services/ui.js',
+  '/js/stores/agendaStore.js',
+  '/js/stores/clientsStore.js',
+  '/js/stores/leadsStore.js',
+  '/js/stores/propertiesStore.js',
+  '/js/stores/salesStore.js',
+  '/js/stores/visitsStore.js',
+  '/js/ui/components.js',
+  '/js/ui/order-modal.js',
+  '/js/ui/sidebar.js',
+  '/js/ui/task-detail.js',
+  '/js/ui/task-modal.js',
+  '/js/utils/geo.js',
+  '/js/utils/metrics.js',
+  '/logo.png',
+  '/favicon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/background.jpg',
+  '/manifest.json'
+];
 
 // Firebase Messaging (compat) no Service Worker
-self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js');
-self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js');
+let messaging;
+try {
+  self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js');
+  self.importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  apiKey: "AIzaSyAQI_FXk-1xySGiZVhiLimKSDoOwBM73Mw",
-  authDomain: "app-organia.firebaseapp.com",
-  projectId: "app-organia",
-  storageBucket: "app-organia.firebasestorage.app",
-  messagingSenderId: "92173277950",
-  appId: "1:92173277950:web:43448042c19f29ec5363af"
-});
+  firebase.initializeApp({
+    apiKey: "AIzaSyAQI_FXk-1xySGiZVhiLimKSDoOwBM73Mw",
+    authDomain: "app-organia.firebaseapp.com",
+    projectId: "app-organia",
+    storageBucket: "app-organia.firebasestorage.app",
+    messagingSenderId: "92173277950",
+    appId: "1:92173277950:web:43448042c19f29ec5363af"
+  });
 
-const messaging = firebase.messaging();
-messaging.onBackgroundMessage((payload) => {
-  const n = payload?.notification || {};
-  self.registration.showNotification(n.title || 'Notificação', { body: n.body || '' });
-});
+  messaging = firebase.messaging();
+  messaging.onBackgroundMessage((payload) => {
+    const n = payload?.notification || {};
+    self.registration.showNotification(n.title || 'Notificação', { body: n.body || '' });
+  });
+} catch (e) {
+  console.warn('[SW] Firebase Messaging indisponível', e);
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([OFFLINE_URL]))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
   );
   // sem skipWaiting
 });
