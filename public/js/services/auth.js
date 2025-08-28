@@ -236,19 +236,32 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
 
                   // Se não obteve role do Firestore, tenta cache local
-                  if (!userRole) {
-                    const cached = getCachedUserRole(user.uid);
-                    if (cached) {
-                      userRole = cached;
-                      fetchedFrom = fetchedFrom + '+localCache';
-                    }
-                  }
+  if (!userRole) {
+      const cached = getCachedUserRole(user.uid);
+      if (cached) {
+        userRole = cached;
+        fetchedFrom = fetchedFrom + '+localCache';
+      }
+  }
 
-                  if (!userRole) {
-                    // Sem role e usuário autenticado: não desloga automaticamente quando offline
-                    if (!navigator.onLine) {
-                      console.warn('[auth] Offline e sem role em cache; mantendo sessão e página atual sem redirect.');
-                      return;
+  // Fallback extra: offline e sem role -> tentar último dashboard conhecido
+  if (!userRole && !navigator.onLine) {
+    try {
+      const last = localStorage.getItem('organia:lastDashboard');
+      if (onLoginPage) {
+        const fallback = last || 'dashboard-agronomo.html';
+        console.warn('[auth] Offline sem role; redirecionando para', fallback);
+        window.location.replace(fallback);
+        return;
+      }
+    } catch {}
+  }
+
+  if (!userRole) {
+    // Sem role e usuário autenticado: não desloga automaticamente quando offline
+    if (!navigator.onLine) {
+      console.warn('[auth] Offline e sem role em cache; mantendo sessão e página atual sem redirect.');
+      return;
                     }
                     // Online e sem role -> sessão inconsistente; faz logout seguro
                     console.error('[auth] Usuário autenticado mas sem role. Efetuando logout.');
@@ -269,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                       const destination = roleToDashboard[userRole];
                       if (destination) {
+                          try { localStorage.setItem('organia:lastDashboard', destination); } catch {}
                           console.log('[auth] redirecionando para', destination);
                           window.location.replace(destination);
                       } else {
@@ -312,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const destination = roleToDashboard[userRole];
                         if (destination) {
+                            try { localStorage.setItem('organia:lastDashboard', destination); } catch {}
                             console.log('[auth] redirecionando para', destination);
                             window.location.replace(destination);
                         } else {
@@ -365,3 +380,4 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
     }
 });
+
