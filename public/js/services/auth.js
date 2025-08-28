@@ -236,12 +236,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
 
                   // Se nÃ£o obteve role do Firestore, tenta cache local
-  if (!userRole) {
-      const cached = getCachedUserRole(user.uid);
-      if (cached) {
-        userRole = cached;
-        fetchedFrom = fetchedFrom + '+localCache';
-      }
+  
+
+                  // Inferir papel pelo último dashboard salvo (fallback offline)
+                  try {
+                    const last = localStorage.getItem('organia:lastDashboard');
+                    if (last && !userRole) {
+                      if (last.includes('admin')) userRole = 'admin';
+                      else if (last.includes('agronomo')) userRole = 'agronomo';
+                      else if (last.includes('cliente')) userRole = 'cliente';
+                      else if (last.includes('operador')) userRole = 'operador';
+                    }
+                  } catch {}
   }
 
   // Fallback extra: offline e sem role -> tentar Ãºltimo dashboard conhecido
@@ -269,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                   }
 
-                  console.log('[auth] role resolvida:', { userRole, fetchedFrom });
+                  console.log('[auth] role resolvida:', { userRole, fetchedFrom });\r\n                  // Fallback: sem role e offline -> iniciar página ou redirecionar usando último dashboard\r\n                  if (!userRole && !navigator.onLine) {\r\n                    try {\r\n                      const last = localStorage.getItem('organia:lastDashboard');\r\n                      if (onLoginPage) {\r\n                        const dest = last || 'dashboard-agronomo.html';\r\n                        console.warn('[auth] Offline sem role; redirecionando para', dest);\r\n                        window.location.replace(dest);\r\n                        return;\r\n                      } else {\r\n                        const role = (last && (last.includes('admin') ? 'admin' : last.includes('agronomo') ? 'agronomo' : last.includes('cliente') ? 'cliente' : last.includes('operador') ? 'operador' : 'agronomo')) || 'agronomo';\r\n                        console.warn('[auth] Offline sem role; inicializando página com', role);\r\n                        initializePage(user, role);\r\n                        return;\r\n                      }\r\n                    } catch {}\r\n                  }\r\n
 
                   if (onLoginPage) {
                       const roleToDashboard = {
@@ -380,4 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
     }
 });
+
+
 
