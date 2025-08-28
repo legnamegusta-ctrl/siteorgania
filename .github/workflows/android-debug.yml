@@ -31,7 +31,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Add Android platform
-        run: npx cap add android --skip-deps --force
+        run: npx cap add android --force
 
       - name: Sync web to Android
         run: npx cap sync android
