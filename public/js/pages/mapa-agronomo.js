@@ -3,7 +3,7 @@
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
 // IMPORTADO: GeoPoint e serverTimestamp para Firebase v9
-import { collection, collectionGroup, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, collectionGroup, query, where, getDocs, doc, addDoc, updateDoc, GeoPoint, serverTimestamp } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initMapaAgronomo(userId, userRole) {
     // Declaração de variáveis no topo para que sejam acessíveis por todas as funções
@@ -317,6 +317,7 @@ export function initMapaAgronomo(userId, userRole) {
 
         const visitData = {
             agronomistId: userId,
+            authorId: userId,
             clientId: clientId,
             propertyId: propertyId,
             clientName: clientName,

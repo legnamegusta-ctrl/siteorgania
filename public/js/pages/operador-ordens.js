@@ -1,7 +1,7 @@
 /* Ordens: filtros + tabela harmonizada */
 
 import { db, auth } from '../config/firebase.js';
-import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, runTransaction, setDoc, addDoc, Timestamp, serverTimestamp } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast } from '../services/ui.js';
 import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
 import { parseDateLocal, endOfLocalDay } from '../lib/date-utils.js';

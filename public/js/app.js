@@ -1,7 +1,7 @@
 // public/js/app.js
 
 import { messaging } from './config/firebase.js';
-import { getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js';
+import { getToken, onMessage } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 if ('serviceWorker' in navigator) {
   // sem reload automático em controllerchange
@@ -9,6 +9,23 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('/sw.js')
     .then(async (registration) => {
+      try { await registration.update?.(); } catch {}
+      // Pré-aquece módulos críticos para funcionar offline após reabrir
+      try {
+        const warm = [
+          // Firebase ESM (vendorizados localmente para offline robusto)
+          '/vendor/firebase/9.6.0/firebase-app.js',
+          '/vendor/firebase/9.6.0/firebase-auth.js',
+          '/vendor/firebase/9.6.0/firebase-firestore.js',
+          '/vendor/firebase/9.6.1/firebase-messaging.js',
+          // Bibliotecas UI vendorizadas (para telas que usam mapas e gráficos)
+          '/vendor/leaflet/leaflet.js',
+          '/vendor/leaflet/leaflet.css',
+          '/vendor/chart/chart.umd.js',
+        ];
+        await Promise.all(warm.map((u) => fetch(u).catch(() => {})));
+      } catch {}
+
       if (messaging) {
         const vapidKey = window.FCM_VAPID_PUBLIC_KEY || undefined;
         try {
@@ -54,3 +71,30 @@ if ('serviceWorker' in navigator) {
     });
   }
 }
+
+// Fallback de bibliotecas CDN para arquivos locais (Capacitor/offline)
+try {
+  const isNative = typeof window !== 'undefined' && !!window.Capacitor;
+  const offline = typeof navigator !== 'undefined' && !navigator.onLine;
+  if (isNative || offline) {
+    // Leaflet CSS
+    if (!document.querySelector('link[href*="leaflet.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/vendor/leaflet/leaflet.css';
+      document.head.appendChild(link);
+    }
+    // Leaflet JS
+    if (!window.L && !document.querySelector('script[src*="leaflet.js"]')) {
+      const s = document.createElement('script');
+      s.src = '/vendor/leaflet/leaflet.js';
+      document.head.appendChild(s);
+    }
+    // Chart.js
+    if (!window.Chart && !document.querySelector('script[src*="chart"]')) {
+      const s2 = document.createElement('script');
+      s2.src = '/vendor/chart/chart.umd.js';
+      document.head.appendChild(s2);
+    }
+  }
+} catch {}

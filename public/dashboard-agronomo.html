@@ -6,11 +6,15 @@
   <meta name="theme-color" content="#166534" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="manifest" href="/manifest.json" />
+  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-app.js" crossorigin>
+  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-auth.js" crossorigin>
+  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-firestore.js" crossorigin>
+  <link rel="modulepreload" href="/vendor/firebase/9.6.1/firebase-messaging.js" crossorigin>
   <script type="module" src="js/app.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <link rel="stylesheet" href="style.css" />
   <title>Orgânia - Painel do Agrônomo</title>
 </head>
@@ -136,6 +140,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M7 3v4m10-4v4M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z" />
           </svg>
           <span class="text-sm text-gray-500">Agenda (7d)</span>
+        </button>
+        <button
+          id="quickHomeSyncNow"
+          aria-label="Sincronizar agora"
+          class="w-full flex flex-col items-center justify-center gap-1 p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item"
+        >
+          <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 10-8 8" />
+          </svg>
+          <span class="text-sm text-gray-500">Sincronizar</span>
         </button>
       </div>
       <div id="agendaHome" class="p-4 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
@@ -316,12 +330,20 @@
           </div>
           <div id="leadFollowUp" class="hidden">
             <div class="field">
-              <label for="visitReturnAt">Agendar retorno</label>
-              <input id="visitReturnAt" type="datetime-local" class="input" />
+              <label class="inline-flex items-center">
+                <input id="visitTaskEnable" type="checkbox" class="mr-2" />
+                Agendar tarefa?
+              </label>
             </div>
-            <div class="field">
-              <label for="visitReturnNote">Nota</label>
-              <input id="visitReturnNote" class="input" />
+            <div id="visitTaskFields" class="grid gap-2 hidden">
+              <div class="field">
+                <label for="visitTaskWhen">Data/Hora</label>
+                <input id="visitTaskWhen" type="datetime-local" class="input" />
+              </div>
+              <div class="field">
+                <label for="visitTaskTitle">Ttulo da tarefa</label>
+                <input id="visitTaskTitle" class="input" placeholder="Ex.: Retornar contato" />
+              </div>
             </div>
           </div>
           <div id="leadReason" class="hidden">
@@ -389,6 +411,22 @@
           </select>
         </div>
         <div class="field">
+          <label class="inline-flex items-center">
+            <input id="leadVisitTaskEnable" type="checkbox" class="mr-2" />
+            Agendar tarefa?
+          </label>
+        </div>
+        <div id="leadVisitTaskFields" class="grid gap-2 hidden">
+          <div class="field">
+            <label for="leadVisitTaskWhen">Data/Hora</label>
+            <input id="leadVisitTaskWhen" type="datetime-local" class="input" />
+          </div>
+          <div class="field">
+            <label for="leadVisitTaskTitle">Ttulo da tarefa</label>
+            <input id="leadVisitTaskTitle" class="input" placeholder="Ex.: Retornar contato" />
+          </div>
+        </div>
+        <div class="field">
           <label for="leadVisitNextStep">Próximo passo</label>
           <input id="leadVisitNextStep" class="input" />
         </div>
@@ -441,7 +479,7 @@
   <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
   <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script type="module" src="js/pages/dashboard-agronomo.js"></script>
 </body>
 </html>

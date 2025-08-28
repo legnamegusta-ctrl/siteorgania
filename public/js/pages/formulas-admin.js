@@ -4,7 +4,7 @@ import { db } from '../config/firebase.js';
 // FUNÇÕES DE UI ATUALIZADAS
 import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../services/ui.js';
 // Adicionado imports necessários para Firestore V9
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js'; // Adicionei 'addDoc', 'updateDoc', e 'deleteDoc' que são usados
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, deleteDoc } from '/vendor/firebase/9.6.0/firebase-firestore.js'; // Adicionei 'addDoc', 'updateDoc', e 'deleteDoc' que são usados
 
 // CORREÇÃO: Adicionando 'export' à função
 export function initFormulasAdmin(userId, userRole) {

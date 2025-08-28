@@ -6,7 +6,7 @@ import {
   getDocs,
   query,
   where
-} from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+} from "/vendor/firebase/9.6.0/firebase-firestore.js";
 import { initTaskDetail, openTaskDetail, hideTaskDetail } from '../ui/task-detail.js';
 import { openTaskModal } from '../ui/task-modal.js';
 

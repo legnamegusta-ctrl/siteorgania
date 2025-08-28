@@ -15,7 +15,7 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast, showSpinner, hideSpinner, promptModal } from '../services/ui.js';
 
 export function initLeadDetails(userId, userRole) {

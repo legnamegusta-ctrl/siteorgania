@@ -1,5 +1,5 @@
 import { db } from '../config/firebase.js';
-import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { doc, setDoc } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.properties';
 

@@ -3,8 +3,23 @@
 // IMPORTADO: 'db' e 'auth' (instância) de firebase.js
 import { auth, db } from '../config/firebase.js';
 // IMPORTADO: Funções modulares de autenticação e Firestore (passam a instância 'auth' ou 'db' como primeiro argumento)
-import { signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { signInWithEmailAndPassword, signOut } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { doc, getDoc } from '/vendor/firebase/9.6.0/firebase-firestore.js';
+
+// Cache local da role do usuário para suportar modo offline após reinício do navegador
+function getCachedUserRole(uid) {
+  try {
+    return localStorage.getItem(`organia:userRole:${uid}`) || null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedUserRole(uid, role) {
+  try {
+    if (uid && role) localStorage.setItem(`organia:userRole:${uid}`, role);
+  } catch {}
+}
 
 // Importa as funções de inicialização de cada página
 import { initAdminDashboard } from '../pages/dashboard-admin.js';
@@ -32,6 +47,8 @@ import { initOperadorPerfil } from '../pages/operador-perfil.js';
 import { showLoader, hideLoader } from './ui.js';
 import { syncClientsFromFirestore } from '../stores/clientsStore.js';
 import { syncLeadsFromFirestore } from '../stores/leadsStore.js';
+import { syncAgendaFromFirestore } from '../stores/agendaStore.js';
+import { getVisits } from '../stores/visitsStore.js';
 
 // ===== Detectores robustos de "tela de login" e redirect seguro =====
 function isLoginRoute() {
@@ -199,6 +216,85 @@ document.addEventListener('DOMContentLoaded', () => {
             if (user) {
                 // USANDO O 'db' IMPORTADO DIRETAMENTE DE 'firebase.js'
                 const userRef = doc(db, 'users', user.uid);
+                // NOVO: fluxo robusto com cache local e suporte offline
+                {
+                  let userRole = null;
+                  let fetchedFrom = 'server';
+                  try {
+                    const snap = await getDoc(userRef);
+                    if (snap.exists()) {
+                      const userData = snap.data();
+                      userRole = userData?.role || null;
+                      // Cacheia para uso offline futuro
+                      setCachedUserRole(user.uid, userRole);
+                    } else {
+                      fetchedFrom = navigator.onLine ? 'server-empty' : 'cache-miss';
+                    }
+                  } catch (err) {
+                    console.warn('[auth] Falha ao obter doc do usuário; usando fallback', err);
+                    fetchedFrom = 'error';
+                  }
+
+                  // Se não obteve role do Firestore, tenta cache local
+                  if (!userRole) {
+                    const cached = getCachedUserRole(user.uid);
+                    if (cached) {
+                      userRole = cached;
+                      fetchedFrom = fetchedFrom + '+localCache';
+                    }
+                  }
+
+                  if (!userRole) {
+                    // Sem role e usuário autenticado: não desloga automaticamente quando offline
+                    if (!navigator.onLine) {
+                      console.warn('[auth] Offline e sem role em cache; mantendo sessão e página atual sem redirect.');
+                      return;
+                    }
+                    // Online e sem role -> sessão inconsistente; faz logout seguro
+                    console.error('[auth] Usuário autenticado mas sem role. Efetuando logout.');
+                    await logout();
+                    return;
+                  }
+
+                  console.log('[auth] role resolvida:', { userRole, fetchedFrom });
+
+                  if (onLoginPage) {
+                      const roleToDashboard = {
+                          admin: 'dashboard-admin.html',
+                          agronomo: 'dashboard-agronomo.html',
+                          cliente: 'dashboard-cliente.html',
+                          // NOVO: Adiciona o roteamento para o papel 'operador'
+                          operador: 'operador-dashboard.html'
+                      };
+
+                      const destination = roleToDashboard[userRole];
+                      if (destination) {
+                          console.log('[auth] redirecionando para', destination);
+                          window.location.replace(destination);
+                      } else {
+                          console.error(`Papel de usuário desconhecido: ${userRole}`);
+                          await logout();
+                      }
+                  } else {
+                      console.log('[auth] usuário autenticado, sincronizando dados locais');
+                      await Promise.all([
+                        syncClientsFromFirestore(),
+                        syncLeadsFromFirestore(),
+                        syncAgendaFromFirestore(),
+                      ]);
+                      // Re-sincroniza automaticamente quando voltar online
+                      window.addEventListener('online', () => {
+                        syncClientsFromFirestore();
+                        syncLeadsFromFirestore();
+                        syncAgendaFromFirestore();
+                        // visitas sincronizam dentro de getVisits()
+                        getVisits();
+                      });
+                      console.log('[auth] dados sincronizados, inicializando página', userRole);
+                      initializePage(user, userRole);
+                  }
+                  return; // impede executar fluxo anterior (desnecessário)
+                }
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
@@ -227,7 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         await Promise.all([
                           syncClientsFromFirestore(),
                           syncLeadsFromFirestore(),
+                          syncAgendaFromFirestore(),
                         ]);
+                        // Re-sincroniza automaticamente quando voltar online
+                        window.addEventListener('online', () => {
+                          syncClientsFromFirestore();
+                          syncLeadsFromFirestore();
+                          syncAgendaFromFirestore();
+                          // visitas sincronizam dentro de getVisits()
+                          getVisits();
+                        });
                         console.log('[auth] dados sincronizados, inicializando página', userRole);
                         initializePage(user, userRole);
                     }

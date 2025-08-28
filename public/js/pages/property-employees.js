@@ -1,6 +1,6 @@
 // js/pages/property-employees.js
 import { db } from '../config/firebase.js';
-import { collection, getDocs, doc } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, getDocs, doc } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export async function initPropertyEmployees() {
   const params = new URLSearchParams(window.location.search);

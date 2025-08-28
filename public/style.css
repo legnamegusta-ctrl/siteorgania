@@ -52,6 +52,7 @@
      --input-h: 44px;
 }
 
+.hidden{display:none !important;}
 .page-container{
   max-width:1200px;
   margin:0 auto;

@@ -3,7 +3,7 @@
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
 // CORREÇÃO: Adicionado 'getDoc' e 'collectionGroup' ao import do firebase/firestore
-import { collection, query, where, orderBy, getDocs, doc, getDoc, collectionGroup } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js'; //
+import { collection, query, where, orderBy, getDocs, doc, getDoc, collectionGroup } from '/vendor/firebase/9.6.0/firebase-firestore.js'; //
 
 export function initPlotReport(userId, userRole) {
     const params = new URLSearchParams(window.location.search);

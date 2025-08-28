@@ -6,7 +6,7 @@ import {
   onSnapshot,
   doc,
   getDoc
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { initTaskModal, openTaskModal as openTaskModalBase } from '../ui/task-modal.js';
 import { parseDateLocal, formatDDMMYYYY } from '../lib/date-utils.js';
 

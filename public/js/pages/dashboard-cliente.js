@@ -2,7 +2,7 @@
 
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner, showToast, openModal, closeModal } from '../services/ui.js';
-import { collection, query, where, orderBy, getDocs, doc, getDoc, limit, collectionGroup } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, getDoc, limit, collectionGroup } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initClienteDashboard(userId, userRole) {
     const welcomeMessage = document.getElementById('welcomeMessage');

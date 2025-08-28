@@ -1,7 +1,7 @@
 // js/pages/activity-details.js
 
 import { db } from '../config/firebase.js';
-import { doc, getDoc, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { doc, getDoc, updateDoc, arrayUnion } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showSpinner, hideSpinner, showToast } from '../services/ui.js';
 
 export async function initActivityDetails(userId, userRole) {

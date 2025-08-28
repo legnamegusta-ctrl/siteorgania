@@ -2,7 +2,7 @@
 
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner } from '../services/ui.js';
-import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, getDocs } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initMapaGeral() {
   const mapContainer = document.getElementById('mapaGeral');

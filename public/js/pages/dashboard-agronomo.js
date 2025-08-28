@@ -7,7 +7,7 @@ import {
   addDoc,
   serverTimestamp,
   Timestamp
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import {
   initAgroMap,
   setMapCenter,
@@ -18,14 +18,16 @@ import {
   fitMapToPoints,
   invalidateMapSize,
 } from './agro-map.js';
-import { getLeads, addLead, updateLead } from '../stores/leadsStore.js';
-import { getClients, addClient } from '../stores/clientsStore.js';
+import { getLeads, addLead, updateLead, syncLeadsFromFirestore } from '../stores/leadsStore.js';
+import { getClients, addClient, syncClientsFromFirestore } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
 import { getVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
-import { addAgenda, getAgenda, updateAgenda } from '../stores/agendaStore.js';
+import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 
 export function initAgronomoDashboard(userId, userRole) {
+  if (window.__agroBooted) return;
+  window.__agroBooted = true;
   const quickModal = document.getElementById('quickActionsModal');
   const visitModal = document.getElementById('visitModal');
   const saleModal = document.getElementById('saleModal');
@@ -37,6 +39,10 @@ export function initAgronomoDashboard(userId, userRole) {
   const leadVisitNotes = document.getElementById('leadVisitNotes');
   const leadVisitOutcome = document.getElementById('leadVisitOutcome');
   const leadVisitNextStep = document.getElementById('leadVisitNextStep');
+  const leadVisitTaskEnable = document.getElementById('leadVisitTaskEnable');
+  const leadVisitTaskFields = document.getElementById('leadVisitTaskFields');
+  const leadVisitTaskWhen = document.getElementById('leadVisitTaskWhen');
+  const leadVisitTaskTitle = document.getElementById('leadVisitTaskTitle');
 
   const historyTimeline = document.getElementById('historyTimeline');
   const historyFilterAll = document.getElementById('historyFilterAll');
@@ -294,6 +300,10 @@ export function initAgronomoDashboard(userId, userRole) {
   const leadExtras = document.getElementById('leadExtras');
   const leadFollowUp = document.getElementById('leadFollowUp');
   const leadReason = document.getElementById('leadReason');
+  const visitTaskEnable = document.getElementById('visitTaskEnable');
+  const visitTaskFields = document.getElementById('visitTaskFields');
+  const visitTaskWhen = document.getElementById('visitTaskWhen');
+  const visitTaskTitle = document.getElementById('visitTaskTitle');
 
   function populateVisitSelect(type) {
     visitSelect.innerHTML = '';
@@ -333,6 +343,8 @@ export function initAgronomoDashboard(userId, userRole) {
     leadVisitForm?.reset();
     if (leadVisitDate)
       leadVisitDate.value = new Date().toISOString().slice(0, 16);
+    // Garante estado inicial dos campos de tarefa
+    if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
     toggleModal(leadVisitModal, true);
   }
 
@@ -340,12 +352,27 @@ export function initAgronomoDashboard(userId, userRole) {
     .getElementById('btnLeadVisitCancel')
     ?.addEventListener('click', () => toggleModal(leadVisitModal, false));
 
+  // Toggle campos de tarefa no modal de visita de lead
+  leadVisitTaskEnable?.addEventListener('change', () => {
+    leadVisitTaskFields?.classList.toggle('hidden', !leadVisitTaskEnable.checked);
+  });
+
   leadVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const summary = leadVisitSummary?.value.trim();
     if (!summary) {
       showToast('Informe o resumo da visita.', 'error');
       return;
+    }
+    if (leadVisitTaskEnable?.checked) {
+      if (!leadVisitTaskWhen?.value) {
+        showToast('Informe a data/hora da tarefa.', 'error');
+        return;
+      }
+      if (!leadVisitTaskTitle?.value.trim()) {
+        showToast('Informe o título da tarefa.', 'error');
+        return;
+      }
     }
     try {
       const visitsRef = collection(db, `leads/${currentLeadId}/visits`);
@@ -372,6 +399,11 @@ export function initAgronomoDashboard(userId, userRole) {
         notes: summary,
         leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
       });
+      if (leadVisitTaskEnable?.checked) {
+        const when = leadVisitTaskWhen.value;
+        const title = leadVisitTaskTitle.value.trim();
+        addAgenda({ title, when, leadId: currentLeadId });
+      }
       if (location.hash === '#historico') await renderHistory();
       toggleModal(leadVisitModal, false);
       leadVisitForm?.reset();
@@ -668,13 +700,18 @@ export function initAgronomoDashboard(userId, userRole) {
     const needFollow =
       sale === 'nao' && (interest === 'Interessado' || interest === 'Na dúvida');
     leadFollowUp.classList.toggle('hidden', !needFollow);
-    document.getElementById('visitReturnAt').required = false;
+    if (visitTaskFields && visitTaskEnable) {
+      visitTaskFields.classList.toggle('hidden', !(needFollow && visitTaskEnable.checked));
+      if (visitTaskWhen) visitTaskWhen.required = needFollow && visitTaskEnable.checked;
+      if (visitTaskTitle) visitTaskTitle.required = needFollow && visitTaskEnable.checked;
+    }
     const needReason = interest === 'Sem interesse';
     leadReason.classList.toggle('hidden', !needReason);
     document.getElementById('visitReason').required = needReason;
   }
   visitInterest?.addEventListener('change', refreshLeadFields);
   visitSale?.addEventListener('change', refreshLeadFields);
+  visitTaskEnable?.addEventListener('change', refreshLeadFields);
 
   document.getElementById('btnVisitQuickCreate')?.addEventListener('click', () => {
     const type = document.querySelector("input[name='visitTarget']:checked").value;
@@ -852,15 +889,23 @@ export function initAgronomoDashboard(userId, userRole) {
         }
       } else {
         if (interest === 'Interessado' || interest === 'Na dúvida') {
-          const when = document.getElementById('visitReturnAt').value;
-          const note = document
-            .getElementById('visitReturnNote')
-            .value.trim();
-          if (when) {
-            addAgenda({ title: 'Retorno', when, leadId: refId, note });
-            renderAgendaHome(
-              parseInt(document.getElementById('agendaPeriod')?.value || '7')
-            );
+          if (visitTaskEnable?.checked) {
+            const when = visitTaskWhen?.value;
+            const title = visitTaskTitle?.value.trim();
+            if (!when) {
+              setFieldError(visitTaskWhen, 'Campo obrigatório');
+              valid = false;
+            }
+            if (!title) {
+              setFieldError(visitTaskTitle, 'Campo obrigatório');
+              valid = false;
+            }
+            if (valid) {
+              addAgenda({ title, when, leadId: refId });
+              renderAgendaHome(
+                parseInt(document.getElementById('agendaPeriod')?.value || '7')
+              );
+            }
           }
         }
         if (interest === 'Sem interesse') {
@@ -1289,6 +1334,32 @@ export function initAgronomoDashboard(userId, userRole) {
           );
         }
       });
+
+    document
+      .getElementById('quickHomeSyncNow')
+      ?.addEventListener('click', async () => {
+        if (!navigator.onLine) {
+          showToast('Sem conexão. Tente sincronizar quando voltar a internet.', 'info');
+          return;
+        }
+        try {
+          showToast('Sincronizando…', 'info', 2000);
+          await Promise.all([
+            syncClientsFromFirestore(),
+            syncLeadsFromFirestore(),
+            syncAgendaFromFirestore(),
+            getVisits(), // atualiza cache de visitas
+          ]);
+          // Re-renderiza painéis impactados
+          replotMap();
+          await renderHistory();
+          await renderHomeCharts();
+          showToast('Sincronizado com sucesso.', 'success');
+        } catch (e) {
+          console.error('[sync] erro', e);
+          showToast('Falha ao sincronizar. Tente novamente.', 'error');
+        }
+      });
   }
 
   // ===== Agenda Home =====
@@ -1395,8 +1466,30 @@ export function initAgronomoDashboard(userId, userRole) {
       badge.textContent = String(count);
     } else {
       badge?.remove();
-    }
   }
+
+  // Marca inicialização concluída (para fallback não duplicar)
+  window.__agroBootReady = true;
+}
+
+// Fallback: se por algum motivo o fluxo de auth não disparar
+// (ex.: reabertura 100% offline antes do onAuthStateChanged),
+// inicializa o dashboard com dados locais após pequeno atraso.
+try {
+  document.addEventListener('DOMContentLoaded', () => {
+    const marker = document.getElementById('dashboard-agronomo-marker');
+    if (!marker) return;
+    setTimeout(() => {
+      if (!window.__agroBooted) {
+        try {
+          initAgronomoDashboard((auth && auth.currentUser && auth.currentUser.uid) || null, 'agronomo');
+        } catch (e) {
+          console.warn('[agronomo] Fallback init falhou', e);
+        }
+      }
+    }, 900);
+  });
+} catch {}
   function handleHashChange() {
     if (location.hash === '#clientes' || location.hash === '#leads') {
       location.hash = '#contatos';

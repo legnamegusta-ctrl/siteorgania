@@ -1,7 +1,7 @@
 // public/js/pages/agenda.js
 
 import { db, auth } from '../config/firebase.js';
-import { collection, query, where, getDocs, orderBy, onSnapshot, doc, getDoc, updateDoc, collectionGroup } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, getDocs, orderBy, onSnapshot, doc, getDoc, updateDoc, collectionGroup } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showSpinner, hideSpinner, showToast } from '../services/ui.js';
 import { setupNotifications } from '../services/notifications.js';
 

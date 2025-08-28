@@ -1,7 +1,7 @@
 // js/pages/plot-details.js
 
 import { db } from '../config/firebase.js';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot, increment, getDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot, increment, getDoc, writeBatch } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../services/ui.js';
 
 export function initPlotDetails(userId, userRole) {

@@ -4,7 +4,7 @@ import { db } from '../config/firebase.js';
 import { showToast } from '../services/ui.js';
 import { showSpinner, hideSpinner } from '../services/ui.js';
 // Adicionado imports necessários para Firestore V9, incluindo collectionGroup e runTransaction
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, collectionGroup, runTransaction } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, collectionGroup, runTransaction } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initProductionOrders(userId, userRole) {
     // --- Elementos da Página ---

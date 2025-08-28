@@ -1,7 +1,7 @@
 // js/pages/client-list.js
 
 // Importar as funções Firestore necessárias da API modular do v9
-import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { getFirestore, collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { db } from '../config/firebase.js'; // db ainda é importado para consistência, mas getFirestore será usado localmente.
 import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../services/ui.js';
 

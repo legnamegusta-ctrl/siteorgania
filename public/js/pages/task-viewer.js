@@ -3,7 +3,7 @@
 import { db } from '../config/firebase.js';
 import { showSpinner, hideSpinner } from '../services/ui.js';
 // Adicionado imports necessários para Firestore V9
-import { collection, query, where, orderBy, getDocs, doc, getDoc, collectionGroup } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, getDoc, collectionGroup } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initTaskViewer(userId, userRole) {
     const filterAgronomist = document.getElementById('filterAgronomist');

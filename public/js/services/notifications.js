@@ -10,7 +10,7 @@ import {
     doc,
     updateDoc,
     writeBatch
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast } from './ui.js';
 
 const TAG = '[NOTIF]';

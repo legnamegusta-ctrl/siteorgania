@@ -6,50 +6,90 @@ import {
   getDocs,
   query,
   where,
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.clients';
 
+function readLocal() {
+  return JSON.parse(localStorage.getItem(KEY) || '[]');
+}
+
+function saveLocal(data) {
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
 export function getClients() {
   const userId = auth.currentUser?.uid;
-  const clients = JSON.parse(localStorage.getItem(KEY) || '[]');
+  const clients = readLocal();
   return userId ? clients.filter((c) => c.agronomistId === userId) : clients;
 }
 
 export function addClient(client) {
   const userId = auth.currentUser?.uid || null;
-  const clients = getClients();
+  const all = readLocal();
   const now = new Date().toISOString();
   const newClient = {
-    id: Date.now().toString(36),
+    id: `local-${Date.now().toString(36)}`,
     createdAt: now,
     updatedAt: now,
+    ...client,
     agronomistId: userId,
-    ...client
+    synced: navigator.onLine,
   };
-  clients.push(newClient);
-  localStorage.setItem(KEY, JSON.stringify(clients));
-  // Persistir no Firestore
-  setDoc(doc(db, 'clients', newClient.id), newClient).catch((err) =>
-    console.error('Erro ao salvar cliente no Firestore', err)
-  );
+  all.push(newClient);
+  saveLocal(all);
+
+  if (navigator.onLine) {
+    setDoc(doc(db, 'clients', newClient.id), newClient)
+      .then(() => {
+        const list = readLocal();
+        const idx = list.findIndex((c) => c.id === newClient.id);
+        if (idx >= 0) {
+          list[idx].synced = true;
+          saveLocal(list);
+        }
+      })
+      .catch((err) => console.error('Erro ao salvar cliente no Firestore', err));
+  }
   return newClient;
 }
 
 export async function syncClientsFromFirestore() {
-  try {
-    const userId = auth.currentUser?.uid;
-    if (!userId) {
-      console.warn('syncClientsFromFirestore: usuário não autenticado');
-      return [];
-    }
-    const q = query(collection(db, 'clients'), where('agronomistId', '==', userId));
-    const snap = await getDocs(q);
-    const clients = snap.docs.map((d) => d.data());
-    localStorage.setItem(KEY, JSON.stringify(clients));
-    return clients;
-  } catch (err) {
-    console.error('Erro ao buscar clientes do Firestore', err);
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    console.warn('syncClientsFromFirestore: usuário não autenticado');
     return [];
   }
+
+  // Envia locais pendentes
+  if (navigator.onLine) {
+    const localAll = readLocal();
+    for (const c of localAll.filter((x) => x.agronomistId === userId && !x.synced)) {
+      try {
+        await setDoc(doc(db, 'clients', c.id), c, { merge: true });
+        c.synced = true;
+      } catch (err) {
+        console.error('Erro ao sincronizar cliente', err);
+      }
+    }
+    saveLocal(localAll);
+  }
+
+  // Baixa remotos do agrônomo
+  try {
+    const snap = await getDocs(query(collection(db, 'clients'), where('agronomistId', '==', userId)));
+    const remote = snap.docs.map((d) => d.data());
+    // Mescla com locais
+    const map = new Map(remote.map((c) => [c.id, c]));
+    for (const c of readLocal()) {
+      if (!map.has(c.id)) map.set(c.id, c);
+    }
+    const merged = Array.from(map.values());
+    saveLocal(merged);
+    return merged.filter((c) => c.agronomistId === userId);
+  } catch (err) {
+    console.error('Erro ao buscar clientes do Firestore', err);
+    return getClients();
+  }
 }
+

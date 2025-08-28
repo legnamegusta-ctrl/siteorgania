@@ -5,8 +5,8 @@ import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../s
 import { initProductionOrders } from './ordens-producao.js';
 import { initFormulasAdmin } from './formulas-admin.js';
 // CORREÇÃO: Adicionado 'onSnapshot', 'writeBatch', e 'collectionGroup' ao import do firebase/firestore
-import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup, setDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
+import { collection, query, where, orderBy, getDocs, doc, getDoc, updateDoc, addDoc, serverTimestamp, writeBatch, onSnapshot, collectionGroup, setDoc, Timestamp } from '/vendor/firebase/9.6.0/firebase-firestore.js';
+import { createUserWithEmailAndPassword } from '/vendor/firebase/9.6.0/firebase-auth.js';
 export function initAdminDashboard(userId, userRole) {
     // --- CONTROLE DAS ABAS ---
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -222,11 +222,98 @@ export function initAdminDashboard(userId, userRole) {
                 docPdf.setFontSize(14);
                 docPdf.text(`Relatório de visitas - ${agronomistName}`, 10, 10);
                 let y = 20;
-                snap.forEach((d, idx) => {
+                let count = 0;
+                snap.forEach((d) => {
                     const data = d.data();
+                    if (data.authorId !== agronomistId && data.agronomistId !== agronomistId) return;
                     const dateStr = data.date?.toDate ? data.date.toDate().toLocaleDateString('pt-BR') : '';
                     const summary = data.summary || data.notes || '';
-                    docPdf.text(`${idx + 1}. ${dateStr} - ${summary}`, 10, y);
+                    docPdf.text(`${++count}. ${dateStr} - ${summary}`, 10, y);
+                    y += 8;
+                    if (y > 280) { docPdf.addPage(); y = 20; }
+                });
+                docPdf.save(`visitas-${agronomistName}.pdf`);
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                showToast('Erro ao gerar relatório de visitas.', 'error');
+            }
+        }
+
+        async function downloadVisitsReportFixed(agronomistId, agronomistName) {
+            try {
+                // Busca em múltiplas origens para cobrir diferentes esquemas
+                const queries = [
+                    // Top-level 'visits' por authorId e agronomistId
+                    getDocs(query(collection(db, 'visits'), where('authorId', '==', agronomistId))),
+                    getDocs(query(collection(db, 'visits'), where('agronomistId', '==', agronomistId))),
+                    // Subcoleções 'visits' (ex.: leads/{id}/visits) por authorId
+                    getDocs(query(collectionGroup(db, 'visits'), where('authorId', '==', agronomistId)))
+                ];
+                let snapshots = [];
+                try {
+                    snapshots = await Promise.all(queries);
+                } catch (cgErr) {
+                    // Se collectionGroup não estiver indexado/permitido, ignora e segue com o que retornou
+                    console.warn('Aviso: falha ao consultar collectionGroup(visits). Prosseguindo com top-level apenas.', cgErr);
+                    snapshots = await Promise.all([
+                        getDocs(query(collection(db, 'visits'), where('authorId', '==', agronomistId))),
+                        getDocs(query(collection(db, 'visits'), where('agronomistId', '==', agronomistId)))
+                    ]);
+                }
+
+                const startVal = startInput?.value ? new Date(startInput.value) : null;
+                const endVal = endInput?.value ? new Date(endInput.value) : null;
+                if (endVal) endVal.setHours(23, 59, 59, 999);
+
+                const seen = new Set();
+                const visits = [];
+                const pushVisit = (docSnap) => {
+                    const data = docSnap.data();
+                    // Garante vínculo com agrônomo
+                    if (data.authorId !== agronomistId && data.agronomistId !== agronomistId) return;
+
+                    // Resolve data
+                    let dateObj = null;
+                    if (data.date?.toDate) dateObj = data.date.toDate();
+                    else if (data.checkInTime?.toDate) dateObj = data.checkInTime.toDate();
+                    else if (typeof data.at === 'string') {
+                        const dAt = new Date(data.at);
+                        if (!isNaN(dAt)) dateObj = dAt;
+                    } else if (data.createdAt?.toDate) {
+                        dateObj = data.createdAt.toDate();
+                    }
+
+                    if (startVal && dateObj && dateObj < startVal) return;
+                    if (endVal && dateObj && dateObj > endVal) return;
+
+                    const dateStr = dateObj ? dateObj.toLocaleDateString('pt-BR') : '';
+                    const who = data.clientName || data.leadName || '';
+                    const whereTxt = data.propertyName || data.locationName || '';
+                    const summary = data.summary || data.notes || data.outcome || '';
+                    const line = [dateStr, who, whereTxt, summary].filter(Boolean).join(' - ');
+
+                    const key = docSnap.ref?.path || `${docSnap.id}:${dateStr}:${summary}`;
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    visits.push({ date: dateObj || new Date(0), line });
+                };
+
+                snapshots.forEach((snap) => snap.forEach(pushVisit));
+
+                visits.sort((a, b) => a.date - b.date);
+
+                if (!visits.length) {
+                    showToast('Nenhuma visita encontrada para os filtros selecionados.', 'info');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const docPdf = new jsPDF();
+                docPdf.setFontSize(14);
+                docPdf.text(`Relatório de visitas - ${agronomistName}`, 10, 10);
+                let y = 20;
+                visits.forEach((v, i) => {
+                    docPdf.text(`${i + 1}. ${v.line}`, 10, y);
                     y += 8;
                     if (y > 280) { docPdf.addPage(); y = 20; }
                 });
@@ -240,7 +327,7 @@ export function initAdminDashboard(userId, userRole) {
         contentEl?.addEventListener('click', (e) => {
             const btn = e.target.closest('button[data-action="download-report"]');
             if (!btn) return;
-            downloadVisitsReport(btn.dataset.agronomistId, btn.dataset.agronomistName);
+            downloadVisitsReportFixed(btn.dataset.agronomistId, btn.dataset.agronomistName);
         });
 
         renderAgronomists();

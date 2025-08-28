@@ -6,7 +6,7 @@ import {
   query,
   where,
   onSnapshot
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { parseDateLocal, formatDDMMYYYY, endOfLocalDay } from '../lib/date-utils.js';
 import { initTaskModal, openTaskModal } from '../ui/task-modal.js';
 

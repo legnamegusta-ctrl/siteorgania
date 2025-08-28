@@ -1,7 +1,7 @@
 // js/pages/property-details.js
 
 import { db } from '../config/firebase.js';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot, writeBatch, increment, getDoc, limit } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, addDoc, serverTimestamp, onSnapshot, writeBatch, increment, getDoc, limit } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast, showSpinner, hideSpinner, openModal, closeModal } from '../services/ui.js';
 
 export function initPropertyDetails(userId, userRole) {

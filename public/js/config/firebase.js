@@ -1,47 +1,47 @@
 // public/js/config/firebase.js
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js';
-// REMOVIDO 'enablePersistence' desta importação, pois não é exportado por este bundle CDN
-import { getFirestore, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js';
-import { getMessaging } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js';
+import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
+import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
+import { getAuth, setPersistence, browserLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
-// Seu objeto de configuração do Firebase (substitua com suas chaves reais!)
+// Config do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyAQI_FXk-1xySGiZVhiLimKSDoOwBM73Mw",
-  authDomain: "app-organia.firebaseapp.com",
-  projectId: "app-organia",
-  storageBucket: "app-organia.firebasestorage.app",
-  messagingSenderId: "92173277950",
-  appId: "1:92173277950:web:43448042c19f29ec5363af"
+  apiKey: "AIzaSyCQcgMFBU_rcm7cDjuE9WjSaCNzgFxXVOQ",
+  authDomain: "organia-fertilizantes.firebaseapp.com",
+  databaseURL: "https://organia-fertilizantes-default-rtdb.firebaseio.com",
+  projectId: "organia-fertilizantes",
+  storageBucket: "organia-fertilizantes.firebasestorage.app",
+  messagingSenderId: "488614836789",
+  appId: "1:488614836789:web:7d55498e0f78c158ed8f7c"
 };
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Inicializa o Auth aqui
+const auth = getAuth(app);
 
-// Garante que a autenticação persista entre sessões do navegador
-setPersistence(auth, browserLocalPersistence)
-  .catch(err => console.error('Erro ao configurar persistência:', err));
+// Persistência de sessão de Auth
+setPersistence(auth, browserLocalPersistence).catch(err => {
+  console.error('Erro ao configurar persistência de auth:', err);
+});
 
+// Inicializa Messaging quando suportado
 let messaging;
 try {
-  // Evita erro "Service messaging is not available" em ambientes sem suporte
   messaging = getMessaging(app);
 } catch (err) {
   console.warn('Firebase messaging não suportado neste ambiente.', err);
 }
 
-// Ativa persistência offline do Firestore para permitir uso sem conexão
-enableIndexedDbPersistence(db)
-  .catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn("Persistence failed: Can't enable persistence because multiple tabs are open or another instance is active.");
-    } else if (err.code === 'unimplemented') {
-      console.warn("Persistence failed: Current browser does not support persistence.");
-    } else {
-      console.error("Persistence failed for unknown reason:", err);
-    }
-  });
+// Ativa persistência offline do Firestore (IndexedDB)
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn("Persistence failed: múltiplas abas ativas impedem a persistência.");
+  } else if (err.code === 'unimplemented') {
+    console.warn("Persistence failed: navegador não suporta persistência.");
+  } else {
+    console.error("Persistence failed:", err);
+  }
+});
 
-export { db, app, auth, messaging }; // Exportar 'db', 'app', 'auth' e utilitários de messaging
+export { db, app, auth, messaging };

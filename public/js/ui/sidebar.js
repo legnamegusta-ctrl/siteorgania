@@ -7,7 +7,7 @@ import {
   where,
   onSnapshot,
   Timestamp
-} from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+} from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export function initSidebar() {
   const sidebar = document.getElementById('sidebar');

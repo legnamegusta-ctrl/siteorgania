@@ -2,14 +2,20 @@
   "scripts": {
     "test": "TZ=America/Sao_Paulo vitest run --reporter=dot",
     "test:watch": "TZ=America/Sao_Paulo vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "android:init": "npx cap add android",
+    "android:copy": "npx cap copy android",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "firebase": "^11.10.0"
+    "firebase": "^11.10.0",
+    "@capacitor/core": "^6.1.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/android": "^6.1.2",
     "jsdom": "^24.0.0",
     "vitest": "^1.5.2"
   }

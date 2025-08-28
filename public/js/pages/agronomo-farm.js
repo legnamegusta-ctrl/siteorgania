@@ -1,6 +1,6 @@
 // js/pages/agronomo-farm.js
 import { db } from '../config/firebase.js';
-import { doc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js';
+import { doc, getDoc, collection, getDocs } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 export async function initAgronomoFarm() {
   const params = new URLSearchParams(window.location.search);

@@ -1,6 +1,6 @@
 // Forçar takeover imediato e garantir modo offline.
 
-const CACHE_NAME = 'organia-v12'; // bump de versão
+const CACHE_NAME = 'organia-v13'; // bump de versão
 const OFFLINE_URL = '/index.html';
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -85,6 +85,18 @@ const PRECACHE_URLS = [
   '/js/ui/task-modal.js',
   '/js/utils/geo.js',
   '/js/utils/metrics.js',
+  // Vendored Firebase ESM (offline robust)
+  '/vendor/firebase/9.6.0/firebase-app.js',
+  '/vendor/firebase/9.6.0/firebase-auth.js',
+  '/vendor/firebase/9.6.0/firebase-firestore.js',
+  '/vendor/firebase/9.6.1/firebase-messaging.js',
+  // Vendored Leaflet + Chart.js
+  '/vendor/leaflet/leaflet.js',
+  '/vendor/leaflet/leaflet.css',
+  '/vendor/leaflet/images/marker-icon.png',
+  '/vendor/leaflet/images/marker-icon-2x.png',
+  '/vendor/leaflet/images/marker-shadow.png',
+  '/vendor/chart/chart.umd.js',
   '/logo.png',
   '/favicon.png',
   '/icon-192.png',
@@ -93,14 +105,34 @@ const PRECACHE_URLS = [
   '/manifest.json'
 ];
 
+// Recursos opcionais (disponíveis apenas quando hospedado no Firebase Hosting)
+const OPTIONAL_URLS = [
+  '/__/firebase/9.6.1/firebase-app-compat.js',
+  '/__/firebase/9.6.1/firebase-auth-compat.js',
+  '/__/firebase/9.6.1/firebase-firestore-compat.js',
+  '/__/firebase/9.6.1/firebase-messaging-compat.js',
+  '/__/firebase/init.js'
+].map((u) => new Request(u, { mode: 'no-cors' }));
+
 const THIRD_PARTY_URLS = [
+  // Tailwind (clássico <script>, não requer CORS)
   new Request('https://cdn.tailwindcss.com', { mode: 'no-cors' }),
-  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js', { mode: 'no-cors' }),
-  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js', { mode: 'no-cors' }),
-  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js', { mode: 'no-cors' }),
-  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js', { mode: 'no-cors' }),
+
+  // Firebase ESM (precisam de CORS válido para funcionar como módulos offline)
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js', { mode: 'cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js', { mode: 'cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js', { mode: 'cors' }),
+  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js', { mode: 'cors' }),
+
+  // Compat (usado dentro do próprio SW para FCM background)
   new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js', { mode: 'no-cors' }),
-  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js', { mode: 'no-cors' })
+  new Request('https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js', { mode: 'no-cors' }),
+
+  // Bibliotecas de UI opcionais usadas em diversas páginas
+  new Request('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css', { mode: 'no-cors' }),
+  new Request('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', { mode: 'no-cors' }),
+  new Request('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', { mode: 'no-cors' }),
+  new Request('https://cdn.jsdelivr.net/npm/chart.js', { mode: 'no-cors' })
 ];
 
 // Firebase Messaging (compat) no Service Worker
@@ -129,10 +161,18 @@ try {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll([...PRECACHE_URLS, ...THIRD_PARTY_URLS]))
-      .then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const all = [
+        ...PRECACHE_URLS.map((u) => (typeof u === 'string' ? new Request(u) : u)),
+        ...THIRD_PARTY_URLS,
+        ...OPTIONAL_URLS,
+      ];
+      await Promise.all(
+        all.map((req) => cache.add(req).catch(() => {/* ignora falhas opcionais */}))
+      );
+      await self.skipWaiting();
+    })()
   );
 });
 
