@@ -97,6 +97,7 @@ const PRECACHE_URLS = [
   '/vendor/leaflet/images/marker-icon-2x.png',
   '/vendor/leaflet/images/marker-shadow.png',
   '/vendor/chart/chart.umd.js',
+  '/vendor/tailwind/tailwind.js',
   '/logo.png',
   '/favicon.png',
   '/icon-192.png',
