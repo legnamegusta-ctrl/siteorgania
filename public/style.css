@@ -53,6 +53,7 @@
 }
 
 .hidden{display:none !important;}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .page-container{
   max-width:1200px;
   margin:0 auto;
