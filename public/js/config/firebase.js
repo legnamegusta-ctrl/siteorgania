@@ -1,7 +1,7 @@
 // public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { initializeAuth, getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -18,17 +18,20 @@ const firebaseConfig = {
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
+// Inicializa Auth declarando as persistências preferidas logo na criação
+let auth;
+try {
+  auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+} catch (e) {
+  // initializeAuth pode lançar se já houver uma instância criada; faz fallback para getAuth
+  auth = getAuth(app);
+}
 
 // Persistência de sessão de Auth (preferir IndexedDB para WebView/Capacitor)
+// Garante persistência mesmo em ambientes que não aceitam initializeAuth
 setPersistence(auth, indexedDBLocalPersistence)
-  .catch((e) => {
-    console.warn('[auth] indexedDBLocalPersistence falhou; usando browserLocalPersistence', e);
-    return setPersistence(auth, browserLocalPersistence);
-  })
-  .catch(err => {
-    console.error('Erro ao configurar persistência de auth:', err);
-  });
+  .catch(() => setPersistence(auth, browserLocalPersistence))
+  .catch(() => {});
 
 // Inicializa Messaging quando suportado
 let messaging;
