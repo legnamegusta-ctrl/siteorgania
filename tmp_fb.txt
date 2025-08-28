@@ -1,7 +1,7 @@
-﻿// public/js/config/firebase.js
+// public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { initializeAuth, getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -18,9 +18,17 @@ const firebaseConfig = {
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-// Inicializa Auth declarando as persistÃªncias preferidas logo na criaÃ§Ã£o
-const auth = getAuth(app);
+// Inicializa Auth declarando as persistências preferidas logo na criação
+let auth;
+try {
+  auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+} catch (e) {
+  // initializeAuth pode lançar se já houver uma instância criada; faz fallback para getAuth
+  auth = getAuth(app);
+}
 
+// Persistência de sessão de Auth (preferir IndexedDB para WebView/Capacitor)
+// Garante persistência mesmo em ambientes que não aceitam initializeAuth
 setPersistence(auth, indexedDBLocalPersistence)
   .catch(() => setPersistence(auth, browserLocalPersistence))
   .catch(() => {});
@@ -30,20 +38,19 @@ let messaging;
 try {
   messaging = getMessaging(app);
 } catch (err) {
-  console.warn('Firebase messaging nÃ£o suportado neste ambiente.', err);
+  console.warn('Firebase messaging não suportado neste ambiente.', err);
 }
 
-// Ativa persistÃªncia offline do Firestore (IndexedDB)
+// Ativa persistência offline do Firestore (IndexedDB)
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
-    console.warn("Persistence failed: mÃºltiplas abas ativas impedem a persistÃªncia.");
+    console.warn("Persistence failed: múltiplas abas ativas impedem a persistência.");
   } else if (err.code === 'unimplemented') {
-    console.warn("Persistence failed: navegador nÃ£o suporta persistÃªncia.");
+    console.warn("Persistence failed: navegador não suporta persistência.");
   } else {
     console.error("Persistence failed:", err);
   }
 });
 
 export { db, app, auth, messaging };
-
 

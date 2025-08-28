@@ -1,12 +1,12 @@
-// public/js/services/auth.js
+﻿// public/js/services/auth.js
 
-// IMPORTADO: 'db' e 'auth' (instância) de firebase.js
+// IMPORTADO: 'db' e 'auth' (instÃ¢ncia) de firebase.js
 import { auth, db } from '../config/firebase.js';
-// IMPORTADO: Funções modulares de autenticação e Firestore (passam a instância 'auth' ou 'db' como primeiro argumento)
+// IMPORTADO: FunÃ§Ãµes modulares de autenticaÃ§Ã£o e Firestore (passam a instÃ¢ncia 'auth' ou 'db' como primeiro argumento)
 import { signInWithEmailAndPassword, signOut } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { doc, getDoc } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
-// Cache local da role do usuário para suportar modo offline após reinício do navegador
+// Cache local da role do usuÃ¡rio para suportar modo offline apÃ³s reinÃ­cio do navegador
 function getCachedUserRole(uid) {
   try {
     return localStorage.getItem(`organia:userRole:${uid}`) || null;
@@ -21,7 +21,7 @@ function setCachedUserRole(uid, role) {
   } catch {}
 }
 
-// Importa as funções de inicialização de cada página
+// Importa as funÃ§Ãµes de inicializaÃ§Ã£o de cada pÃ¡gina
 import { initAdminDashboard } from '../pages/dashboard-admin.js';
 import { initFormulasAdmin } from '../pages/formulas-admin.js';
 import { initAgronomoDashboard } from '../pages/dashboard-agronomo.js';
@@ -38,7 +38,7 @@ import { initMapaGeral } from '../pages/mapa-geral.js';
 import { initMapaAgronomo } from '../pages/mapa-agronomo.js';
 import { initClientList } from '../pages/client-list.js';
 import { initAgenda } from '../pages/agenda.js';
-// NOVO: Importa a função de inicialização do dashboard do operador
+// NOVO: Importa a funÃ§Ã£o de inicializaÃ§Ã£o do dashboard do operador
 import { initOperadorDashboard } from '../pages/operador-dashboard.js';
 import { initActivityDetails } from '../pages/activity-details.js';
 import { initOperadorTarefas } from '../pages/operador-tarefas.js';
@@ -84,23 +84,23 @@ function safeRedirectToIndex(reason) {
   const here = new URL(window.location.href);
   const target = new URL('index.html', here.origin);
   if (here.href === target.href) {
-    console.warn('[auth] Já está na index; redirecionamento ignorado. Motivo:', reason);
+    console.warn('[auth] JÃ¡ estÃ¡ na index; redirecionamento ignorado. Motivo:', reason);
     return;
   }
   console.log('[auth] Redirecionando para index. Motivo:', reason, { from: here.href, to: target.href });
   window.location.replace(target.href);
 }
 
-// Exponibiliza para outros módulos
+// Exponibiliza para outros mÃ³dulos
 window.safeRedirectToIndex = safeRedirectToIndex;
 
 console.log('auth.js carregado');
-console.log('[auth] página atual:', window.location.href);
+console.log('[auth] pÃ¡gina atual:', window.location.href);
 
 document.addEventListener('DOMContentLoaded', () => {
       console.log('[auth] DOMContentLoaded disparado');
       console.log('[auth] diag: isLoginRoute=', isLoginRoute(), 'isLoginDomPresent=', isLoginDomPresent());
-      let redirecting = false;
+      let redirecting = false;\r\n\r\n      // Offline auto-redirect se já existir sessão persistida\r\n      try {\r\n        if (!navigator.onLine) {\r\n          const last = localStorage.getItem('organia:lastDashboard');\r\n          if (auth?.currentUser && last && isOnLoginPage()) {\r\n            console.warn('[auth] Offline com sessão persistida; indo para', last);\r\n            window.location.replace(last);\r\n            return;\r\n          }\r\n        }\r\n      } catch {}\r\n
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   if (!isLoginRoute()) {
                       safeRedirectToIndex('logout');
                   } else {
-                      console.log('[auth] logout: já na index; sem redirect.');
+                      console.log('[auth] logout: jÃ¡ na index; sem redirect.');
                   }
               }
           }
@@ -201,8 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 initOperadorPerfil(user.uid, userRole);
             }
         } catch (error) {
-            console.error("Erro na inicialização da página:", error);
-            alert("Ocorreu um erro ao carregar os componentes da página. Por favor, recarregue.");
+            console.error("Erro na inicializaÃ§Ã£o da pÃ¡gina:", error);
+            alert("Ocorreu um erro ao carregar os componentes da pÃ¡gina. Por favor, recarregue.");
         }
     }
 
@@ -231,14 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
                       fetchedFrom = navigator.onLine ? 'server-empty' : 'cache-miss';
                     }
                   } catch (err) {
-                    console.warn('[auth] Falha ao obter doc do usuário; usando fallback', err);
+                    console.warn('[auth] Falha ao obter doc do usuÃ¡rio; usando fallback', err);
                     fetchedFrom = 'error';
                   }
 
-                  // Se não obteve role do Firestore, tenta cache local
+                  // Se nÃ£o obteve role do Firestore, tenta cache local
   
 
-                  // Inferir papel pelo �ltimo dashboard salvo (fallback offline)
+                  // Inferir papel pelo último dashboard salvo (fallback offline)
                   try {
                     const last = localStorage.getItem('organia:lastDashboard');
                     if (last && !userRole) {
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   } catch {}
   }
 
-  // Fallback extra: offline e sem role -> tentar último dashboard conhecido
+  // Fallback extra: offline e sem role -> tentar Ãºltimo dashboard conhecido
   if (!userRole && !navigator.onLine) {
     try {
       const last = localStorage.getItem('organia:lastDashboard');
@@ -264,18 +264,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (!userRole) {
-    // Sem role e usuário autenticado: não desloga automaticamente quando offline
+    // Sem role e usuÃ¡rio autenticado: nÃ£o desloga automaticamente quando offline
     if (!navigator.onLine) {
-      console.warn('[auth] Offline e sem role em cache; mantendo sessão e página atual sem redirect.');
+      console.warn('[auth] Offline e sem role em cache; mantendo sessÃ£o e pÃ¡gina atual sem redirect.');
       return;
                     }
-                    // Online e sem role -> sessão inconsistente; faz logout seguro
-                    console.error('[auth] Usuário autenticado mas sem role. Efetuando logout.');
+                    // Online e sem role -> sessÃ£o inconsistente; faz logout seguro
+                    console.error('[auth] UsuÃ¡rio autenticado mas sem role. Efetuando logout.');
                     await logout();
                     return;
                   }
 
-                  console.log('[auth] role resolvida:', { userRole, fetchedFrom });\r\n                  // Fallback: sem role e offline -> iniciar p�gina ou redirecionar usando �ltimo dashboard\r\n                  if (!userRole && !navigator.onLine) {\r\n                    try {\r\n                      const last = localStorage.getItem('organia:lastDashboard');\r\n                      if (onLoginPage) {\r\n                        const dest = last || 'dashboard-agronomo.html';\r\n                        console.warn('[auth] Offline sem role; redirecionando para', dest);\r\n                        window.location.replace(dest);\r\n                        return;\r\n                      } else {\r\n                        const role = (last && (last.includes('admin') ? 'admin' : last.includes('agronomo') ? 'agronomo' : last.includes('cliente') ? 'cliente' : last.includes('operador') ? 'operador' : 'agronomo')) || 'agronomo';\r\n                        console.warn('[auth] Offline sem role; inicializando p�gina com', role);\r\n                        initializePage(user, role);\r\n                        return;\r\n                      }\r\n                    } catch {}\r\n                  }\r\n
+                  console.log('[auth] role resolvida:', { userRole, fetchedFrom });\r\n                  // Fallback: sem role e offline -> iniciar página ou redirecionar usando último dashboard\r\n                  if (!userRole && !navigator.onLine) {\r\n                    try {\r\n                      const last = localStorage.getItem('organia:lastDashboard');\r\n                      if (onLoginPage) {\r\n                        const dest = last || 'dashboard-agronomo.html';\r\n                        console.warn('[auth] Offline sem role; redirecionando para', dest);\r\n                        window.location.replace(dest);\r\n                        return;\r\n                      } else {\r\n                        const role = (last && (last.includes('admin') ? 'admin' : last.includes('agronomo') ? 'agronomo' : last.includes('cliente') ? 'cliente' : last.includes('operador') ? 'operador' : 'agronomo')) || 'agronomo';\r\n                        console.warn('[auth] Offline sem role; inicializando página com', role);\r\n                        initializePage(user, role);\r\n                        return;\r\n                      }\r\n                    } catch {}\r\n                  }\r\n
 
                   if (onLoginPage) {
                       const roleToDashboard = {
@@ -292,11 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
                           console.log('[auth] redirecionando para', destination);
                           window.location.replace(destination);
                       } else {
-                          console.error(`Papel de usuário desconhecido: ${userRole}`);
+                          console.error(`Papel de usuÃ¡rio desconhecido: ${userRole}`);
                           await logout();
                       }
                   } else {
-                      console.log('[auth] usuário autenticado, sincronizando dados locais');
+                      console.log('[auth] usuÃ¡rio autenticado, sincronizando dados locais');
                       await Promise.all([
                         syncClientsFromFirestore(),
                         syncLeadsFromFirestore(),
@@ -310,16 +310,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         // visitas sincronizam dentro de getVisits()
                         getVisits();
                       });
-                      console.log('[auth] dados sincronizados, inicializando página', userRole);
+                      console.log('[auth] dados sincronizados, inicializando pÃ¡gina', userRole);
                       initializePage(user, userRole);
                   }
-                  return; // impede executar fluxo anterior (desnecessário)
+                  return; // impede executar fluxo anterior (desnecessÃ¡rio)
                 }
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    const userRole = userData.role; // Obtém o papel do usuário
+                    const userRole = userData.role; // ObtÃ©m o papel do usuÃ¡rio
 
                     if (onLoginPage) {
                         const roleToDashboard = {
@@ -336,11 +336,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.log('[auth] redirecionando para', destination);
                             window.location.replace(destination);
                         } else {
-                            console.error(`Papel de usuário desconhecido: ${userRole}`);
+                            console.error(`Papel de usuÃ¡rio desconhecido: ${userRole}`);
                             await logout();
                         }
                     } else {
-                        console.log('[auth] usuário autenticado, sincronizando dados locais');
+                        console.log('[auth] usuÃ¡rio autenticado, sincronizando dados locais');
                         await Promise.all([
                           syncClientsFromFirestore(),
                           syncLeadsFromFirestore(),
@@ -354,11 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
                           // visitas sincronizam dentro de getVisits()
                           getVisits();
                         });
-                        console.log('[auth] dados sincronizados, inicializando página', userRole);
+                        console.log('[auth] dados sincronizados, inicializando pÃ¡gina', userRole);
                         initializePage(user, userRole);
                     }
                 } else {
-                    console.error("Documento de usuário não encontrado no Firestore. Fazendo logout forçado.");
+                    console.error("Documento de usuÃ¡rio nÃ£o encontrado no Firestore. Fazendo logout forÃ§ado.");
                     await logout();
                 }
             } else if (!onLoginPage && !redirecting) {
@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!routeCheck) {
                     safeRedirectToIndex('user-unauthenticated');
                 } else {
-                    console.log('[auth] Usuário não autenticado já na index; sem redirect.');
+                    console.log('[auth] UsuÃ¡rio nÃ£o autenticado jÃ¡ na index; sem redirect.');
                 }
             }
         } catch (e) {
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!routeCheck) {
                     safeRedirectToIndex('onAuthStateChanged-error');
                 } else {
-                    console.log('[auth] Erro no onAuthStateChanged, mas já na index; sem redirect.');
+                    console.log('[auth] Erro no onAuthStateChanged, mas jÃ¡ na index; sem redirect.');
                 }
             }
         }
@@ -386,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
     }
 });
+
 
 
 
