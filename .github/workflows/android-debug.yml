@@ -31,10 +31,15 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Add Android platform
-        run: npx cap add android --skip-deps || true
+        run: npx cap add android --skip-deps --force
 
       - name: Sync web to Android
-        run: npx cap copy android
+        run: npx cap sync android
+
+      - name: Show project tree
+        run: |
+          ls -la
+          ls -la android || true
 
       - name: Build Debug APK
         working-directory: android
@@ -45,4 +50,3 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
