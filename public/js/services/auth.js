@@ -116,10 +116,16 @@ document.addEventListener('DOMContentLoaded', () => {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('[auth] login success, awaiting onAuthStateChanged');
     } catch (error) {
-      console.error('[auth] login error:', error);
+      console.error('[auth] login error:', error?.code, error);
       if (loginError) {
         if (error?.code === 'auth/wrong-password' || error?.code === 'auth/user-not-found' || error?.code === 'auth/invalid-credential') {
           loginError.textContent = 'Email ou senha incorretos.';
+        } else if (error?.code === 'auth/too-many-requests') {
+          loginError.textContent = 'Muitas tentativas. Tente novamente mais tarde.';
+        } else if (error?.code === 'auth/network-request-failed') {
+          loginError.textContent = 'Sem conexão com a internet.';
+        } else if (error?.code === 'auth/unauthorized-domain') {
+          loginError.textContent = 'Domínio do app não autorizado no Firebase (capacitor://localhost).';
         } else {
           loginError.textContent = 'Ocorreu um erro. Tente novamente.';
         }
@@ -321,4 +327,3 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('loginForm');
   if (form) form.addEventListener('submit', handleLogin);
 });
-
