@@ -1,4 +1,4 @@
-import { db, auth } from '../config/firebase.js';
+﻿import { db, auth } from '../config/firebase.js';
 import {
   collection,
   getDocs,
@@ -29,7 +29,7 @@ function isTempId(id) {
 }
 
 export async function getVisits() {
-  const userId = auth.currentUser?.uid;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
   // Consider local visits for the logged user
   const local = readLocal().filter((v) => !userId || v.authorId === userId);
 
@@ -154,7 +154,7 @@ export async function getVisits() {
 
 export async function addVisit(visit) {
   const visits = readLocal();
-  const userId = auth.currentUser?.uid || null;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const newVisit = {
     id: `local-${Date.now().toString(36)}`,
     at: new Date().toISOString(),
@@ -211,3 +211,4 @@ export async function updateVisit(id, changes) {
   }
   return idx >= 0 ? visits[idx] : null;
 }
+

@@ -95,12 +95,13 @@ function safeRedirectToIndex(reason) {
 window.safeRedirectToIndex = safeRedirectToIndex;
 
 console.log('auth.js carregado');
-console.log('[auth] pÃ¡gina atual:', window.location.href);
+
+\r\n// Helper global para UID persistido (offline)\r\ntry {\r\n  window.getCurrentUid = function(){\r\n    try { return (auth && auth.currentUser && auth.currentUser.uid) || localStorage.getItem('organia:persistUid') || null; }\r\n    catch { return (auth && auth.currentUser && auth.currentUser.uid) || null; }\r\n  };\r\n} catch {}\r\n
 
 document.addEventListener('DOMContentLoaded', () => {
       console.log('[auth] DOMContentLoaded disparado');
       console.log('[auth] diag: isLoginRoute=', isLoginRoute(), 'isLoginDomPresent=', isLoginDomPresent());
-      let redirecting = false;\r\n\r\n      // Offline auto-redirect se já existir sessão persistida\r\n      try {\r\n        if (!navigator.onLine) {\r\n          const last = localStorage.getItem('organia:lastDashboard');\r\n          if (auth?.currentUser && last && isOnLoginPage()) {\r\n            console.warn('[auth] Offline com sessão persistida; indo para', last);\r\n            window.location.replace(last);\r\n            return;\r\n          }\r\n        }\r\n      } catch {}\r\n
+      let redirecting = false;\r\n\r\n      // Offline auto-redirect se já existir sessão persistida\r\n      try {\r\n        if (!navigator.onLine) {\r\n          const last = localStorage.getItem('organia:lastDashboard');\r\n          if (auth?.currentUser && last && isOnLoginPage()) {\r\n            console.warn('[auth] Offline com sessao persistida; indo para', last);\r\n            window.location.replace(last);\r\n            return;\r\n          }\r\n        }\r\n      } catch {}\r\n
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -386,6 +387,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
     }
 });
+
+
 
 
 

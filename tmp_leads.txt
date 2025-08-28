@@ -1,4 +1,4 @@
-﻿import { db, auth } from '../config/firebase.js';
+import { db, auth } from '../config/firebase.js';
 import {
   doc,
   setDoc,
@@ -19,13 +19,13 @@ function saveLocal(data) {
 }
 
 export function getLeads() {
-  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
+  const userId = auth.currentUser?.uid;
   const leads = readLocal();
   return userId ? leads.filter((l) => l.agronomistId === userId) : leads;
 }
 
 export function addLead(lead) {
-  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
+  const userId = auth.currentUser?.uid || null;
   const all = readLocal();
   const now = new Date().toISOString();
   const newLead = {
@@ -33,7 +33,7 @@ export function addLead(lead) {
     createdAt: now,
     updatedAt: now,
     stage: 'Novo',
-    interest: 'Na dÃºvida',
+    interest: 'Na dúvida',
     lastVisitAt: null,
     nextAction: null,
     ...lead,
@@ -74,9 +74,9 @@ export function updateLead(id, changes) {
 }
 
 export async function syncLeadsFromFirestore() {
-  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
+  const userId = auth.currentUser?.uid;
   if (!userId) {
-    console.warn('syncLeadsFromFirestore: usuÃ¡rio nÃ£o autenticado');
+    console.warn('syncLeadsFromFirestore: usuário não autenticado');
     return [];
   }
   // Envia locais pendentes
@@ -92,7 +92,7 @@ export async function syncLeadsFromFirestore() {
     }
     saveLocal(localAll);
   }
-  // Baixa remotos do agrÃ´nomo
+  // Baixa remotos do agrônomo
   try {
     const snap = await getDocs(query(collection(db, 'leads'), where('agronomistId', '==', userId)));
     const remote = snap.docs.map((d) => d.data());

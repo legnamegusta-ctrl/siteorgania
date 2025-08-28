@@ -19,13 +19,13 @@ function saveLocal(data) {
 }
 
 export function getClients() {
-  const userId = auth.currentUser?.uid;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
   const clients = readLocal();
   return userId ? clients.filter((c) => c.agronomistId === userId) : clients;
 }
 
 export function addClient(client) {
-  const userId = auth.currentUser?.uid || null;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const all = readLocal();
   const now = new Date().toISOString();
   const newClient = {
@@ -55,7 +55,7 @@ export function addClient(client) {
 }
 
 export async function syncClientsFromFirestore() {
-  const userId = auth.currentUser?.uid;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
   if (!userId) {
     console.warn('syncClientsFromFirestore: usuário não autenticado');
     return [];

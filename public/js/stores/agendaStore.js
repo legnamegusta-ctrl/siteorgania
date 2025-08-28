@@ -1,4 +1,4 @@
-import { db, auth } from '../config/firebase.js';
+﻿import { db, auth } from '../config/firebase.js';
 import { doc, setDoc, collection, getDocs, query, where } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 
 const KEY = 'agro.agenda';
@@ -12,14 +12,14 @@ function saveLocal(data) {
 }
 
 export function getAgenda() {
-  const userId = auth.currentUser?.uid;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
   const all = readLocal();
   return userId ? all.filter((a) => a.agronomistId === userId) : all;
 }
 
 export function addAgenda(item) {
   const agenda = readLocal();
-  const userId = auth.currentUser?.uid || null;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const newItem = {
     id: `local-${Date.now().toString(36)}`,
     ...item,
@@ -64,9 +64,9 @@ export function updateAgenda(id, changes) {
 }
 
 export async function syncAgendaFromFirestore() {
-  const userId = auth.currentUser?.uid;
+  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
   if (!userId) {
-    console.warn('syncAgendaFromFirestore: usuário não autenticado');
+    console.warn('syncAgendaFromFirestore: usuÃ¡rio nÃ£o autenticado');
     return [];
   }
   if (navigator.onLine) {
@@ -96,3 +96,4 @@ export async function syncAgendaFromFirestore() {
     return getAgenda();
   }
 }
+
