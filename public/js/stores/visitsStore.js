@@ -78,11 +78,20 @@ export async function getVisits() {
     for (const v of local.filter((x) => !x.synced)) {
       const { synced, ...data } = v;
       try {
+        const cleaned = removeUndefinedFields(data);
         if (isTempId(v.id)) {
-          const ref = await addDoc(collection(db, 'visits'), removeUndefinedFields(data));
+          const ref = await addDoc(collection(db, 'visits'), cleaned);
           v.id = ref.id;
         } else {
-          await updateDoc(doc(db, 'visits', v.id), removeUndefinedFields(data));
+          await updateDoc(doc(db, 'visits', v.id), cleaned);
+        }
+        if (v.refId && v.type) {
+          const parts = v.type === 'lead' ? ['leads', v.refId, 'visits'] : ['clients', v.refId, 'visits'];
+          try {
+            await addDoc(collection(db, ...parts), { ...cleaned, visitId: v.id });
+          } catch (subErr) {
+            console.warn('[visitsStore] Falha ao replicar visita para subcoleção', subErr);
+          }
         }
         v.synced = true;
       } catch (err) {
@@ -169,7 +178,18 @@ export async function addVisit(visit) {
   if (navigator.onLine) {
     try {
       const { synced, id, ...data } = newVisit;
-      const ref = await addDoc(collection(db, 'visits'), removeUndefinedFields(data));
+      const cleaned = removeUndefinedFields(data);
+      const ref = await addDoc(collection(db, 'visits'), cleaned);
+      if (newVisit.refId && newVisit.type) {
+        const parts = newVisit.type === 'lead'
+          ? ['leads', newVisit.refId, 'visits']
+          : ['clients', newVisit.refId, 'visits'];
+        try {
+          await addDoc(collection(db, ...parts), { ...cleaned, visitId: ref.id });
+        } catch (subErr) {
+          console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
+        }
+      }
       const idx = visits.findIndex((v) => v.id === id);
       if (idx >= 0) {
         visits[idx] = { id: ref.id, ...data, synced: true };

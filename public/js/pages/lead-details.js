@@ -505,32 +505,9 @@ export function initLeadDetails(userId, userRole) {
       return;
     }
     const value = leadVisitDate?.value;
-    let remoteSaved = false;
-    // Tenta salvar na subcoleção do lead (quando online)
-    try {
-      if (!usingLocalData) {
-        await addDoc(visitsRef, {
-          date: value ? Timestamp.fromDate(new Date(value)) : Timestamp.now(),
-          authorId: auth.currentUser.uid,
-          authorRole: userRole,
-          summary: leadVisitSummary?.value.trim(),
-          notes: leadVisitNotes?.value.trim() || '',
-          outcome: leadVisitOutcome?.value || 'realizada',
-          nextStep: leadVisitNextStep?.value.trim() || null,
-          attachments: [],
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          relatedType: 'lead',
-          relatedId: leadId,
-        });
-        remoteSaved = true;
-      }
-    } catch (err) {
-      console.warn('[lead-details] Falha ao salvar em Firestore; mantendo offline para sincronizar', err);
-    }
     try {
       const pos = await getCurrentPositionSafe();
-      await addVisit({
+      const saved = await addVisit({
         type: 'lead',
         refId: leadId,
         at: value || new Date().toISOString(),
@@ -554,10 +531,10 @@ export function initLeadDetails(userId, userRole) {
         renderVisits(visitsCache);
       }
       showToast(
-        remoteSaved
+        saved.synced
           ? 'Visita registrada com sucesso!'
           : 'Sem internet: visita salva e será sincronizada.',
-        remoteSaved ? 'success' : 'info'
+        saved.synced ? 'success' : 'info'
       );
     } catch (err) {
       console.error('Erro ao salvar visita localmente:', err);

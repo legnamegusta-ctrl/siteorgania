@@ -375,32 +375,8 @@ export function initAgronomoDashboard(userId, userRole) {
         return;
       }
     }
-    let remoteSaved = false;
-    // Tenta salvar na subcoleção do lead (quando online)
     try {
-      const visitsRef = collection(db, `leads/${currentLeadId}/visits`);
-      await addDoc(visitsRef, {
-        date: leadVisitDate?.value
-          ? Timestamp.fromDate(new Date(leadVisitDate.value))
-          : Timestamp.fromDate(new Date()),
-        authorId: auth.currentUser.uid,
-        authorRole: userRole,
-        summary,
-        notes: leadVisitNotes?.value.trim() || '',
-        outcome: leadVisitOutcome?.value || 'realizada',
-        nextStep: leadVisitNextStep?.value.trim() || null,
-        attachments: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        relatedType: 'lead',
-        relatedId: currentLeadId,
-      });
-      remoteSaved = true;
-    } catch (err) {
-      console.warn('[lead visit] Falha ao salvar em Firestore; mantendo offline para sincronizar', err);
-    }
-    try {
-      await addVisit({
+      const saved = await addVisit({
         type: 'lead',
         refId: currentLeadId,
         at: leadVisitDate?.value || new Date().toISOString(),
@@ -417,10 +393,10 @@ export function initAgronomoDashboard(userId, userRole) {
       toggleModal(leadVisitModal, false);
       leadVisitForm?.reset();
       showToast(
-        remoteSaved
+        saved.synced
           ? 'Visita registrada com sucesso!'
           : 'Sem internet: visita salva e será sincronizada.',
-        remoteSaved ? 'success' : 'info'
+        saved.synced ? 'success' : 'info'
       );
     } catch (err) {
       console.error('Erro ao salvar visita localmente:', err);
@@ -972,7 +948,12 @@ export function initAgronomoDashboard(userId, userRole) {
     }
     const saved = await addVisit(visit);
     console.log('[VISITS] novo', saved.id);
-    showToast('Visita registrada com sucesso!', 'success');
+    showToast(
+      saved.synced
+        ? 'Visita registrada com sucesso!'
+        : 'Sem internet: visita salva e será sincronizada.',
+      saved.synced ? 'success' : 'info'
+    );
     if (location.hash === '#historico') await renderHistory();
     toggleModal(visitModal, false);
     clearErrors(form);
