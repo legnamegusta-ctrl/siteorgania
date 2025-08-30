@@ -2,8 +2,8 @@
 import {
   collection,
   getDocs,
-  addDoc,
   doc,
+  setDoc,
   updateDoc,
   query,
   where,
@@ -22,10 +22,6 @@ function saveLocal(data) {
 
 function removeUndefinedFields(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
-}
-
-function isTempId(id) {
-  return id.startsWith('local-');
 }
 
 export async function getVisits() {
@@ -81,16 +77,14 @@ export async function getVisits() {
       const { synced, ...data } = v;
       try {
         const cleaned = removeUndefinedFields(data);
-        if (isTempId(v.id)) {
-          const ref = await addDoc(collection(db, 'visits'), cleaned);
-          v.id = ref.id;
-        } else {
-          await updateDoc(doc(db, 'visits', v.id), cleaned);
-        }
+        await setDoc(doc(db, 'visits', v.id), cleaned, { merge: true });
         if (v.refId && v.type) {
-          const parts = v.type === 'lead' ? ['leads', v.refId, 'visits'] : ['clients', v.refId, 'visits'];
+          const parts =
+            v.type === 'lead'
+              ? ['leads', v.refId, 'visits', v.id]
+              : ['clients', v.refId, 'visits', v.id];
           try {
-            await addDoc(collection(db, ...parts), { ...cleaned, visitId: v.id });
+            await setDoc(doc(db, ...parts), { ...cleaned, visitId: v.id }, { merge: true });
           } catch (subErr) {
             console.warn('[visitsStore] Falha ao replicar visita para subcoleção', subErr);
           }
@@ -166,37 +160,38 @@ export async function getVisits() {
 export async function addVisit(visit) {
   const visits = readLocal();
   const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
+  const id = doc(collection(db, 'visits')).id;
   const newVisit = {
-    id: `local-${Date.now().toString(36)}`,
+    id,
     at: new Date().toISOString(),
     authorId: userId,
     agronomistId: userId,
     ...visit,
     // Mark as unsynced by default to ensure proper retry on failure or unreliable network detection
-    synced: false
+    synced: false,
   };
   visits.push(newVisit);
   saveLocal(visits);
 
   if (navigator.onLine) {
-    const { synced, id, ...data } = newVisit;
+    const { synced, ...data } = newVisit;
     const cleaned = removeUndefinedFields(data);
-    addDoc(collection(db, 'visits'), cleaned)
-      .then(async (ref) => {
+    setDoc(doc(db, 'visits', id), cleaned)
+      .then(async () => {
         if (newVisit.refId && newVisit.type) {
           const parts =
             newVisit.type === 'lead'
-              ? ['leads', newVisit.refId, 'visits']
-              : ['clients', newVisit.refId, 'visits'];
+              ? ['leads', newVisit.refId, 'visits', id]
+              : ['clients', newVisit.refId, 'visits', id];
           try {
-            await addDoc(collection(db, ...parts), { ...cleaned, visitId: ref.id });
+            await setDoc(doc(db, ...parts), { ...cleaned, visitId: id });
           } catch (subErr) {
             console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
           }
         }
         const idx = visits.findIndex((v) => v.id === id);
         if (idx >= 0) {
-          visits[idx] = { id: ref.id, ...data, synced: true };
+          visits[idx].synced = true;
           saveLocal(visits);
         }
       })
