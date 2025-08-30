@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#166534" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-app.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-auth.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-firestore.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.1/firebase-messaging.js" crossorigin>
+  <base href="../public/" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="modulepreload" href="vendor/firebase/9.6.0/firebase-app.js" crossorigin>
+  <link rel="modulepreload" href="vendor/firebase/9.6.0/firebase-auth.js" crossorigin>
+  <link rel="modulepreload" href="vendor/firebase/9.6.0/firebase-firestore.js" crossorigin>
+  <link rel="modulepreload" href="vendor/firebase/9.6.1/firebase-messaging.js" crossorigin>
   <script type="module" src="js/app.js"></script>
-  <script src="/vendor/tailwind/tailwind.js"></script>
+  <script src="vendor/tailwind/tailwind.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-  <script src="/vendor/leaflet/leaflet.js" defer></script>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+  <script src="vendor/leaflet/leaflet.js" defer></script>
   <link rel="stylesheet" href="style.css" />
   <title>Orgânia - Painel do Agrônomo</title>
 </head>
@@ -25,7 +26,9 @@
     <div class="px-4 py-3 flex justify-between items-center">
       <h1 class="text-lg font-bold" style="color: var(--brand-green);">Painel do Agrônomo</h1>
       <div class="flex items-center space-x-2">
-        <button id="exportOfflineBtn" class="px-3 py-1.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 text-sm">Exportar</button>
+        <input type="file" id="importOfflineInput" class="hidden" />
+        <button id="importOfflineBtn" class="px-3 py-1.5 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 text-sm">Importar</button>
+        <button id="exportFirebaseBtn" class="px-3 py-1.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 text-sm">Exportar</button>
         <button onclick="logout()" class="px-3 py-1.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 text-sm">Sair</button>
       </div>
     </div>
@@ -459,12 +462,9 @@
     </div>
   </div>
 
-  <script src="/__/firebase/9.6.1/firebase-app-compat.js"></script>
-  <script src="/__/firebase/9.6.1/firebase-auth-compat.js"></script>
-  <script src="/__/firebase/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="/__/firebase/init.js"></script>
   <script type="module" src="js/services/auth.js"></script>
-  <script src="/vendor/chart/chart.umd.js" defer></script>
+  <script src="vendor/chart/chart.umd.js" defer></script>
   <script type="module" src="js/pages/dashboard-agronomo.js"></script>
+  <script type="module" src="../agronomooffline/offline.js"></script>
 </body>
 </html>

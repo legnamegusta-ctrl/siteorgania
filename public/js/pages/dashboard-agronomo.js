@@ -38,6 +38,23 @@ export function initAgronomoDashboard(userId, userRole) {
   const leadVisitDate = document.getElementById('leadVisitDate');
   const leadVisitSummary = document.getElementById('leadVisitSummary');
   const leadVisitNotes = document.getElementById('leadVisitNotes');
+  const exportOfflineBtn = document.getElementById('exportOfflineBtn');
+
+  exportOfflineBtn?.addEventListener('click', async () => {
+    const data = {
+      clients: getClients(),
+      leads: getLeads(),
+      agenda: getAgenda(),
+      visits: await getVisits(),
+    };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'agronomo-data.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
   const leadVisitOutcome = document.getElementById('leadVisitOutcome');
   const leadVisitNextStep = document.getElementById('leadVisitNextStep');
   const leadVisitTaskEnable = document.getElementById('leadVisitTaskEnable');
