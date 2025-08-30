@@ -5,7 +5,8 @@
     "test:e2e": "playwright test",
     "android:init": "npx cap add android",
     "android:copy": "npx cap copy android",
-    "android:open": "npx cap open android"
+    "android:open": "npx cap open android",
+    "build:offline": "node scripts/build-offline.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -18,6 +19,7 @@
     "@capacitor/android": "^6.1.2",
     "typescript": "^5.5.4",
     "jsdom": "^24.0.0",
-    "vitest": "^1.5.2"
+    "vitest": "^1.5.2",
+    "esbuild": "^0.20.0"
   }
 }
