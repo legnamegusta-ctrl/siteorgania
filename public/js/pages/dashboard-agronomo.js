@@ -954,10 +954,10 @@ export function initAgronomoDashboard(userId, userRole) {
         : 'Sem internet: visita salva e será sincronizada.',
       saved.synced ? 'success' : 'info'
     );
-    if (location.hash === '#historico') await renderHistory();
     toggleModal(visitModal, false);
     clearErrors(form);
     form.reset();
+    if (location.hash === '#historico') await renderHistory();
     renderLeadsList();
     renderContactsList();
     renderHomeKPIs();

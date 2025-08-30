@@ -54,7 +54,7 @@
 }
 
 .hidden{display:none !important;}
-html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html,body{margin:0;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .page-container{
   max-width:1200px;
   margin:0 auto;
