@@ -170,7 +170,8 @@ export async function addVisit(visit) {
     authorId: userId,
     agronomistId: userId,
     ...visit,
-    synced: navigator.onLine
+    // Mark as unsynced by default to ensure proper retry on failure or unreliable network detection
+    synced: false
   };
   visits.push(newVisit);
   saveLocal(visits);
@@ -199,6 +200,12 @@ export async function addVisit(visit) {
       return { id: ref.id, ...data, synced: true };
     } catch (err) {
       console.error('Erro ao adicionar visita no Firestore', err);
+      // Ensure local entry is marked as pending when the remote save fails
+      const idx = visits.findIndex((v) => v.id === newVisit.id);
+      if (idx >= 0) {
+        visits[idx].synced = false;
+        saveLocal(visits);
+      }
     }
   }
   return newVisit;
@@ -211,7 +218,8 @@ export async function updateVisit(id, changes) {
     visits[idx] = {
       ...visits[idx],
       ...changes,
-      synced: navigator.onLine ? true : false
+      // Assume unsynced until remote update succeeds
+      synced: false
     };
     saveLocal(visits);
   }
@@ -227,6 +235,10 @@ export async function updateVisit(id, changes) {
       }
     } catch (err) {
       console.error('Erro ao atualizar visita no Firestore', err);
+      if (idx >= 0) {
+        visits[idx].synced = false;
+        saveLocal(visits);
+      }
     }
   }
   return idx >= 0 ? visits[idx] : null;
