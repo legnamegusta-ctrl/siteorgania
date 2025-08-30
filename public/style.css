@@ -145,6 +145,10 @@ letter-spacing: normal;
     word-spacing: normal;
 }
 
+@media (max-width:480px){
+  p{text-align:justify;}
+}
+
 /* Fundo da página de login com imagem LOCAL */
 .login-background {
     background-image: url('background.jpg');

@@ -36,8 +36,10 @@ export async function getVisits() {
   // Normalize different visit schemas into a common shape
   const normalize = (docSnap) => {
     const data = docSnap.data ? docSnap.data() : docSnap;
-    // Prefer full ref path when available for uniqueness
-    const stableId = docSnap.ref?.path || docSnap.path || docSnap.id || data.id;
+    // Use visitId when available to deduplicate top-level and subcollection records
+    // Fallback to document id or full path for legacy entries
+    const stableId =
+      data.visitId || docSnap.id || docSnap.ref?.path || docSnap.path || data.id;
 
     // Author: accept authorId or agronomistId
     const authorId = data.authorId || data.agronomistId || null;
