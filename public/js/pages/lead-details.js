@@ -3,7 +3,8 @@
 import { db, auth } from '../config/firebase.js';
 import { toggleModal } from './agro-bottom-nav.js';
 import { getLeads } from '../stores/leadsStore.js';
-import { getVisits, updateVisit } from '../stores/visitsStore.js';
+import { getVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
+import { getCurrentPositionSafe } from '../utils/geo.js';
 import {
   doc,
   getDoc,
@@ -14,7 +15,8 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  GeoPoint
 } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import { showToast, showSpinner, hideSpinner, promptModal } from '../services/ui.js';
 
@@ -459,6 +461,29 @@ export function initLeadDetails(userId, userRole) {
         cultureCount: 0,
         enabledModules: {},
       });
+      // Ensure a property with coordinates exists so maps can display the client
+      try {
+        let lat = data.lat;
+        let lng = data.lng;
+        if ((lat == null || lng == null) || (isNaN(lat) || isNaN(lng))) {
+          const pos = await getCurrentPositionSafe();
+          if (pos) {
+            lat = pos.lat;
+            lng = pos.lng;
+          }
+        }
+        if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
+          const propName = data.propertyName || data.property || 'Propriedade';
+          await addDoc(collection(db, 'clients', clientRef.id, 'properties'), {
+            name: propName,
+            clientId: clientRef.id,
+            coordenadas: new GeoPoint(Number(lat), Number(lng)),
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (geoErr) {
+        console.warn('[lead->client] Failed to create property with coordinates', geoErr);
+      }
       await updateDoc(leadRef, { stage: 'Convertido', clientId: clientRef.id });
       showToast('Lead convertido em cliente!', 'success');
       setTimeout(() => {
@@ -472,7 +497,6 @@ export function initLeadDetails(userId, userRole) {
 
   leadAddVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (usingLocalData) return;
     const validDate = validateDate();
     const validSummary = validateSummary();
     const validOutcome = validateOutcome();
@@ -480,30 +504,63 @@ export function initLeadDetails(userId, userRole) {
       showToast('Corrija os erros antes de salvar.', 'error');
       return;
     }
+    const value = leadVisitDate?.value;
+    let remoteSaved = false;
+    // Tenta salvar na subcoleção do lead (quando online)
     try {
-      const value = leadVisitDate?.value;
-      await addDoc(visitsRef, {
-        date: value ? Timestamp.fromDate(new Date(value)) : Timestamp.now(),
-        authorId: auth.currentUser.uid,
-        authorRole: userRole,
+      if (!usingLocalData) {
+        await addDoc(visitsRef, {
+          date: value ? Timestamp.fromDate(new Date(value)) : Timestamp.now(),
+          authorId: auth.currentUser.uid,
+          authorRole: userRole,
+          summary: leadVisitSummary?.value.trim(),
+          notes: leadVisitNotes?.value.trim() || '',
+          outcome: leadVisitOutcome?.value || 'realizada',
+          nextStep: leadVisitNextStep?.value.trim() || null,
+          attachments: [],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          relatedType: 'lead',
+          relatedId: leadId,
+        });
+        remoteSaved = true;
+      }
+    } catch (err) {
+      console.warn('[lead-details] Falha ao salvar em Firestore; mantendo offline para sincronizar', err);
+    }
+    try {
+      const pos = await getCurrentPositionSafe();
+      await addVisit({
+        type: 'lead',
+        refId: leadId,
+        at: value || new Date().toISOString(),
         summary: leadVisitSummary?.value.trim(),
-        notes: leadVisitNotes?.value.trim() || '',
+        notes: leadVisitNotes?.value.trim() || leadVisitSummary?.value.trim(),
         outcome: leadVisitOutcome?.value || 'realizada',
         nextStep: leadVisitNextStep?.value.trim() || null,
-        attachments: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        relatedType: 'lead',
-        relatedId: leadId,
+        leadName: currentLeadData?.name || getLeads().find((l) => l.id === leadId)?.name,
+        lat: pos?.lat,
+        lng: pos?.lng,
       });
       toggleModal(leadAddVisitModal, false);
       leadAddVisitForm?.reset();
       leadVisitDate?.classList.remove('border-green-500');
       leadVisitSummary?.classList.remove('border-green-500');
       leadVisitOutcome?.classList.remove('border-green-500');
-      showToast('Visita registrada com sucesso!', 'success');
+      // Atualiza timeline local, se estivermos usando dados locais
+      if (usingLocalData && visitsTimeline) {
+        const all = await getVisits();
+        visitsCache = all.filter((v) => v.refId === leadId && v.type === 'lead');
+        renderVisits(visitsCache);
+      }
+      showToast(
+        remoteSaved
+          ? 'Visita registrada com sucesso!'
+          : 'Sem internet: visita salva e será sincronizada.',
+        remoteSaved ? 'success' : 'info'
+      );
     } catch (err) {
-      console.error('Erro ao adicionar visita:', err);
+      console.error('Erro ao salvar visita localmente:', err);
       showToast('Erro ao adicionar visita.', 'error');
     }
   });

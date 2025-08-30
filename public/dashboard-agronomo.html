@@ -21,68 +21,50 @@
 <body class="bg-gray-100 text-gray-800">
   <div id="dashboard-agronomo-marker" hidden></div>
 
+  <header class="bg-white shadow-md sticky top-0 z-20">
+    <div class="px-4 py-3 flex justify-between items-center">
+      <h1 class="text-lg font-bold" style="color: var(--brand-green);">Painel do Agrônomo</h1>
+      <button onclick="logout()" class="px-3 py-1.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 text-sm">Sair</button>
+    </div>
+  </header>
+
   <main id="agroMain" class="pb-16">
     <section id="view-home" data-view>
       <h2 class="p-4 text-xl font-semibold tracking-tight text-gray-800">Home</h2>
-      <div
-        id="kpiGrid"
-        class="px-4 grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
-        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
-          <div id="kpiSales" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
-          <div class="text-sm text-gray-500">Vendas (t)</div>
+      <div id="kpiGrid" class="page-container grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="kpi-card bg-white rounded-2xl shadow-sm border border-gray-100 opacity-0 translate-y-4 stagger-item">
+          <div class="kpi-icon text-emerald-700"><i class="fas fa-sack-dollar" aria-hidden="true"></i></div>
+          <div class="kpi-text">
+            <div class="kpi-title">Vendas (t)</div>
+            <div id="kpiSales" class="kpi-value"></div>
+          </div>
         </div>
-        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
-          <div id="kpiVisits" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
-          <div class="text-sm text-gray-500">Visitas</div>
+        <div class="kpi-card bg-white rounded-2xl shadow-sm border border-gray-100 opacity-0 translate-y-4 stagger-item">
+          <div class="kpi-icon text-emerald-700"><i class="fas fa-user-check" aria-hidden="true"></i></div>
+          <div class="kpi-text">
+            <div class="kpi-title">Visitas</div>
+            <div id="kpiVisits" class="kpi-value"></div>
+          </div>
         </div>
-        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
-          <div id="kpiLeads" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
-          <div class="text-sm text-gray-500">Novos Leads</div>
+        <div class="kpi-card bg-white rounded-2xl shadow-sm border border-gray-100 opacity-0 translate-y-4 stagger-item">
+          <div class="kpi-icon text-emerald-700"><i class="fas fa-user-plus" aria-hidden="true"></i></div>
+          <div class="kpi-text">
+            <div class="kpi-title">Novos Leads</div>
+            <div id="kpiLeads" class="kpi-value"></div>
+          </div>
         </div>
-        <div class="group p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item">
+        <div class="kpi-card bg-white rounded-2xl shadow-sm border border-gray-100 opacity-0 translate-y-4 stagger-item">
           <div id="kpiAgenda" class="kpi-value text-3xl font-bold text-gray-800 rounded group-hover:ring-1 group-hover:ring-green-600/20"></div>
           <div class="text-sm text-gray-500">Pendências (7d)</div>
         </div>
       </div>
 
-      <div
-        id="chartsSection"
-        class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        <div
-          id="chartSales"
-          class="rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
-        >
-          <div class="p-4 space-y-2">
-            <div class="skeleton h-32 w-full"></div>
-            <div class="skeleton h-4 w-3/4"></div>
-            <div class="skeleton h-4 w-1/2"></div>
-          </div>
-        </div>
-        <div
-          id="chartVisits"
-          class="rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
-        >
-          <div class="p-4 space-y-2">
-            <div class="skeleton h-32 w-full"></div>
-            <div class="skeleton h-4 w-3/4"></div>
-            <div class="skeleton h-4 w-1/2"></div>
-          </div>
-        </div>
-        <div
-          id="chartLeadsFunnel"
-          class="flex gap-2 p-4 rounded-2xl shadow-md hover:shadow-xl transition duration-200 ease-in-out hover:-translate-y-0.5 bg-white opacity-0 translate-y-4 stagger-item"
-        >
-          <div class="skeleton h-20 flex-1"></div>
-          <div class="skeleton h-20 flex-1"></div>
-          <div class="skeleton h-20 flex-1"></div>
-        </div>
+      <div id="chartsSection" class="page-container grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div id="chartSales" class="card-soft opacity-0 translate-y-4 stagger-item"></div>
+        <div id="chartVisits" class="card-soft opacity-0 translate-y-4 stagger-item"></div>
+        <div id="chartLeadsFunnel" class="card-soft flex gap-2 opacity-0 translate-y-4 stagger-item"></div>
       </div>
-      <div
-        id="homeShortcuts"
-        class="p-4 grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
+      <div id="homeShortcuts" class="page-container grid grid-cols-3 md:grid-cols-6 gap-4">
         <button
           id="quickHomeAddContato"
           aria-label="Adicionar contato"
@@ -152,7 +134,7 @@
           <span class="text-sm text-gray-500">Sincronizar</span>
         </button>
       </div>
-      <div id="agendaHome" class="p-4 bg-white rounded-2xl shadow-md hover:shadow-xl transform transition duration-200 ease-in-out hover:scale-105 opacity-0 translate-y-4 stagger-item">
+      <div id="agendaHome" class="page-container card-soft opacity-0 translate-y-4 stagger-item">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xl font-semibold tracking-tight text-gray-800">Próximos compromissos</h3>
           <select id="agendaPeriod" class="input w-32">
@@ -174,8 +156,8 @@
         </div>
     </section>
     <section id="view-contatos" data-view class="hidden">
-      <h2 class="p-4 font-semibold">Contatos</h2>
-      <div class="p-4 flex gap-2">
+      <h2 class="sr-only">Contatos</h2>
+      <div class="page-container flex gap-2">
         <input id="contactsSearch" type="text" class="input flex-1" placeholder="Buscar" />
         <div class="flex gap-2">
           <button id="contactsFilterAll" class="chip chip--filter filter-active">Todos</button>
@@ -183,16 +165,16 @@
           <button id="contactsFilterLeads" class="chip chip--filter">Leads</button>
         </div>
       </div>
-      <div id="contactsList" class="p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-      <div id="contactsEmpty" class="p-4 empty-state hidden text-center">
+      <div id="contactsList" class="page-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="contactsEmpty" class="page-container empty-state hidden text-center">
         <p class="mb-2">Nenhum contato encontrado.</p>
         <button id="btnContactsQuickAdd" class="btn-primary">Adicionar contato</button>
       </div>
     </section>
     <section id="view-clientes" data-view class="hidden">
-      <h2 class="p-4 text-xl font-semibold tracking-tight">Clientes</h2>
-      <div id="clientsSummary" class="px-4 text-sm text-gray-500">Ativos: <span id="clientsTotal">0</span></div>
-      <div class="p-4 flex gap-2">
+      <h2 class="sr-only">Clientes</h2>
+      <div id="clientsSummary" class="page-container text-sm text-gray-500">Ativos: <span id="clientsTotal">0</span></div>
+      <div class="page-container flex gap-2">
         <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
         <select id="clientsSort" class="input w-40">
           <option value="az">A-Z</option>
@@ -200,24 +182,24 @@
           <option value="visits">Mais visitas</option>
         </select>
       </div>
-      <div class="px-4 flex gap-2" id="clientsFilterChips">
+      <div class="page-container flex gap-2" id="clientsFilterChips">
         <button data-filter="active" class="chip chip--filter filter-active">Ativos</button>
         <button data-filter="all" class="chip chip--filter">Todos</button>
       </div>
-      <div id="clientsList" class="p-4 divide-y bg-white"></div>
-      <div id="clientsEmpty" class="p-4 empty-state hidden text-center">
+      <div id="clientsList" class="page-container card-soft divide-y"></div>
+      <div id="clientsEmpty" class="page-container empty-state hidden text-center">
         <p class="mb-2">Nenhum cliente encontrado.</p>
         <button id="btnClientsQuickAdd" class="btn-primary">Cadastrar cliente</button>
       </div>
     </section>
     <section id="view-leads" data-view class="hidden">
-      <h2 class="p-4 text-xl font-semibold tracking-tight">Leads</h2>
-      <div id="leadsSummary" class="px-4 text-sm text-gray-500 flex gap-4">
+      <h2 class="sr-only">Leads</h2>
+      <div id="leadsSummary" class="page-container text-sm text-gray-500 flex gap-4">
         <div>Interessado: <span id="leadCountInteressado">0</span></div>
         <div>Na dúvida: <span id="leadCountNaDuvida">0</span></div>
         <div>Sem interesse: <span id="leadCountSemInteresse">0</span></div>
       </div>
-      <div class="p-4 flex gap-2">
+      <div class="page-container flex gap-2">
         <input id="leadsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
         <select id="leadsSort" class="input w-40">
           <option value="az">A-Z</option>
@@ -225,20 +207,20 @@
           <option value="visits">Mais visitas</option>
         </select>
       </div>
-      <div class="px-4 flex gap-2" id="leadsFilterChips">
+      <div class="page-container flex gap-2" id="leadsFilterChips">
         <button data-filter="all" class="chip chip--filter filter-active">Todos</button>
         <button data-filter="Interessado" class="chip chip--filter">Interessado</button>
         <button data-filter="Na dúvida" class="chip chip--filter">Na dúvida</button>
         <button data-filter="Sem interesse" class="chip chip--filter">Sem interesse</button>
       </div>
-      <div id="leadsList" class="p-4 divide-y bg-white"></div>
-      <div id="leadsEmpty" class="p-4 empty-state hidden text-center">
+      <div id="leadsList" class="page-container card-soft divide-y"></div>
+      <div id="leadsEmpty" class="page-container empty-state hidden text-center">
         <p class="mb-2">Nenhum lead encontrado.</p>
         <button id="btnLeadsQuickAdd" class="btn-primary">Cadastrar lead</button>
       </div>
     </section>
     <section id="view-mapa" data-view class="hidden">
-      <div id="mapFilters" class="p-4 flex gap-2" role="radiogroup">
+      <div id="mapFilters" class="page-container flex gap-2" role="radiogroup">
         <button id="mapFilterAll" class="chip chip--filter filter-active" aria-pressed="true">Todos</button>
         <button id="mapFilterClients" class="chip chip--filter" aria-pressed="false">Clientes</button>
         <button id="mapFilterLeads" class="chip chip--filter" aria-pressed="false">Leads</button>
@@ -252,7 +234,7 @@
         <button id="historyFilterVisits" class="chip chip--filter" aria-pressed="false">Visitas</button>
         <button id="historyFilterAdds" class="chip chip--filter" aria-pressed="false">Cadastros</button>
       </div>
-      <div id="historyTimeline" class="p-4 divide-y bg-white"></div>
+      <div id="historyTimeline" class="page-container card-soft divide-y"></div>
     </section>
   </main>
 

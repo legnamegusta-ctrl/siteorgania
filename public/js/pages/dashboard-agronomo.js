@@ -6,7 +6,8 @@ import {
   collection,
   addDoc,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  GeoPoint
 } from '/vendor/firebase/9.6.0/firebase-firestore.js';
 import {
   initAgroMap,
@@ -374,6 +375,8 @@ export function initAgronomoDashboard(userId, userRole) {
         return;
       }
     }
+    let remoteSaved = false;
+    // Tenta salvar na subcoleção do lead (quando online)
     try {
       const visitsRef = collection(db, `leads/${currentLeadId}/visits`);
       await addDoc(visitsRef, {
@@ -392,11 +395,17 @@ export function initAgronomoDashboard(userId, userRole) {
         relatedType: 'lead',
         relatedId: currentLeadId,
       });
+      remoteSaved = true;
+    } catch (err) {
+      console.warn('[lead visit] Falha ao salvar em Firestore; mantendo offline para sincronizar', err);
+    }
+    try {
       await addVisit({
         type: 'lead',
         refId: currentLeadId,
         at: leadVisitDate?.value || new Date().toISOString(),
-        notes: summary,
+        summary,
+        notes: leadVisitNotes?.value.trim() || summary,
         leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
       });
       if (leadVisitTaskEnable?.checked) {
@@ -407,9 +416,14 @@ export function initAgronomoDashboard(userId, userRole) {
       if (location.hash === '#historico') await renderHistory();
       toggleModal(leadVisitModal, false);
       leadVisitForm?.reset();
-      showToast('Visita registrada com sucesso!', 'success');
+      showToast(
+        remoteSaved
+          ? 'Visita registrada com sucesso!'
+          : 'Sem internet: visita salva e será sincronizada.',
+        remoteSaved ? 'success' : 'info'
+      );
     } catch (err) {
-      console.error('Erro ao registrar visita:', err);
+      console.error('Erro ao salvar visita localmente:', err);
       showToast('Erro ao registrar visita.', 'error');
     }
   });
@@ -739,7 +753,7 @@ export function initAgronomoDashboard(userId, userRole) {
 
   document
     .getElementById('quickCreateForm')
-    ?.addEventListener('submit', (e) => {
+    ?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       clearErrors(form);
@@ -759,8 +773,16 @@ export function initAgronomoDashboard(userId, userRole) {
       }
       if (!valid) return;
       const notes = document.getElementById('qcNotes').value.trim();
-      const lat = parseFloat(document.getElementById('qcLat').value);
-      const lng = parseFloat(document.getElementById('qcLng').value);
+      let lat = parseFloat(document.getElementById('qcLat').value);
+      let lng = parseFloat(document.getElementById('qcLng').value);
+      // Fallback: se nao houver lat/lng informados, tenta usar a localizacao atual
+      if (isNaN(lat) || isNaN(lng)) {
+        const pos = await getCurrentPositionSafe();
+        if (pos) {
+          lat = pos.lat;
+          lng = pos.lng;
+        }
+      }
       let created;
       if (type === 'lead') {
         created = addLead({
@@ -785,6 +807,19 @@ export function initAgronomoDashboard(userId, userRole) {
           lat: isNaN(lat) ? null : lat,
           lng: isNaN(lng) ? null : lng,
         });
+        // Also write to clients/{id}/properties with GeoPoint so collectionGroup(map) can consume
+        try {
+          if (!isNaN(lat) && !isNaN(lng)) {
+            await addDoc(collection(db, 'clients', created.id, 'properties'), {
+              name: farm,
+              clientId: created.id,
+              coordenadas: new GeoPoint(Number(lat), Number(lng)),
+              createdAt: serverTimestamp(),
+            });
+          }
+        } catch (e) {
+          console.warn('[quickCreate] failed to create subcollection property with coords', e);
+        }
         highlightContactId = created.id;
         renderClientsSummary();
         if (location.hash === '#contatos') {
@@ -865,11 +900,20 @@ export function initAgronomoDashboard(userId, userRole) {
         const lead = getLeads().find((l) => l.id === refId);
         if (lead) {
           const client = addClient({ name: lead.name });
+          let lat = lead.lat;
+          let lng = lead.lng;
+          if (lat == null || lng == null || isNaN(lat) || isNaN(lng)) {
+            const pos = await getCurrentPositionSafe();
+            if (pos) {
+              lat = pos.lat;
+              lng = pos.lng;
+            }
+          }
           const property = addProperty({
             clientId: client.id,
             name: lead.farmName,
-            lat: lead.lat,
-            lng: lead.lng,
+            lat: lat ?? null,
+            lng: lng ?? null,
           });
           addSale({
             clientId: client.id,
@@ -1282,11 +1326,12 @@ export function initAgronomoDashboard(userId, userRole) {
     stages.forEach((stage) => {
       const div = document.createElement('div');
       const active = stage !== 'Sem interesse';
-      div.className = `flex-1 rounded-xl p-3 text-center text-sm transition transform hover:scale-105 hover:shadow-lg bg-gradient-to-br ${
+      // Allow items to shrink and wrap so all five fit on small screens
+      div.className = `flex-1 min-w-0 rounded-xl p-3 text-center text-sm transition transform hover:scale-105 hover:shadow-lg bg-gradient-to-br ${
         active ? 'from-emerald-100 to-emerald-200 text-emerald-700' : 'from-gray-200 to-gray-300 text-gray-600'
       }`;
       div.title = String(counts[stage]);
-      div.innerHTML = `<div class="text-lg font-bold">${counts[stage] || 0}</div><div class="text-xs">${stage}</div>`;
+      div.innerHTML = `<div class="text-lg font-bold">${counts[stage] || 0}</div><div class="text-xs whitespace-normal break-words leading-tight">${stage}</div>`;
       container.appendChild(div);
     });
   }

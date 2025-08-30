@@ -50,6 +50,7 @@
      --pad: 16px;
      --pad-lg: 24px;
      --input-h: 44px;
+     --bottom-bar-h: 60px;
 }
 
 .hidden{display:none !important;}
@@ -1068,12 +1069,13 @@ body.has-modal{overflow:hidden;}
   bottom:0;
   left:0;
   right:0;
-  height:60px;
+  height:var(--bottom-bar-h);
   background:#fff;
   border-top:1px solid var(--border);
   display:flex;
   justify-content:space-around;
   align-items:center;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index:50;
 }
 .bottom-bar button{flex:1;height:100%;}
@@ -1140,3 +1142,6 @@ body.has-modal{overflow:hidden;}
 .chip-action { @apply inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:shadow transition min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/40; }
 .card-soft { @apply bg-white border border-gray-100 rounded-2xl p-4 md:p-5 shadow-sm; }
 .skeleton { @apply animate-pulse bg-gray-200 rounded; }
+
+/* Reserve space so content never hides under the fixed bottom bar */
+#agroMain{padding-bottom:calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));}
