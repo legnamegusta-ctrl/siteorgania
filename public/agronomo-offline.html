@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orgânia - Modo Offline</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="vendor/tailwind/tailwind.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-white shadow-md p-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold" style="color: var(--brand-green);">Modo Offline</h1>
+    <div class="space-x-2">
+      <input type="file" id="importInput" class="hidden" />
+      <button id="importBtn" class="px-3 py-1.5 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 text-sm">Importar</button>
+      <button id="exportBtn" class="px-3 py-1.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 text-sm">Exportar</button>
+    </div>
+  </header>
+
+  <main class="p-4 space-y-8">
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Cadastrar Lead</h2>
+      <form id="leadForm" class="grid gap-2">
+        <input id="leadName" class="input" placeholder="Nome" required />
+        <input id="leadPhone" class="input" placeholder="Telefone" />
+        <textarea id="leadNotes" class="input" placeholder="Notas"></textarea>
+        <button type="submit" class="btn-primary self-start">Salvar Lead</button>
+      </form>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Cadastrar Cliente</h2>
+      <form id="clientForm" class="grid gap-2">
+        <input id="clientName" class="input" placeholder="Nome" required />
+        <input id="clientFarm" class="input" placeholder="Fazenda" />
+        <textarea id="clientNotes" class="input" placeholder="Notas"></textarea>
+        <button type="submit" class="btn-primary self-start">Salvar Cliente</button>
+      </form>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Registrar Visita</h2>
+      <form id="visitForm" class="grid gap-2">
+        <input id="visitClient" class="input" placeholder="Cliente" required />
+        <input id="visitDate" type="date" class="input" required />
+        <textarea id="visitNotes" class="input" placeholder="Notas"></textarea>
+        <button type="submit" class="btn-primary self-start">Salvar Visita</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    function getData(key) {
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+    function saveData(key, item) {
+      const data = getData(key);
+      data.push(item);
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+    function saveLead(event) {
+      event.preventDefault();
+      const lead = {
+        name: document.getElementById('leadName').value,
+        phone: document.getElementById('leadPhone').value,
+        notes: document.getElementById('leadNotes').value,
+      };
+      saveData('agro.leads', lead);
+      event.target.reset();
+      alert('Lead salvo!');
+    }
+    function saveClient(event) {
+      event.preventDefault();
+      const client = {
+        name: document.getElementById('clientName').value,
+        farm: document.getElementById('clientFarm').value,
+        notes: document.getElementById('clientNotes').value,
+      };
+      saveData('agro.clients', client);
+      event.target.reset();
+      alert('Cliente salvo!');
+    }
+    function saveVisit(event) {
+      event.preventDefault();
+      const visit = {
+        client: document.getElementById('visitClient').value,
+        date: document.getElementById('visitDate').value,
+        notes: document.getElementById('visitNotes').value,
+      };
+      saveData('agro.visits', visit);
+      event.target.reset();
+      alert('Visita salva!');
+    }
+    function exportData() {
+      const data = {
+        leads: getData('agro.leads'),
+        clients: getData('agro.clients'),
+        visits: getData('agro.visits'),
+      };
+      const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'agronomo-data.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.leads) localStorage.setItem('agro.leads', JSON.stringify(data.leads));
+          if (data.clients) localStorage.setItem('agro.clients', JSON.stringify(data.clients));
+          if (data.visits) localStorage.setItem('agro.visits', JSON.stringify(data.visits));
+          alert('Dados importados com sucesso.');
+        } catch (err) {
+          console.error('Importação falhou', err);
+          alert('Arquivo inválido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    document.getElementById('leadForm').addEventListener('submit', saveLead);
+    document.getElementById('clientForm').addEventListener('submit', saveClient);
+    document.getElementById('visitForm').addEventListener('submit', saveVisit);
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+    const importBtn = document.getElementById('importBtn');
+    const importInput = document.getElementById('importInput');
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) importData(file);
+    });
+  </script>
+</body>
+</html>
