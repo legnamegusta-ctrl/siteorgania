@@ -21,12 +21,13 @@ export async function addVisit(visit) {
     at: new Date().toISOString(),
     authorId: userId,
     agronomistId: userId,
+    synced: navigator.onLine ? true : false,
     ...visit,
   };
   await put('visits', newVisit);
 
   const send = async () => {
-    const cleaned = removeUndefinedFields({ ...newVisit });
+    const { synced, ...cleaned } = removeUndefinedFields({ ...newVisit });
     await setDoc(doc(db, 'visits', id), cleaned);
     if (newVisit.refId && newVisit.type) {
       const parts =
@@ -45,6 +46,8 @@ export async function addVisit(visit) {
     try {
       await send();
     } catch (err) {
+      newVisit.synced = false;
+      await put('visits', newVisit);
       await enqueue('visit:add', newVisit);
     }
   } else {
@@ -55,7 +58,7 @@ export async function addVisit(visit) {
 
 export async function updateVisit(id, changes) {
   const current = (await get('visits', id)) || { id };
-  const updated = { ...current, ...changes, id };
+  const updated = { ...current, ...changes, id, synced: navigator.onLine ? true : false };
   await put('visits', updated);
 
   const send = async () => {
@@ -67,6 +70,8 @@ export async function updateVisit(id, changes) {
     try {
       await send();
     } catch (err) {
+      updated.synced = false;
+      await put('visits', updated);
       await enqueue('visit:update', { id, changes });
     }
   } else {
