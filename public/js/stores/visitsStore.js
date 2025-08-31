@@ -1,170 +1,19 @@
-﻿import { db, auth } from '../config/firebase.js';
-import {
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  updateDoc,
-  query,
-  where,
-  collectionGroup
-} from '/vendor/firebase/9.6.0/firebase-firestore.js';
-
-const KEY = 'agro.visits';
-
-function readLocal() {
-  return JSON.parse(localStorage.getItem(KEY) || '[]');
-}
-
-function saveLocal(data) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(data));
-    return { ok: true };
-  } catch (err) {
-    console.warn('[visitsStore] Falha ao salvar visitas localmente', err);
-    return { ok: false, reason: 'quota' };
-  }
-}
+import { db, auth } from '../config/firebase.js';
+import { collection, doc, setDoc, updateDoc } from '/vendor/firebase/9.6.0/firebase-firestore.js';
+import { list, get, put } from '../lib/db/indexeddb.js';
+import { enqueue } from '../sync/outbox.js';
 
 function removeUndefinedFields(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 }
 
-export async function getVisits() {
-  const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid;
-  // Consider local visits for the logged user
-  const local = readLocal().filter((v) => !userId || v.authorId === userId);
-
-  // Normalize different visit schemas into a common shape
-  const normalize = (docSnap) => {
-    const data = docSnap.data ? docSnap.data() : docSnap;
-    // Use visitId when available to deduplicate top-level and subcollection records
-    // Fallback to document id or full path for legacy entries
-    const stableId =
-      data.visitId || docSnap.id || docSnap.ref?.path || docSnap.path || data.id;
-
-    // Author: accept authorId or agronomistId
-    const authorId = data.authorId || data.agronomistId || null;
-
-    // Timestamp (ISO string)
-    let at = data.at || null;
-    if (!at && data.date?.toDate) at = data.date.toDate().toISOString();
-    else if (!at && data.checkInTime?.toDate) at = data.checkInTime.toDate().toISOString();
-    else if (!at && data.createdAt?.toDate) at = data.createdAt.toDate().toISOString();
-
-    // Type and reference
-    let type = data.type || data.relatedType || null;
-    let refId = data.refId || data.relatedId || data.clientId || data.leadId || null;
-    if (!type) {
-      if (data.clientId) type = 'cliente';
-      else if (data.leadId) type = 'lead';
-    }
-
-    return removeUndefinedFields({
-      id: stableId,
-      // Keep a short id for compatibility with find by id
-      shortId: docSnap.id || data.id || stableId,
-      at,
-      authorId,
-      type,
-      refId,
-      notes: data.notes || data.summary || data.outcome || '',
-      clientName: data.clientName,
-      leadName: data.leadName,
-      lat: data.lat,
-      lng: data.lng,
-      synced: true,
-    });
-  };
-
-  if (navigator.onLine) {
-    // 1) Try to sync local pending items
-    for (const v of local.filter((x) => !x.synced)) {
-      const { synced, ...data } = v;
-      try {
-        const cleaned = removeUndefinedFields(data);
-        await setDoc(doc(db, 'visits', v.id), cleaned, { merge: true });
-        if (v.refId && v.type) {
-          const parts =
-            v.type === 'lead'
-              ? ['leads', v.refId, 'visits', v.id]
-              : ['clients', v.refId, 'visits', v.id];
-          try {
-            await setDoc(doc(db, ...parts), { ...cleaned, visitId: v.id }, { merge: true });
-          } catch (subErr) {
-            console.warn('[visitsStore] Falha ao replicar visita para subcoleção', subErr);
-          }
-        }
-        v.synced = true;
-      } catch (err) {
-        console.error('Erro ao sincronizar visita', err);
-      }
-    }
-    saveLocal(local);
-
-    // 2) Robust remote fetch (covers different schemas)
-    try {
-      const queries = [];
-      if (userId) {
-        // top-level 'visits' by authorId or agronomistId
-        queries.push(getDocs(query(collection(db, 'visits'), where('authorId', '==', userId))));
-        queries.push(getDocs(query(collection(db, 'visits'), where('agronomistId', '==', userId))));
-        // subcollections 'visits' (e.g., leads/{id}/visits) by authorId
-        queries.push(
-          getDocs(query(collectionGroup(db, 'visits'), where('authorId', '==', userId)))
-        );
-      } else {
-        queries.push(getDocs(collection(db, 'visits')));
-      }
-
-      let snaps = [];
-      try {
-        snaps = await Promise.all(queries);
-      } catch (err) {
-        // If collectionGroup is not indexed/permitted, proceed with top-level only
-        console.warn('[visitsStore] collectionGroup(visits) failed; continuing with top-level only.', err);
-        snaps = [];
-        if (userId) {
-          snaps.push(await getDocs(query(collection(db, 'visits'), where('authorId', '==', userId))));
-          snaps.push(await getDocs(query(collection(db, 'visits'), where('agronomistId', '==', userId))));
-        } else {
-          snaps.push(await getDocs(collection(db, 'visits')));
-        }
-      }
-
-      // 3) Normalize, dedupe, and merge with any unsynced local
-      const map = new Map();
-      for (const snap of snaps) {
-        snap.forEach((docSnap) => {
-          const norm = normalize(docSnap);
-          if (!userId || norm.authorId === userId) {
-            const key = norm.id;
-            if (!map.has(key)) map.set(key, norm);
-          }
-        });
-      }
-
-      local
-        .filter((x) => !x.synced)
-        .forEach((x) => {
-          const key = x.id || `${x.refId || ''}:${x.at || ''}:${x.notes || ''}`;
-          if (!map.has(key)) map.set(key, { ...x });
-        });
-
-      const remote = Array.from(map.values());
-      saveLocal(remote);
-      return remote;
-    } catch (err) {
-      console.error('Erro ao buscar visitas do Firestore', err);
-      return local;
-    }
-  }
-
-  return local;
+export function listVisits() {
+  return list('visits');
 }
 
+export const getVisits = listVisits;
+
 export async function addVisit(visit) {
-  const visits = readLocal();
   const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const id = doc(collection(db, 'visits')).id;
   const newVisit = {
@@ -173,69 +22,55 @@ export async function addVisit(visit) {
     authorId: userId,
     agronomistId: userId,
     ...visit,
-    // Mark as unsynced by default to ensure proper retry on failure or unreliable network detection
-    synced: false,
   };
-  visits.push(newVisit);
-  const saveRes = saveLocal(visits);
-  if (saveRes?.ok === false) return saveRes;
+  await put('visits', newVisit);
+
+  const send = async () => {
+    const cleaned = removeUndefinedFields({ ...newVisit });
+    await setDoc(doc(db, 'visits', id), cleaned);
+    if (newVisit.refId && newVisit.type) {
+      const parts =
+        newVisit.type === 'lead'
+          ? ['leads', newVisit.refId, 'visits', id]
+          : ['clients', newVisit.refId, 'visits', id];
+      try {
+        await setDoc(doc(db, ...parts), { ...cleaned, visitId: id });
+      } catch (subErr) {
+        console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
+      }
+    }
+  };
 
   if (navigator.onLine) {
-    const { synced, ...data } = newVisit;
-    const cleaned = removeUndefinedFields(data);
-    setDoc(doc(db, 'visits', id), cleaned)
-        .then(async () => {
-          if (newVisit.refId && newVisit.type) {
-            const parts =
-              newVisit.type === 'lead'
-                ? ['leads', newVisit.refId, 'visits', id]
-                : ['clients', newVisit.refId, 'visits', id];
-            try {
-              await setDoc(doc(db, ...parts), { ...cleaned, visitId: id });
-            } catch (subErr) {
-              console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
-            }
-          }
-          const idx = visits.findIndex((v) => v.id === id);
-          if (idx >= 0) {
-            visits[idx].synced = true;
-            saveLocal(visits);
-          }
-        })
-      .catch((err) => {
-        console.error('Erro ao adicionar visita no Firestore', err);
-      });
+    try {
+      await send();
+    } catch (err) {
+      await enqueue('visit:add', newVisit);
+    }
+  } else {
+    await enqueue('visit:add', newVisit);
   }
   return newVisit;
 }
 
 export async function updateVisit(id, changes) {
-  const visits = readLocal();
-  const idx = visits.findIndex((v) => v.id === id);
-  if (idx >= 0) {
-    visits[idx] = {
-      ...visits[idx],
-      ...changes,
-      // Assume unsynced until remote update succeeds
-      synced: false
-    };
-    const saveRes = saveLocal(visits);
-    if (saveRes?.ok === false) return saveRes;
-  }
+  const current = (await get('visits', id)) || { id };
+  const updated = { ...current, ...changes, id };
+  await put('visits', updated);
+
+  const send = async () => {
+    const ref = id.includes('/') ? doc(db, ...id.split('/')) : doc(db, 'visits', id);
+    await updateDoc(ref, removeUndefinedFields(changes));
+  };
 
   if (navigator.onLine) {
-    const ref = id.includes('/') ? doc(db, ...id.split('/')) : doc(db, 'visits', id);
-    updateDoc(ref, removeUndefinedFields(changes))
-        .then(() => {
-          if (idx >= 0) {
-            visits[idx].synced = true;
-            saveLocal(visits);
-          }
-        })
-      .catch((err) => {
-        console.error('Erro ao atualizar visita no Firestore', err);
-      });
+    try {
+      await send();
+    } catch (err) {
+      await enqueue('visit:update', { id, changes });
+    }
+  } else {
+    await enqueue('visit:update', { id, changes });
   }
-  return idx >= 0 ? visits[idx] : null;
+  return updated;
 }
-

@@ -22,7 +22,8 @@ import {
 import { getLeads, addLead, updateLead, syncLeadsFromFirestore } from '../stores/leadsStore.js';
 import { getClients, addClient, syncClientsFromFirestore } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
-import { getVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
+import { listVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
+import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 
@@ -45,7 +46,7 @@ export function initAgronomoDashboard(userId, userRole) {
       clients: getClients(),
       leads: getLeads(),
       agenda: getAgenda(),
-      visits: await getVisits(),
+      visits: await listVisits(),
     };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -111,7 +112,7 @@ export function initAgronomoDashboard(userId, userRole) {
 
   async function renderHistory() {
     if (!historyTimeline) return;
-    const visitList = await getVisits();
+    const visitList = await listVisits();
     const visits = visitList.map((v) => ({
       id: v.id,
       type: 'visit',
@@ -180,7 +181,7 @@ export function initAgronomoDashboard(userId, userRole) {
       const btn = e.target.closest('.edit-visit');
       if (!btn) return;
       const visitId = btn.dataset.id;
-      const allVisits = await getVisits();
+      const allVisits = await listVisits();
       const visit = allVisits.find((v) => v.id === visitId);
       if (!visit) return;
       const newText = await promptModal({
@@ -437,7 +438,7 @@ export function initAgronomoDashboard(userId, userRole) {
     const clients = getClients();
     const properties = getProperties();
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visitList = await getVisits();
+    const visitList = await listVisits();
     let items = [];
     items.push(
       ...clients.map((c) => {
@@ -599,7 +600,7 @@ export function initAgronomoDashboard(userId, userRole) {
     const search =
       document.getElementById('leadsSearch')?.value.toLowerCase().trim() || '';
     const leads = getLeads().filter((l) => l.stage !== 'Convertido');
-    const visitList = await getVisits();
+    const visitList = await listVisits();
     let items = leads.map((l) => {
       const vList = visitList.filter((v) => v.type === 'lead' && v.refId === l.id);
       const last = vList.sort((a, b) => new Date(b.at) - new Date(a.at))[0];
@@ -1090,7 +1091,7 @@ export function initAgronomoDashboard(userId, userRole) {
       document.getElementById('kpiSales').textContent = String(salesTons);
 
       const visitsCut = now.getTime() - 28 * 24 * 60 * 60 * 1000;
-      const allVisits = await getVisits();
+      const allVisits = await listVisits();
       const visitsCount = allVisits.filter((v) => {
         const t = new Date(v.at).getTime();
         return !isNaN(t) && t >= visitsCut;
@@ -1239,7 +1240,7 @@ export function initAgronomoDashboard(userId, userRole) {
     }
     const weeks = weekLabels();
     const map = new Map(weeks.map((w) => [w.key, 0]));
-    const allVisits = await getVisits();
+    const allVisits = await listVisits();
     allVisits.forEach((v) => {
       const d = new Date(v.at);
       const key = `${d.getFullYear()}-${getISOWeek(d)}`;
@@ -1391,7 +1392,7 @@ export function initAgronomoDashboard(userId, userRole) {
             syncClientsFromFirestore(),
             syncLeadsFromFirestore(),
             syncAgendaFromFirestore(),
-            getVisits(), // atualiza cache de visitas
+            listVisits(), // atualiza cache de visitas
           ]);
           // Re-renderiza painéis impactados
           replotMap();
@@ -1582,5 +1583,6 @@ try {
   window.addEventListener('resize', () => {
     if (location.hash === '#mapa') adjustMapHeight();
   });
+  processOutbox();
   handleHashChange();
 }
