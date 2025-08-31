@@ -1581,11 +1581,12 @@ try {
   bindAgendaHomeEvents();
   bindHomeShortcuts();
   bindHistoryEvents();
-  renderAgendaHome(7);
-  renderHomeKPIs();
   if (navigator.onLine) {
     await syncVisitsFromFirestore();
   }
+  renderAgendaHome(7);
+  renderHomeKPIs();
+  renderHistory();
   renderHomeCharts();
   renderContactsList();
   window.addEventListener('hashchange', handleHashChange);
