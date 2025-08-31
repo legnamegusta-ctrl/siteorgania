@@ -31,8 +31,8 @@ export async function addVisit(visit) {
     authorId: userId,
     agronomistId: userId,
     synced: navigator.onLine ? true : false,
-    updatedAt: Date.now(),
     ...visit,
+    updatedAt: visit?.updatedAt ?? Date.now(),
   };
   await put('visits', newVisit);
 
@@ -73,7 +73,7 @@ export async function updateVisit(id, changes) {
     ...changes,
     id,
     synced: navigator.onLine ? true : false,
-    updatedAt: Date.now(),
+    updatedAt: changes?.updatedAt ?? Date.now(),
   };
   await put('visits', updated);
 
