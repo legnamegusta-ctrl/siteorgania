@@ -22,12 +22,17 @@ import {
 import { getLeads, addLead, updateLead, syncLeadsFromFirestore } from '../stores/leadsStore.js';
 import { getClients, addClient, syncClientsFromFirestore } from '../stores/clientsStore.js';
 import { getProperties, addProperty } from '../stores/propertiesStore.js';
-import { listVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
+import {
+  listVisits,
+  addVisit,
+  updateVisit,
+  syncVisitsFromFirestore,
+} from '../stores/visitsStore.js';
 import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 
-export function initAgronomoDashboard(userId, userRole) {
+export async function initAgronomoDashboard(userId, userRole) {
   if (window.__agroBooted) return;
   window.__agroBooted = true;
   const quickModal = document.getElementById('quickActionsModal');
@@ -1392,6 +1397,7 @@ export function initAgronomoDashboard(userId, userRole) {
             syncClientsFromFirestore(),
             syncLeadsFromFirestore(),
             syncAgendaFromFirestore(),
+            syncVisitsFromFirestore(),
             listVisits(), // atualiza cache de visitas
           ]);
           // Re-renderiza painéis impactados
@@ -1577,6 +1583,9 @@ try {
   bindHistoryEvents();
   renderAgendaHome(7);
   renderHomeKPIs();
+  if (navigator.onLine) {
+    await syncVisitsFromFirestore();
+  }
   renderHomeCharts();
   renderContactsList();
   window.addEventListener('hashchange', handleHashChange);
