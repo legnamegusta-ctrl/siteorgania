@@ -24,11 +24,27 @@ export async function processOutbox() {
         const visit = await get('visits', id);
         if (visit) await put('visits', { ...visit, synced: true });
       } else if (item.type === 'visit:update') {
-        const { id, changes } = item.payload;
-        const ref = id.includes('/') ? doc(db, ...id.split('/')) : doc(db, 'visits', id);
-        await updateDoc(ref, changes);
+        const { id, changes, refId, type } = item.payload;
         const visitId = id.includes('/') ? id.split('/').pop() : id;
-        const visit = await get('visits', visitId);
+        const ref = id.includes('/') ? doc(db, ...id.split('/')) : doc(db, 'visits', visitId);
+        await updateDoc(ref, changes);
+
+        let mirrorRefId = refId;
+        let mirrorType = type;
+        let visit;
+        if (!mirrorRefId || !mirrorType) {
+          visit = await get('visits', visitId);
+          mirrorRefId = mirrorRefId || visit?.refId;
+          mirrorType = mirrorType || visit?.type;
+        }
+        if (mirrorRefId && mirrorType) {
+          const parts =
+            mirrorType === 'lead'
+              ? ['leads', mirrorRefId, 'visits', visitId]
+              : ['clients', mirrorRefId, 'visits', visitId];
+          await setDoc(doc(db, ...parts), changes, { merge: true });
+        }
+        if (!visit) visit = await get('visits', visitId);
         if (visit) await put('visits', { ...visit, synced: true });
       }
       await del('outbox', item.id);
