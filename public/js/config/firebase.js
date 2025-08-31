@@ -1,7 +1,7 @@
 ﻿// public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -23,6 +23,7 @@ const auth = getAuth(app);
 
 setPersistence(auth, indexedDBLocalPersistence)
   .catch(() => setPersistence(auth, browserLocalPersistence))
+  .catch(() => setPersistence(auth, inMemoryPersistence))
   .catch(() => {});
 
 // Inicializa Messaging quando suportado

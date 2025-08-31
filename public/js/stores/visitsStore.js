@@ -17,7 +17,13 @@ function readLocal() {
 }
 
 function saveLocal(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    return { ok: true };
+  } catch (err) {
+    console.warn('[visitsStore] Falha ao salvar visitas localmente', err);
+    return { ok: false, reason: 'quota' };
+  }
 }
 
 function removeUndefinedFields(obj) {
@@ -171,30 +177,31 @@ export async function addVisit(visit) {
     synced: false,
   };
   visits.push(newVisit);
-  saveLocal(visits);
+  const saveRes = saveLocal(visits);
+  if (saveRes?.ok === false) return saveRes;
 
   if (navigator.onLine) {
     const { synced, ...data } = newVisit;
     const cleaned = removeUndefinedFields(data);
     setDoc(doc(db, 'visits', id), cleaned)
-      .then(async () => {
-        if (newVisit.refId && newVisit.type) {
-          const parts =
-            newVisit.type === 'lead'
-              ? ['leads', newVisit.refId, 'visits', id]
-              : ['clients', newVisit.refId, 'visits', id];
-          try {
-            await setDoc(doc(db, ...parts), { ...cleaned, visitId: id });
-          } catch (subErr) {
-            console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
+        .then(async () => {
+          if (newVisit.refId && newVisit.type) {
+            const parts =
+              newVisit.type === 'lead'
+                ? ['leads', newVisit.refId, 'visits', id]
+                : ['clients', newVisit.refId, 'visits', id];
+            try {
+              await setDoc(doc(db, ...parts), { ...cleaned, visitId: id });
+            } catch (subErr) {
+              console.warn('[visitsStore] Falha ao salvar visita em subcoleção', subErr);
+            }
           }
-        }
-        const idx = visits.findIndex((v) => v.id === id);
-        if (idx >= 0) {
-          visits[idx].synced = true;
-          saveLocal(visits);
-        }
-      })
+          const idx = visits.findIndex((v) => v.id === id);
+          if (idx >= 0) {
+            visits[idx].synced = true;
+            saveLocal(visits);
+          }
+        })
       .catch((err) => {
         console.error('Erro ao adicionar visita no Firestore', err);
       });
@@ -212,18 +219,19 @@ export async function updateVisit(id, changes) {
       // Assume unsynced until remote update succeeds
       synced: false
     };
-    saveLocal(visits);
+    const saveRes = saveLocal(visits);
+    if (saveRes?.ok === false) return saveRes;
   }
 
   if (navigator.onLine) {
     const ref = id.includes('/') ? doc(db, ...id.split('/')) : doc(db, 'visits', id);
     updateDoc(ref, removeUndefinedFields(changes))
-      .then(() => {
-        if (idx >= 0) {
-          visits[idx].synced = true;
-          saveLocal(visits);
-        }
-      })
+        .then(() => {
+          if (idx >= 0) {
+            visits[idx].synced = true;
+            saveLocal(visits);
+          }
+        })
       .catch((err) => {
         console.error('Erro ao atualizar visita no Firestore', err);
       });
