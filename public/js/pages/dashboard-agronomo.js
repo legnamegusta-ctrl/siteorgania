@@ -426,13 +426,6 @@ export async function initAgronomoDashboard(userId, userRole) {
       leadVisitForm.reset();
       if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
 
-      showToast(
-        saved?.synced
-          ? 'Visita salva e sincronizada.'
-          : 'Sem internet: visita salva e será sincronizada.',
-        saved?.synced ? 'success' : 'info'
-      );
-
       await renderHistory();
       renderLeadsList();
       renderContactsList();
@@ -446,9 +439,21 @@ export async function initAgronomoDashboard(userId, userRole) {
         replotMap();
         adjustMapHeight();
       }
+
+      showToast(
+        saved?.synced
+          ? 'Visita salva e sincronizada.'
+          : 'Sem internet: visita salva e será sincronizada.',
+        saved?.synced ? 'success' : 'info'
+      );
     } catch (err) {
       console.error('Erro ao salvar visita localmente:', err);
-      showToast('Erro ao registrar visita.', 'error');
+      toggleModal(leadVisitModal, false);
+      clearErrors(leadVisitForm);
+      leadVisitForm.reset();
+      if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
+      await renderHistory();
+      showToast('Sem internet: visita salva e será sincronizada.', 'info');
     } finally {
       btn.disabled = false;
       btn.textContent = old;
@@ -1104,11 +1109,14 @@ export async function initAgronomoDashboard(userId, userRole) {
   function loadChartJs() {
     if (window.Chart) return Promise.resolve();
     if (chartJsPromise) return chartJsPromise;
-    chartJsPromise = new Promise((resolve, reject) => {
+    chartJsPromise = new Promise((resolve) => {
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
       s.onload = resolve;
-      s.onerror = reject;
+      s.onerror = () => {
+        console.warn('[charts] offline, sem Chart.js');
+        resolve();
+      };
       document.head.appendChild(s);
     });
     return chartJsPromise;
@@ -1215,53 +1223,62 @@ export async function initAgronomoDashboard(userId, userRole) {
       container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem dados no período</div>';
       return;
     }
-    await loadChartJs();
-    if (!chartSales) {
-      container.innerHTML = '';
-      const canvas = document.createElement('canvas');
-      canvas.className = 'h-56 md:h-64 w-full';
-      canvas.setAttribute('aria-label', 'Gráfico de vendas dos últimos 6 meses');
-      container.appendChild(canvas);
-      chartSales = new Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              data,
-              backgroundColor: '#166534',
+    try {
+      await loadChartJs();
+      if (!window.Chart) {
+        container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem gráficos offline</div>';
+        return;
+      }
+      if (!chartSales) {
+        container.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        canvas.className = 'h-56 md:h-64 w-full';
+        canvas.setAttribute('aria-label', 'Gráfico de vendas dos últimos 6 meses');
+        container.appendChild(canvas);
+        chartSales = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                data,
+                backgroundColor: '#166534',
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.label} — ${ctx.parsed.y} t`,
+                },
+              },
+              legend: { display: false },
             },
-          ],
-        },
-        options: {
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.label} — ${ctx.parsed.y} t`,
+            scales: {
+              x: {
+                ticks: {
+                  color: '#4b5563',
+                  font: { size: window.innerWidth < 360 ? 10 : 12 },
+                },
+                grid: { color: 'rgba(0,0,0,0.03)' },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { color: '#4b5563' },
+                grid: { color: 'rgba(0,0,0,0.05)' },
               },
             },
-            legend: { display: false },
           },
-          scales: {
-            x: {
-              ticks: {
-                color: '#4b5563',
-                font: { size: window.innerWidth < 360 ? 10 : 12 },
-              },
-              grid: { color: 'rgba(0,0,0,0.03)' },
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#4b5563' },
-              grid: { color: 'rgba(0,0,0,0.05)' },
-            },
-          },
-        },
-      });
-    } else {
-      chartSales.data.labels = labels;
-      chartSales.data.datasets[0].data = data;
-      chartSales.update();
+        });
+      } else {
+        chartSales.data.labels = labels;
+        chartSales.data.datasets[0].data = data;
+        chartSales.update();
+      }
+    } catch (e) {
+      console.warn('[charts] erro ao renderizar', e);
+      container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem gráficos no momento</div>';
     }
   }
 
@@ -1285,57 +1302,66 @@ export async function initAgronomoDashboard(userId, userRole) {
       container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem dados no período</div>';
       return;
     }
-    await loadChartJs();
-    if (!chartVisits) {
-      container.innerHTML = '';
-      const canvas = document.createElement('canvas');
-      canvas.className = 'h-56 md:h-64 w-full';
-      canvas.setAttribute('aria-label', 'Gráfico de visitas das últimas 12 semanas');
-      container.appendChild(canvas);
-      chartVisits = new Chart(canvas, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              data,
-              borderColor: '#166534',
-              backgroundColor: 'rgba(22,101,52,0.1)',
-              tension: 0.3,
-              pointRadius: 3,
-              fill: true,
+    try {
+      await loadChartJs();
+      if (!window.Chart) {
+        container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem gráficos offline</div>';
+        return;
+      }
+      if (!chartVisits) {
+        container.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        canvas.className = 'h-56 md:h-64 w-full';
+        canvas.setAttribute('aria-label', 'Gráfico de visitas das últimas 12 semanas');
+        container.appendChild(canvas);
+        chartVisits = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                data,
+                borderColor: '#166534',
+                backgroundColor: 'rgba(22,101,52,0.1)',
+                tension: 0.3,
+                pointRadius: 3,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.label} — ${ctx.parsed.y} visitas`,
+                },
+              },
+              legend: { display: false },
             },
-          ],
-        },
-        options: {
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.label} — ${ctx.parsed.y} visitas`,
+            scales: {
+              x: {
+                ticks: {
+                  color: '#4b5563',
+                  font: { size: window.innerWidth < 360 ? 10 : 12 },
+                },
+                grid: { color: 'rgba(0,0,0,0.03)' },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: { color: '#4b5563' },
+                grid: { color: 'rgba(0,0,0,0.05)' },
               },
             },
-            legend: { display: false },
           },
-          scales: {
-            x: {
-              ticks: {
-                color: '#4b5563',
-                font: { size: window.innerWidth < 360 ? 10 : 12 },
-              },
-              grid: { color: 'rgba(0,0,0,0.03)' },
-            },
-            y: {
-              beginAtZero: true,
-              ticks: { color: '#4b5563' },
-              grid: { color: 'rgba(0,0,0,0.05)' },
-            },
-          },
-        },
-      });
-    } else {
-      chartVisits.data.labels = labels;
-      chartVisits.data.datasets[0].data = data;
-      chartVisits.update();
+        });
+      } else {
+        chartVisits.data.labels = labels;
+        chartVisits.data.datasets[0].data = data;
+        chartVisits.update();
+      }
+    } catch (e) {
+      console.warn('[charts] erro ao renderizar', e);
+      container.innerHTML = '<div class="p-4 text-center text-sm text-gray-500">Sem gráficos no momento</div>';
     }
   }
 
