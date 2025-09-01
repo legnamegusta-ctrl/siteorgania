@@ -16,8 +16,13 @@ function removeUndefinedFields(obj) {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 }
 
-export function listVisits() {
-  return list('visits');
+export async function listVisits() {
+  const userId =
+    (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
+  const all = await list('visits');
+  return userId
+    ? all.filter((v) => v.agronomistId === userId || v.authorId === userId)
+    : all;
 }
 
 export const getVisits = listVisits;
