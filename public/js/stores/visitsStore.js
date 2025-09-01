@@ -96,6 +96,7 @@ export async function updateVisit(id, changes) {
   return updated;
 }
 
+// Synchronize visit documents from Firestore into IndexedDB.
 export async function syncVisitsFromFirestore() {
   if (!navigator.onLine) return 0;
   const userId =
