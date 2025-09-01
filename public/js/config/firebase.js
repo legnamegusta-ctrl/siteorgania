@@ -1,7 +1,7 @@
 ﻿// public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -18,24 +18,20 @@ const firebaseConfig = {
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-// Inicializa Auth declarando as persistÃªncias preferidas logo na criaÃ§Ã£o
-const auth = getAuth(app);
 
+// Inicializa Auth escolhendo a persistência adequada para cada ambiente
 const isCapacitor = typeof window !== 'undefined' && (window.Capacitor || location.origin.startsWith('capacitor://'));
+let auth;
 try {
-  if (isCapacitor) {
-    await setPersistence(auth, browserLocalPersistence);
-    console.info('[auth] persistence=browserLocal (Capacitor)');
-  } else {
-    await setPersistence(auth, indexedDBLocalPersistence);
-    console.info('[auth] persistence=indexedDB');
-  }
+  const persistence = isCapacitor ? browserLocalPersistence : indexedDBLocalPersistence;
+  auth = initializeAuth(app, { persistence });
+  console.info(`[auth] persistence=${isCapacitor ? 'browserLocal (Capacitor)' : 'indexedDB'}`);
 } catch (e1) {
   try {
-    await setPersistence(auth, browserLocalPersistence);
+    auth = initializeAuth(app, { persistence: browserLocalPersistence });
     console.info('[auth] persistence=browserLocal (fallback)', e1?.message);
   } catch (e2) {
-    await setPersistence(auth, inMemoryPersistence);
+    auth = initializeAuth(app, { persistence: inMemoryPersistence });
     console.warn('[auth] persistence=inMemory (last resort)', e2?.message);
   }
 }

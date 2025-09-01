@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('[auth] logout error:', error);
     } finally {
       hideLoader();
+      try { localStorage.removeItem('organia:persistUid'); } catch {}
       if (!redirecting) {
         redirecting = true;
         if (!isLoginRoute()) {
@@ -215,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       if (user) {
+        try { localStorage.setItem('organia:persistUid', user.uid); } catch {}
         const userRef = doc(db, 'users', user.uid);
         let userRole = null;
         let fetchedFrom = 'server';
@@ -304,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
           initializePage(user, userRole);
         }
       } else if (!onLogin && !redirecting) {
+        try { localStorage.removeItem('organia:persistUid'); } catch {}
         redirecting = true;
         if (!routeCheck) {
           safeRedirectToIndex('user-unauthenticated');
