@@ -21,10 +21,24 @@ const db = getFirestore(app);
 // Inicializa Auth declarando as persistÃªncias preferidas logo na criaÃ§Ã£o
 const auth = getAuth(app);
 
-setPersistence(auth, indexedDBLocalPersistence)
-  .catch(() => setPersistence(auth, browserLocalPersistence))
-  .catch(() => setPersistence(auth, inMemoryPersistence))
-  .catch(() => {});
+const isCapacitor = typeof window !== 'undefined' && (window.Capacitor || location.origin.startsWith('capacitor://'));
+try {
+  if (isCapacitor) {
+    await setPersistence(auth, browserLocalPersistence);
+    console.info('[auth] persistence=browserLocal (Capacitor)');
+  } else {
+    await setPersistence(auth, indexedDBLocalPersistence);
+    console.info('[auth] persistence=indexedDB');
+  }
+} catch (e1) {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    console.info('[auth] persistence=browserLocal (fallback)', e1?.message);
+  } catch (e2) {
+    await setPersistence(auth, inMemoryPersistence);
+    console.warn('[auth] persistence=inMemory (last resort)', e2?.message);
+  }
+}
 
 // Inicializa Messaging quando suportado
 let messaging;
