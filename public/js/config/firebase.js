@@ -1,7 +1,7 @@
 ﻿// public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -20,18 +20,22 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Inicializa Auth escolhendo a persistência adequada para cada ambiente
-const isCapacitor = typeof window !== 'undefined' && (window.Capacitor || location.origin.startsWith('capacitor://'));
-let auth;
+const auth = getAuth(app);
+const isCapacitor = typeof window !== 'undefined' && (window.Capacitor || (location && String(location.origin).startsWith('capacitor://')));
 try {
-  const persistence = isCapacitor ? browserLocalPersistence : indexedDBLocalPersistence;
-  auth = initializeAuth(app, { persistence });
-  console.info(`[auth] persistence=${isCapacitor ? 'browserLocal (Capacitor)' : 'indexedDB'}`);
+  if (isCapacitor) {
+    await setPersistence(auth, browserLocalPersistence);
+    console.info('[auth] persistence=browserLocal (Capacitor)');
+  } else {
+    await setPersistence(auth, indexedDBLocalPersistence);
+    console.info('[auth] persistence=indexedDB');
+  }
 } catch (e1) {
   try {
-    auth = initializeAuth(app, { persistence: browserLocalPersistence });
+    await setPersistence(auth, browserLocalPersistence);
     console.info('[auth] persistence=browserLocal (fallback)', e1?.message);
   } catch (e2) {
-    auth = initializeAuth(app, { persistence: inMemoryPersistence });
+    await setPersistence(auth, inMemoryPersistence);
     console.warn('[auth] persistence=inMemory (last resort)', e2?.message);
   }
 }
