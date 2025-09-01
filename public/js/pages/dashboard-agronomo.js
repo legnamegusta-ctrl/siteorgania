@@ -383,7 +383,6 @@ export async function initAgronomoDashboard(userId, userRole) {
 
   leadVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const form = e.target;
     const summary = leadVisitSummary?.value.trim();
     if (!summary) {
       showToast('Informe o resumo da visita.', 'error');
@@ -400,10 +399,10 @@ export async function initAgronomoDashboard(userId, userRole) {
       }
     }
 
-    const submitBtn = form.querySelector("button[type='submit']");
-    const originalLabel = submitBtn?.textContent;
-    submitBtn?.setAttribute('disabled', 'true');
-    if (submitBtn) submitBtn.textContent = 'Salvando...';
+    const btn = leadVisitForm.querySelector('[type="submit"]');
+    btn.disabled = true;
+    const old = btn.textContent;
+    btn.textContent = 'Salvando…';
 
     try {
       const saved = await addVisit({
@@ -423,14 +422,16 @@ export async function initAgronomoDashboard(userId, userRole) {
         addAgenda({ title, when, leadId: currentLeadId });
       }
 
-      clearErrors(form);
-      form.reset();
+      clearErrors(leadVisitForm);
+      leadVisitForm.reset();
       if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
 
-      const msg = saved.synced
-        ? 'Visita salva e sincronizada.'
-        : 'Sem internet: visita salva e será sincronizada.';
-      showToast(msg, saved.synced ? 'success' : 'info');
+      showToast(
+        saved?.synced
+          ? 'Visita salva e sincronizada.'
+          : 'Sem internet: visita salva e será sincronizada.',
+        saved?.synced ? 'success' : 'info'
+      );
 
       await renderHistory();
       renderLeadsList();
@@ -449,8 +450,8 @@ export async function initAgronomoDashboard(userId, userRole) {
       console.error('Erro ao salvar visita localmente:', err);
       showToast('Erro ao registrar visita.', 'error');
     } finally {
-      submitBtn?.removeAttribute('disabled');
-      if (submitBtn) submitBtn.textContent = originalLabel;
+      btn.disabled = false;
+      btn.textContent = old;
     }
   });
 
