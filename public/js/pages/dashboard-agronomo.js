@@ -383,6 +383,7 @@ export async function initAgronomoDashboard(userId, userRole) {
 
   leadVisitForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const form = e.target;
     const summary = leadVisitSummary?.value.trim();
     if (!summary) {
       showToast('Informe o resumo da visita.', 'error');
@@ -398,6 +399,12 @@ export async function initAgronomoDashboard(userId, userRole) {
         return;
       }
     }
+
+    const submitBtn = form.querySelector("button[type='submit']");
+    const originalLabel = submitBtn?.textContent;
+    submitBtn?.setAttribute('disabled', 'true');
+    if (submitBtn) submitBtn.textContent = 'Salvando...';
+
     try {
       const saved = await addVisit({
         type: 'lead',
@@ -407,23 +414,43 @@ export async function initAgronomoDashboard(userId, userRole) {
         notes: leadVisitNotes?.value.trim() || summary,
         leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
       });
+
+      toggleModal(leadVisitModal, false);
+
       if (leadVisitTaskEnable?.checked) {
         const when = leadVisitTaskWhen.value;
         const title = leadVisitTaskTitle.value.trim();
         addAgenda({ title, when, leadId: currentLeadId });
       }
-      if (location.hash === '#historico') await renderHistory();
-      toggleModal(leadVisitModal, false);
-      leadVisitForm?.reset();
-      showToast(
-        saved.synced
-          ? 'Visita registrada com sucesso!'
-          : 'Sem internet: visita salva e será sincronizada.',
-        saved.synced ? 'success' : 'info'
+
+      clearErrors(form);
+      form.reset();
+      if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
+
+      const msg = saved.synced
+        ? 'Visita salva e sincronizada.'
+        : 'Sem internet: visita salva e será sincronizada.';
+      showToast(msg, saved.synced ? 'success' : 'info');
+
+      await renderHistory();
+      renderLeadsList();
+      renderContactsList();
+      renderHomeKPIs();
+      renderHomeCharts();
+      renderLeadsSummary();
+      renderAgendaHome(
+        parseInt(document.getElementById('agendaPeriod')?.value || '7')
       );
+      if (location.hash === '#mapa') {
+        replotMap();
+        adjustMapHeight();
+      }
     } catch (err) {
       console.error('Erro ao salvar visita localmente:', err);
       showToast('Erro ao registrar visita.', 'error');
+    } finally {
+      submitBtn?.removeAttribute('disabled');
+      if (submitBtn) submitBtn.textContent = originalLabel;
     }
   });
 
