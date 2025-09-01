@@ -21,24 +21,37 @@ const db = getFirestore(app);
 
 // Inicializa Auth escolhendo a persistência adequada para cada ambiente
 const auth = getAuth(app);
-const isCapacitor = typeof window !== 'undefined' && (window.Capacitor || (location && String(location.origin).startsWith('capacitor://')));
-try {
-  if (isCapacitor) {
-    await setPersistence(auth, browserLocalPersistence);
-    console.info('[auth] persistence=browserLocal (Capacitor)');
-  } else {
-    await setPersistence(auth, indexedDBLocalPersistence);
-    console.info('[auth] persistence=indexedDB');
-  }
-} catch (e1) {
+const isCapacitor =
+  typeof window !== 'undefined' &&
+  (window.Capacitor ||
+    (location && String(location.origin).startsWith('capacitor://')));
+
+// Configura a persistência de forma assíncrona sem bloquear a importação do módulo
+(async () => {
   try {
-    await setPersistence(auth, browserLocalPersistence);
-    console.info('[auth] persistence=browserLocal (fallback)', e1?.message);
-  } catch (e2) {
-    await setPersistence(auth, inMemoryPersistence);
-    console.warn('[auth] persistence=inMemory (last resort)', e2?.message);
+    if (isCapacitor) {
+      await setPersistence(auth, browserLocalPersistence);
+      console.info('[auth] persistence=browserLocal (Capacitor)');
+    } else {
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.info('[auth] persistence=indexedDB');
+    }
+  } catch (e1) {
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      console.info(
+        '[auth] persistence=browserLocal (fallback)',
+        e1?.message
+      );
+    } catch (e2) {
+      await setPersistence(auth, inMemoryPersistence);
+      console.warn(
+        '[auth] persistence=inMemory (last resort)',
+        e2?.message
+      );
+    }
   }
-}
+})();
 
 // Inicializa Messaging quando suportado
 let messaging;
