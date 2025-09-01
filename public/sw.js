@@ -225,7 +225,8 @@ self.addEventListener('fetch', (event) => {
       } catch (e) {
         const cached = await cache.match(req);
         if (cached) return cached;
-        throw e;
+        // Evita erro "Failed to fetch" quando offline
+        return new Response('', { status: 503, statusText: 'Service Unavailable' });
       }
     })
   );
