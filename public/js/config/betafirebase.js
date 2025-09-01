@@ -2,7 +2,7 @@
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 // REMOVIDO 'enablePersistence' desta importação, pois não é exportado por este bundle CDN
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Seu objeto de configuração do Firebase (substitua com suas chaves reais!)
@@ -18,11 +18,9 @@ const firebaseConfig = {
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Inicializa o Auth aqui
-
-// Garante que a autenticação persista entre sessões do navegador
-setPersistence(auth, browserLocalPersistence)
-  .catch(err => console.error('Erro ao configurar persistência:', err));
+const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence]
+});
 
 let messaging;
 try {

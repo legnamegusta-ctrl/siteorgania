@@ -1,7 +1,7 @@
 ﻿// public/js/config/firebase.js
 import { initializeApp } from '/vendor/firebase/9.6.0/firebase-app.js';
 import { getFirestore, enableIndexedDbPersistence } from '/vendor/firebase/9.6.0/firebase-firestore.js';
-import { getAuth, setPersistence, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
+import { initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, inMemoryPersistence } from '/vendor/firebase/9.6.0/firebase-auth.js';
 import { getMessaging } from '/vendor/firebase/9.6.1/firebase-messaging.js';
 
 // Config do Firebase
@@ -19,39 +19,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Inicializa Auth e define persistência (IndexedDB por padrão)
-const auth = getAuth(app);
-const isCapacitor =
-  typeof window !== 'undefined' &&
-  (window.Capacitor ||
-    (location && String(location.origin).startsWith('capacitor://')));
-
-// Configura a persistência de forma assíncrona sem bloquear a importação do módulo
-(async () => {
-  try {
-    if (isCapacitor) {
-      await setPersistence(auth, indexedDBLocalPersistence);
-      console.info('[auth] persistence=indexedDB (Capacitor)');
-    } else {
-      await setPersistence(auth, indexedDBLocalPersistence);
-      console.info('[auth] persistence=indexedDB');
-    }
-  } catch (e1) {
-    try {
-      await setPersistence(auth, browserLocalPersistence);
-      console.info(
-        '[auth] persistence=browserLocal (fallback)',
-        e1?.message
-      );
-    } catch (e2) {
-      await setPersistence(auth, inMemoryPersistence);
-      console.warn(
-        '[auth] persistence=inMemory (last resort)',
-        e2?.message
-      );
-    }
-  }
-})();
+// Inicializa Auth com persistência configurada
+const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence]
+});
 
 // Inicializa Messaging quando suportado
 let messaging;
