@@ -7,12 +7,9 @@
     <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
     <title>Orgânia Fertilizantes - Login</title>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-app.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-auth.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.0/firebase-firestore.js" crossorigin>
-  <link rel="modulepreload" href="/vendor/firebase/9.6.1/firebase-messaging.js" crossorigin>
   <script src="/vendor/tailwind/tailwind.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <!-- Bundled script for file:// usage -->
+  <script src="dist/offline.js"></script>
     <link rel="stylesheet" href="style.css">
     <script>
       console.log('[index] script inicial executado');
@@ -57,6 +54,6 @@
         </div>
     </div>
     
-    <script type="module" src="js/services/auth.js"></script>
+    <!-- auth logic included in offline bundle -->
 </body>
 </html>
