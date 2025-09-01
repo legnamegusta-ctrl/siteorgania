@@ -305,15 +305,42 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('[auth] data synced; initializing page', userRole);
           initializePage(user, userRole);
         }
-      } else if (!onLogin && !redirecting) {
-        try { localStorage.removeItem('organia:persistUid'); } catch {}
-        redirecting = true;
-        if (!routeCheck) {
-          safeRedirectToIndex('user-unauthenticated');
         } else {
-          console.log('[auth] unauthenticated and already at index');
+          const cachedUid = localStorage.getItem('organia:persistUid');
+          const cachedRole = cachedUid ? getCachedUserRole(cachedUid) : null;
+          const last = localStorage.getItem('organia:lastDashboard');
+
+          if (cachedUid && !navigator.onLine) {
+            const pseudoUser = { uid: cachedUid };
+            if (onLogin) {
+              const dest =
+                last ||
+                (cachedRole === 'admin'
+                  ? 'dashboard-admin.html'
+                  : cachedRole === 'cliente'
+                  ? 'dashboard-cliente.html'
+                  : cachedRole === 'operador'
+                  ? 'operador-dashboard.html'
+                  : 'dashboard-agronomo.html');
+              console.warn('[auth] offline; redirecting to cached dashboard', dest);
+              window.location.replace(dest);
+            } else {
+              console.warn('[auth] offline; initializing page from cache');
+              initializePage(pseudoUser, cachedRole || 'agronomo');
+            }
+            return;
+          }
+
+          if (!onLogin && !redirecting) {
+            try { localStorage.removeItem('organia:persistUid'); } catch {}
+            redirecting = true;
+            if (!routeCheck) {
+              safeRedirectToIndex('user-unauthenticated');
+            } else {
+              console.log('[auth] unauthenticated and already at index');
+            }
+          }
         }
-      }
     } catch (e) {
       console.error('[auth] onAuthStateChanged error:', e);
       if (!onLogin && !redirecting) {
