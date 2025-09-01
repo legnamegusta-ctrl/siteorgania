@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Inicializa Auth escolhendo a persistência adequada para cada ambiente
+// Inicializa Auth e define persistência (IndexedDB por padrão)
 const auth = getAuth(app);
 const isCapacitor =
   typeof window !== 'undefined' &&
@@ -30,8 +30,8 @@ const isCapacitor =
 (async () => {
   try {
     if (isCapacitor) {
-      await setPersistence(auth, browserLocalPersistence);
-      console.info('[auth] persistence=browserLocal (Capacitor)');
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.info('[auth] persistence=indexedDB (Capacitor)');
     } else {
       await setPersistence(auth, indexedDBLocalPersistence);
       console.info('[auth] persistence=indexedDB');
