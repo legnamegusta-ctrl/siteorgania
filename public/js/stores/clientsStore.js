@@ -1,4 +1,5 @@
 import { db, auth } from '../config/firebase.js';
+import { nowBrasiliaISO } from '../lib/date-utils.js';
 import {
   doc,
   setDoc,
@@ -27,7 +28,7 @@ export function getClients() {
 export function addClient(client) {
   const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const all = readLocal();
-  const now = new Date().toISOString();
+  const now = nowBrasiliaISO();
   const newClient = {
     id: `local-${Date.now().toString(36)}`,
     createdAt: now,

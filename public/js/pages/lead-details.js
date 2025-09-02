@@ -5,6 +5,7 @@ import { toggleModal } from './agro-bottom-nav.js';
 import { getLeads } from '../stores/leadsStore.js';
 import { getVisits, addVisit, updateVisit } from '../stores/visitsStore.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
+import { nowBrasiliaLocal, nowBrasiliaISO } from '../lib/date-utils.js';
 import {
   doc,
   getDoc,
@@ -414,7 +415,7 @@ export function initLeadDetails(userId, userRole) {
 
 
   btnAddVisit?.addEventListener('click', () => {
-    const nowIso = new Date().toISOString().slice(0, 16);
+    const nowIso = nowBrasiliaLocal();
     if (leadVisitDate) {
       leadVisitDate.min = nowIso;
       leadVisitDate.value = nowIso;
@@ -508,13 +509,12 @@ export function initLeadDetails(userId, userRole) {
       showToast('Corrija os erros antes de salvar.', 'error');
       return;
     }
-    const value = leadVisitDate?.value;
     try {
       const pos = await getCurrentPositionSafe();
       const saved = await addVisit({
         type: 'lead',
         refId: leadId,
-        at: value || new Date().toISOString(),
+        at: nowBrasiliaISO(),
         summary: leadVisitSummary?.value.trim(),
         notes: leadVisitNotes?.value.trim() || leadVisitSummary?.value.trim(),
         outcome: leadVisitOutcome?.value || 'realizada',
