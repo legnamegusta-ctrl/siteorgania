@@ -301,10 +301,13 @@ export function initAdminDashboard(userId, userRole) {
 
                 snapshots.forEach((snap) => snap.forEach(pushVisit));
 
-                // Carrega clientes do agrônomo para incluir no relatório
+                // Carrega clientes e leads do agrônomo para incluir no relatório
                 let clients = [];
+                let leads = [];
                 try {
-                    const clientsSnap = await getDocs(query(collection(db, 'clients'), where('agronomistId', '==', agronomistId)));
+                    const clientsSnap = await getDocs(
+                        query(collection(db, 'clients'), where('agronomistId', '==', agronomistId))
+                    );
                     clients = clientsSnap.docs.map((d) => ({
                         name: d.data().name || '-',
                         notes: d.data().notes || ''
@@ -313,9 +316,21 @@ export function initAdminDashboard(userId, userRole) {
                     console.warn('Aviso: não foi possível carregar clientes para o relatório.', err);
                 }
 
+                try {
+                    const leadsSnap = await getDocs(
+                        query(collection(db, 'leads'), where('agronomistId', '==', agronomistId))
+                    );
+                    leads = leadsSnap.docs.map((d) => ({
+                        name: d.data().name || '-',
+                        notes: d.data().notes || ''
+                    }));
+                } catch (err) {
+                    console.warn('Aviso: não foi possível carregar leads para o relatório.', err);
+                }
+
                 visits.sort((a, b) => a.date - b.date);
 
-                if (!visits.length && !clients.length) {
+                if (!visits.length && !clients.length && !leads.length) {
                     showToast('Nenhum dado encontrado para os filtros selecionados.', 'info');
                     return;
                 }
@@ -331,7 +346,21 @@ export function initAdminDashboard(userId, userRole) {
                     docPdf.text('Clientes', 10, y);
                     y += 8;
                     clients.forEach((c, i) => {
-                        docPdf.text(`${i + 1}. ${c.name} - ${c.notes}`, 10, y);
+                        const line = `${i + 1}. ${c.name}${c.notes ? ' - ' + c.notes : ''}`;
+                        docPdf.text(line, 10, y);
+                        y += 8;
+                        if (y > 280) { docPdf.addPage(); y = 20; }
+                    });
+                    y += 4;
+                }
+
+                if (leads.length) {
+                    docPdf.setFontSize(12);
+                    docPdf.text('Leads', 10, y);
+                    y += 8;
+                    leads.forEach((l, i) => {
+                        const line = `${i + 1}. ${l.name}${l.notes ? ' - ' + l.notes : ''}`;
+                        docPdf.text(line, 10, y);
                         y += 8;
                         if (y > 280) { docPdf.addPage(); y = 20; }
                     });
