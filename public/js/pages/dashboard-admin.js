@@ -246,8 +246,9 @@ export function initAdminDashboard(userId, userRole) {
                     // Top-level 'visits' por authorId e agronomistId
                     getDocs(query(collection(db, 'visits'), where('authorId', '==', agronomistId))),
                     getDocs(query(collection(db, 'visits'), where('agronomistId', '==', agronomistId))),
-                    // Subcoleções 'visits' (ex.: leads/{id}/visits) por authorId
-                    getDocs(query(collectionGroup(db, 'visits'), where('authorId', '==', agronomistId)))
+                    // Subcoleções 'visits' (ex.: leads/{id}/visits) por authorId e agronomistId
+                    getDocs(query(collectionGroup(db, 'visits'), where('authorId', '==', agronomistId))),
+                    getDocs(query(collectionGroup(db, 'visits'), where('agronomistId', '==', agronomistId)))
                 ];
                 let snapshots = [];
                 try {
@@ -300,10 +301,22 @@ export function initAdminDashboard(userId, userRole) {
 
                 snapshots.forEach((snap) => snap.forEach(pushVisit));
 
+                // Carrega clientes do agrônomo para incluir no relatório
+                let clients = [];
+                try {
+                    const clientsSnap = await getDocs(query(collection(db, 'clients'), where('agronomistId', '==', agronomistId)));
+                    clients = clientsSnap.docs.map((d) => ({
+                        name: d.data().name || '-',
+                        notes: d.data().notes || ''
+                    }));
+                } catch (err) {
+                    console.warn('Aviso: não foi possível carregar clientes para o relatório.', err);
+                }
+
                 visits.sort((a, b) => a.date - b.date);
 
-                if (!visits.length) {
-                    showToast('Nenhuma visita encontrada para os filtros selecionados.', 'info');
+                if (!visits.length && !clients.length) {
+                    showToast('Nenhum dado encontrado para os filtros selecionados.', 'info');
                     return;
                 }
 
@@ -312,11 +325,30 @@ export function initAdminDashboard(userId, userRole) {
                 docPdf.setFontSize(14);
                 docPdf.text(`Relatório de visitas - ${agronomistName}`, 10, 10);
                 let y = 20;
-                visits.forEach((v, i) => {
-                    docPdf.text(`${i + 1}. ${v.line}`, 10, y);
+
+                if (clients.length) {
+                    docPdf.setFontSize(12);
+                    docPdf.text('Clientes', 10, y);
                     y += 8;
-                    if (y > 280) { docPdf.addPage(); y = 20; }
-                });
+                    clients.forEach((c, i) => {
+                        docPdf.text(`${i + 1}. ${c.name} - ${c.notes}`, 10, y);
+                        y += 8;
+                        if (y > 280) { docPdf.addPage(); y = 20; }
+                    });
+                    y += 4;
+                }
+
+                if (visits.length) {
+                    docPdf.setFontSize(12);
+                    docPdf.text('Visitas', 10, y);
+                    y += 8;
+                    visits.forEach((v, i) => {
+                        docPdf.text(`${i + 1}. ${v.line}`, 10, y);
+                        y += 8;
+                        if (y > 280) { docPdf.addPage(); y = 20; }
+                    });
+                }
+
                 docPdf.save(`visitas-${agronomistName}.pdf`);
             } catch (error) {
                 console.error('Erro ao gerar relatório:', error);
