@@ -6,6 +6,9 @@ import { listVisits, syncVisitsFromFirestore } from '../stores/visitsStore.js';
 import { getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales } from '../stores/salesStore.js';
 
+// IDs dos atalhos que devem ocupar duas colunas no grid da home
+const MAIN_SHORTCUTS = ['quickHomeAddContato', 'quickHomeAddVisit'];
+
 export function initHomeView({ openVisitModal, openQuickCreateModal, replotMap, renderHistory }) {
   let chartSales;
   let chartVisits;
@@ -302,6 +305,11 @@ export function initHomeView({ openVisitModal, openQuickCreateModal, replotMap, 
   }
 
   function bindHomeShortcuts() {
+    // aplica span configurável aos atalhos principais
+    MAIN_SHORTCUTS.forEach((id) => {
+      document.getElementById(id)?.classList.add('col-span-2');
+    });
+
     document.getElementById('quickHomeAddContato')?.addEventListener('click', () => openQuickCreateModal('cliente'));
     document.getElementById('quickHomeAddVisit')?.addEventListener('click', () => openVisitModal());
     document.getElementById('quickHomeOpenMap')?.addEventListener('click', () => {
