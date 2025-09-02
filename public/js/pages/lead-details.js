@@ -36,6 +36,7 @@ export function initLeadDetails(userId, userRole) {
   const leadEmail = document.getElementById('leadEmail');
   const leadProperty = document.getElementById('leadProperty');
   const leadOrigin = document.getElementById('leadOrigin');
+  const leadNotes = document.getElementById('leadNotes');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
   const btnAddVisit = document.getElementById('btnAddVisit');
@@ -90,6 +91,7 @@ export function initLeadDetails(userId, userRole) {
     if (leadProperty)
       leadProperty.textContent = lead.propertyName || lead.property || '';
     if (leadOrigin) leadOrigin.textContent = lead.origin || lead.source || '';
+    if (leadNotes) leadNotes.textContent = lead.notes || '';
     if (leadStage && lead.stage) {
       const color = STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800';
       leadStage.textContent = lead.stage;
@@ -137,6 +139,7 @@ export function initLeadDetails(userId, userRole) {
     if (leadProperty)
       leadProperty.textContent = data.propertyName || data.property || '';
     if (leadOrigin) leadOrigin.textContent = data.origin || data.source || '';
+    if (leadNotes) leadNotes.textContent = data.notes || '';
     if (leadStage && data.stage) {
       const color = STAGE_COLORS[data.stage] || 'bg-gray-100 text-gray-800';
       leadStage.textContent = data.stage;
@@ -453,6 +456,7 @@ export function initLeadDetails(userId, userRole) {
         email: data.email || '',
         origin: data.origin || data.source || '',
         propertyName: data.propertyName || data.property || '',
+        notes: data.notes || '',
         status: 'ativo',
         isFavorite: false,
         tier: 'standard',

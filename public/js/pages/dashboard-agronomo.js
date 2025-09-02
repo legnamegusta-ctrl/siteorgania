@@ -129,13 +129,13 @@ export async function initAgronomoDashboard(userId, userRole) {
       id: `lead-${l.id}`,
       type: 'add',
       at: l.createdAt,
-      text: `Lead cadastrado: ${l.name}`
+      text: `Lead cadastrado: ${l.name}${l.notes ? ' - ' + l.notes : ''}`
     }));
     const clients = getClients().map((c) => ({
       id: `client-${c.id}`,
       type: 'add',
       at: c.createdAt,
-      text: `Cliente cadastrado: ${c.name}`
+      text: `Cliente cadastrado: ${c.name}${c.notes ? ' - ' + c.notes : ''}`
     }));
     let events = [...visits, ...leads, ...clients].filter((e) => e.at);
     if (historyFilter === 'visits') events = events.filter((e) => e.type === 'visit');
@@ -832,7 +832,7 @@ export async function initAgronomoDashboard(userId, userRole) {
           highlightContactId = null;
         }
       } else {
-        created = addClient({ name });
+        created = addClient({ name, notes });
         addProperty({
           clientId: created.id,
           name: farm,
@@ -931,7 +931,7 @@ export async function initAgronomoDashboard(userId, userRole) {
         visit.sale = saleData;
         const lead = getLeads().find((l) => l.id === refId);
         if (lead) {
-          const client = addClient({ name: lead.name });
+          const client = addClient({ name: lead.name, notes: lead.notes });
           let lat = lead.lat;
           let lng = lead.lng;
           if (lat == null || lng == null || isNaN(lat) || isNaN(lng)) {
