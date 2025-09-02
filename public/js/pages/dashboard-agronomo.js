@@ -1447,6 +1447,7 @@ export async function initAgronomoDashboard(userId, userRole) {
         }
         try {
           showToast('Sincronizando…', 'info', 2000);
+          await processOutbox();
           await Promise.all([
             syncClientsFromFirestore(),
             syncLeadsFromFirestore(),
