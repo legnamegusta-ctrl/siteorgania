@@ -25,6 +25,7 @@ export function initClientDetails(userId, userRole) {
   const summaryName = document.getElementById('summaryName');
   const summaryProperty = document.getElementById('summaryProperty');
   const summaryInterest = document.getElementById('summaryInterest');
+  const summaryNotes = document.getElementById('summaryNotes');
   const propertiesList = document.getElementById('propertiesList');
   const historyTimeline = document.getElementById('historyTimeline');
 
@@ -62,6 +63,8 @@ export function initClientDetails(userId, userRole) {
       if (clientNameHeader) clientNameHeader.textContent = data?.name || 'Cliente';
       if (summaryName) summaryName.textContent = data?.name || '';
       if (summaryInterest) summaryInterest.classList.add('hidden');
+      if (summaryNotes)
+        summaryNotes.textContent = data?.notes ? `Notas: ${data.notes}` : '';
     } catch (err) {
       console.error('Erro ao carregar cliente:', err);
       if (clientNameHeader) clientNameHeader.textContent = 'Erro ao carregar';
@@ -79,6 +82,8 @@ export function initClientDetails(userId, userRole) {
       summaryInterest.className = `text-xs font-semibold px-2 py-1 rounded ${interestClass(lead.interest)}`;
       summaryInterest.classList.remove('hidden');
     }
+    if (summaryNotes)
+      summaryNotes.textContent = lead.notes ? `Notas: ${lead.notes}` : '';
     document.getElementById('propertiesSection')?.classList.add('hidden');
   }
 
