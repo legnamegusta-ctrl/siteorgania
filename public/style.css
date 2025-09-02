@@ -58,17 +58,25 @@ html,body{margin:0;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adj
 .page-container{
   max-width:1200px;
   margin:0 auto;
-  padding:0 var(--pad);
+  padding:var(--pad);
   padding-left:max(var(--pad), env(safe-area-inset-left));
   padding-right:max(var(--pad), env(safe-area-inset-right));
 }
 @media (min-width:768px){
   .page-container{
-    padding:0 var(--pad-lg);
+    padding:var(--pad-lg);
     padding-left:max(var(--pad-lg), env(safe-area-inset-left));
     padding-right:max(var(--pad-lg), env(safe-area-inset-right));
   }
 }
+
+/* Utilitários de espaçamento e grid básicos */
+.grid{display:grid;}
+.grid-cols-2{grid-template-columns:repeat(2,1fr);}
+@media (min-width:640px){.sm\:grid-cols-3{grid-template-columns:repeat(3,1fr);}}
+@media (min-width:1024px){.lg\:grid-cols-6{grid-template-columns:repeat(6,1fr);}}
+.gap-4{gap:var(--gap);}
+.col-span-2{grid-column:span 2/span 2;}
 
 .stats-grid{
   display:grid;
