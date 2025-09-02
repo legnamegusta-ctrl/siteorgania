@@ -268,10 +268,10 @@
   </nav>
 
   <div id="quickActionsModal" class="modal hidden">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quickActionsTitle">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quickActionsTitle" tabindex="-1">
       <h3 id="quickActionsTitle" class="mb-4 font-semibold">Ações Rápidas</h3>
       <div class="flex flex-col gap-2 mb-4">
-        <button id="btnQuickAddContato" class="btn-primary">Adicionar contato</button>
+        <button id="btnQuickAddContato" class="btn-primary" autofocus>Adicionar contato</button>
         <button id="btnQuickRegVisita" class="btn-primary">Registrar Visita</button>
       </div>
       <button id="btnQuickClose" class="btn-secondary w-full">Fechar</button>
@@ -279,11 +279,11 @@
   </div>
 
   <div id="visitModal" class="modal hidden">
-    <div class="modal-card max-w-xl w-full" role="dialog" aria-modal="true" aria-labelledby="visitModalTitle">
+    <div class="modal-card max-w-xl w-full" role="dialog" aria-modal="true" aria-labelledby="visitModalTitle" tabindex="-1">
       <h3 id="visitModalTitle" class="mb-4 font-semibold">Registrar Visita</h3>
       <form id="visitForm" class="grid gap-4">
         <div>
-          <label><input type="radio" name="visitTarget" value="cliente" checked /> Cliente</label>
+          <label><input type="radio" name="visitTarget" value="cliente" checked autofocus /> Cliente</label>
           <label class="ml-4"><input type="radio" name="visitTarget" value="lead" /> Lead</label>
         </div>
         <div class="field">
@@ -350,12 +350,12 @@
   </div>
 
   <div id="saleModal" class="modal hidden">
-    <div class="modal-card max-w-md w-full" role="dialog" aria-modal="true" aria-labelledby="saleModalTitle">
+    <div class="modal-card max-w-md w-full" role="dialog" aria-modal="true" aria-labelledby="saleModalTitle" tabindex="-1">
       <h3 id="saleModalTitle" class="mb-4 font-semibold">Registrar Venda</h3>
       <form id="saleForm" class="grid gap-4">
         <div class="field">
           <label for="saleFormula">Fórmula</label>
-          <select id="saleFormula" class="input"></select>
+          <select id="saleFormula" class="input" autofocus></select>
         </div>
         <div class="field">
           <label for="saleTons">Toneladas</label>
@@ -374,12 +374,12 @@
   </div>
 
   <div id="leadVisitModal" class="modal hidden">
-    <div class="modal-card max-w-md w-full" role="dialog" aria-modal="true" aria-labelledby="leadVisitModalTitle">
+    <div class="modal-card max-w-md w-full" role="dialog" aria-modal="true" aria-labelledby="leadVisitModalTitle" tabindex="-1">
       <h3 id="leadVisitModalTitle" class="mb-4 font-semibold">Registrar Visita</h3>
       <form id="leadVisitForm" class="grid gap-4">
         <div class="field">
           <label for="leadVisitDate">Data/Hora</label>
-          <input id="leadVisitDate" type="datetime-local" class="input" required />
+          <input id="leadVisitDate" type="datetime-local" class="input" required autofocus />
         </div>
         <div class="field">
           <label for="leadVisitSummary">Resumo*</label>
@@ -427,7 +427,7 @@
   </div>
 
   <div id="quickCreateModal" class="modal hidden">
-    <div class="modal-card max-w-xl w-full" role="dialog" aria-modal="true" aria-labelledby="quickCreateModalTitle">
+    <div class="modal-card max-w-xl w-full" role="dialog" aria-modal="true" aria-labelledby="quickCreateModalTitle" tabindex="-1">
       <h3 id="quickCreateModalTitle" class="mb-4 font-semibold">Cadastro Rápido</h3>
       <form id="quickCreateForm" class="grid gap-4">
         <div>
@@ -436,7 +436,7 @@
         </div>
         <div class="field">
           <label for="qcName">Nome*</label>
-          <input id="qcName" class="input" required />
+          <input id="qcName" class="input" required autofocus />
         </div>
         <div class="field">
           <label for="qcFarm">Fazenda*</label>
