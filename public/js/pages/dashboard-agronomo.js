@@ -1,4 +1,4 @@
-import { initBottomNav, bindPlus, toggleModal } from './agro-bottom-nav.js';
+import { initBottomNav, bindPlus } from './agro-bottom-nav.js';
 import { getCurrentPositionSafe } from '../utils/geo.js';
 import { showToast, promptModal } from '../services/ui.js';
 import { db, auth } from '../config/firebase.js';
@@ -32,6 +32,56 @@ import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
+
+let currentModal;
+let lastFocusedElement;
+let focusableElements = [];
+
+function handleModalKeydown(e) {
+  if (!currentModal) return;
+  if (e.key === 'Escape') {
+    toggleModal(currentModal, false);
+  } else if (e.key === 'Tab') {
+    if (focusableElements.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    const first = focusableElements[0];
+    const last = focusableElements[focusableElements.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+}
+
+function toggleModal(el, open) {
+  if (!el) return;
+  if (open) {
+    lastFocusedElement = document.activeElement;
+    currentModal = el;
+    el.classList.remove('hidden');
+    focusableElements = Array.from(
+      el.querySelectorAll('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])')
+    );
+    const first = el.querySelector('[autofocus]') || focusableElements[0];
+    first?.focus();
+    document.addEventListener('keydown', handleModalKeydown);
+  } else {
+    el.classList.add('hidden');
+    document.removeEventListener('keydown', handleModalKeydown);
+    currentModal = null;
+    focusableElements = [];
+    lastFocusedElement?.focus();
+  }
+}
 
 export async function initAgronomoDashboard(userId, userRole) {
   if (window.__agroBooted) return;
