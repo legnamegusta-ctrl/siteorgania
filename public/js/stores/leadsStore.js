@@ -1,4 +1,5 @@
 ﻿import { db, auth } from '../config/firebase.js';
+import { nowBrasiliaISO } from '../lib/date-utils.js';
 import {
   doc,
   setDoc,
@@ -27,7 +28,7 @@ export function getLeads() {
 export function addLead(lead) {
   const userId = (window.getCurrentUid && window.getCurrentUid()) || auth.currentUser?.uid || null;
   const all = readLocal();
-  const now = new Date().toISOString();
+  const now = nowBrasiliaISO();
   const newLead = {
     id: `local-${Date.now().toString(36)}`,
     createdAt: now,
@@ -62,7 +63,7 @@ export function updateLead(id, changes) {
   const all = readLocal();
   const idx = all.findIndex((l) => l.id === id);
   if (idx >= 0) {
-    all[idx] = { ...all[idx], ...changes, updatedAt: new Date().toISOString(), synced: navigator.onLine ? true : false };
+    all[idx] = { ...all[idx], ...changes, updatedAt: nowBrasiliaISO(), synced: navigator.onLine ? true : false };
     saveLocal(all);
   }
   if (navigator.onLine) {

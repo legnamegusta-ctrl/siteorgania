@@ -31,6 +31,7 @@ import {
 import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { getSales, addSale } from '../stores/salesStore.js';
+import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
 
 export async function initAgronomoDashboard(userId, userRole) {
   if (window.__agroBooted) return;
@@ -347,7 +348,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     populateVisitSelect('cliente');
     document.querySelector("input[name='visitTarget'][value='cliente']").checked = true;
     visitForm.reset();
-    document.getElementById('visitAt').value = new Date().toISOString().slice(0, 16);
+    document.getElementById('visitAt').value = nowBrasiliaLocal();
     leadExtras.classList.add('hidden');
     toggleModal(visitModal, true);
   }
@@ -366,7 +367,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     currentLeadId = leadId;
     leadVisitForm?.reset();
     if (leadVisitDate)
-      leadVisitDate.value = new Date().toISOString().slice(0, 16);
+      leadVisitDate.value = nowBrasiliaLocal();
     // Garante estado inicial dos campos de tarefa
     if (leadVisitTaskFields) leadVisitTaskFields.classList.add('hidden');
     toggleModal(leadVisitModal, true);
@@ -408,7 +409,7 @@ export async function initAgronomoDashboard(userId, userRole) {
       const saved = await addVisit({
         type: 'lead',
         refId: currentLeadId,
-        at: leadVisitDate?.value || new Date().toISOString(),
+        at: nowBrasiliaISO(),
         summary,
         notes: leadVisitNotes?.value.trim() || summary,
         leadName: getLeads().find((l) => l.id === currentLeadId)?.name,
@@ -888,13 +889,8 @@ export async function initAgronomoDashboard(userId, userRole) {
     const type = document.querySelector("input[name='visitTarget']:checked").value;
     const refId = visitSelect.value;
     if (!refId) return;
-    const atEl = document.getElementById('visitAt');
     const notesEl = document.getElementById('visitNotes');
     let valid = true;
-    if (!atEl.value) {
-      setFieldError(atEl, 'Campo obrigatório');
-      valid = false;
-    }
     if (!notesEl.value.trim()) {
       setFieldError(notesEl, 'Campo obrigatório');
       valid = false;
@@ -902,7 +898,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     const visit = {
       type,
       refId,
-      at: atEl.value,
+      at: nowBrasiliaISO(),
       notes: notesEl.value.trim(),
     };
     if (type === 'lead') {

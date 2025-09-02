@@ -1,4 +1,5 @@
 import { db, auth } from '../config/firebase.js';
+import { nowBrasiliaISO } from '../lib/date-utils.js';
 import {
   collection,
   doc,
@@ -32,7 +33,7 @@ export async function addVisit(visit) {
   const id = doc(collection(db, 'visits')).id;
   const newVisit = {
     id,
-    at: new Date().toISOString(),
+    at: nowBrasiliaISO(),
     authorId: userId,
     agronomistId: userId,
     synced: navigator.onLine ? true : false,
