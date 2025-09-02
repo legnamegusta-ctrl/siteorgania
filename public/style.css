@@ -1149,3 +1149,19 @@ body.has-modal{overflow:hidden;}
 
 /* Reserve space so content never hides under the fixed bottom bar */
 #agroMain{padding-bottom:calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));}
+
+/* Network status indicator */
+#networkStatus {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+#networkStatus.online {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+#networkStatus.offline {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
