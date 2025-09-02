@@ -37,6 +37,20 @@ let currentModal;
 let lastFocusedElement;
 let focusableElements = [];
 
+const networkStatusEl = document.getElementById('networkStatus');
+
+function updateNetworkStatus() {
+  if (!networkStatusEl) return;
+  const online = navigator.onLine;
+  networkStatusEl.textContent = online ? 'Online' : 'Offline';
+  networkStatusEl.classList.toggle('online', online);
+  networkStatusEl.classList.toggle('offline', !online);
+}
+
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+updateNetworkStatus();
+
 function handleModalKeydown(e) {
   if (!currentModal) return;
   if (e.key === 'Escape') {
