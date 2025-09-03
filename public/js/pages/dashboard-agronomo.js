@@ -1172,28 +1172,6 @@ export async function initAgronomoDashboard(userId, userRole) {
   }
 
 
-  // Marca inicialização concluída (para fallback não duplicar)
-  window.__agroBootReady = true;
-}
-
-// Fallback: se por algum motivo o fluxo de auth não disparar
-// (ex.: reabertura 100% offline antes do onAuthStateChanged),
-// inicializa o dashboard com dados locais após pequeno atraso.
-try {
-  document.addEventListener('DOMContentLoaded', () => {
-    const marker = document.getElementById('dashboard-agronomo-marker');
-    if (!marker) return;
-    setTimeout(() => {
-      if (!window.__agroBooted) {
-        try {
-          initAgronomoDashboard((auth && auth.currentUser && auth.currentUser.uid) || null, 'agronomo');
-        } catch (e) {
-          console.warn('[agronomo] Fallback init falhou', e);
-        }
-      }
-    }, 900);
-  });
-} catch {}
   function handleHashChange() {
     if (location.hash === '#clientes' || location.hash === '#leads') {
       location.hash = '#contatos';
@@ -1247,4 +1225,30 @@ try {
   });
   processOutbox();
   handleHashChange();
+
+  // Marca inicialização concluída (para fallback não duplicar)
+  window.__agroBootReady = true;
+}
+
+// Fallback: se por algum motivo o fluxo de auth não disparar
+// (ex.: reabertura 100% offline antes do onAuthStateChanged),
+// inicializa o dashboard com dados locais após pequeno atraso.
+try {
+  document.addEventListener('DOMContentLoaded', () => {
+    const marker = document.getElementById('dashboard-agronomo-marker');
+    if (!marker) return;
+    setTimeout(() => {
+      if (!window.__agroBooted) {
+        try {
+          initAgronomoDashboard(
+            (auth && auth.currentUser && auth.currentUser.uid) || null,
+            'agronomo',
+          );
+        } catch (e) {
+          console.warn('[agronomo] Fallback init falhou', e);
+        }
+      }
+    }, 900);
+  });
+} catch {}
 
