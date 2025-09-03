@@ -412,6 +412,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     visitForm.reset();
     document.getElementById('visitAt').value = nowBrasiliaLocal();
     leadExtras.classList.add('hidden');
+    refreshLeadFields();
     toggleModal(visitModal, true);
   }
 
@@ -807,23 +808,36 @@ export async function initAgronomoDashboard(userId, userRole) {
       const type = document.querySelector("input[name='visitTarget']:checked").value;
       populateVisitSelect(type);
       leadExtras.classList.toggle('hidden', type !== 'lead');
+      refreshLeadFields();
     })
   );
 
   function refreshLeadFields() {
-    const interest = visitInterest.value;
-    const sale = visitSale.value;
-    const needFollow =
-      sale === 'nao' && (interest === 'Interessado' || interest === 'Na dúvida');
-    leadFollowUp.classList.toggle('hidden', !needFollow);
-    if (visitTaskFields && visitTaskEnable) {
-      visitTaskFields.classList.toggle('hidden', !(needFollow && visitTaskEnable.checked));
-      if (visitTaskWhen) visitTaskWhen.required = needFollow && visitTaskEnable.checked;
-      if (visitTaskTitle) visitTaskTitle.required = needFollow && visitTaskEnable.checked;
+    const type = document.querySelector("input[name='visitTarget']:checked")?.value;
+    if (type === 'lead') {
+      const interest = visitInterest.value;
+      const sale = visitSale.value;
+      const needFollow =
+        sale === 'nao' && (interest === 'Interessado' || interest === 'Na dúvida');
+      leadFollowUp.classList.toggle('hidden', !needFollow);
+      if (visitTaskFields && visitTaskEnable) {
+        visitTaskFields.classList.toggle('hidden', !(needFollow && visitTaskEnable.checked));
+        if (visitTaskWhen) visitTaskWhen.required = needFollow && visitTaskEnable.checked;
+        if (visitTaskTitle) visitTaskTitle.required = needFollow && visitTaskEnable.checked;
+      }
+      const needReason = interest === 'Sem interesse';
+      leadReason.classList.toggle('hidden', !needReason);
+      document.getElementById('visitReason').required = needReason;
+    } else {
+      leadFollowUp.classList.remove('hidden');
+      if (visitTaskFields && visitTaskEnable) {
+        visitTaskFields.classList.toggle('hidden', !visitTaskEnable.checked);
+        if (visitTaskWhen) visitTaskWhen.required = visitTaskEnable.checked;
+        if (visitTaskTitle) visitTaskTitle.required = visitTaskEnable.checked;
+      }
+      leadReason.classList.add('hidden');
+      document.getElementById('visitReason').required = false;
     }
-    const needReason = interest === 'Sem interesse';
-    leadReason.classList.toggle('hidden', !needReason);
-    document.getElementById('visitReason').required = needReason;
   }
   visitInterest?.addEventListener('change', refreshLeadFields);
   visitSale?.addEventListener('change', refreshLeadFields);
@@ -1057,6 +1071,24 @@ export async function initAgronomoDashboard(userId, userRole) {
       const lead = getLeads().find((l) => l.id === refId);
       visit.leadName = lead?.name;
     } else {
+      if (visitTaskEnable?.checked) {
+        const when = visitTaskWhen?.value;
+        const title = visitTaskTitle?.value.trim();
+        if (!when) {
+          setFieldError(visitTaskWhen, 'Campo obrigatório');
+          valid = false;
+        }
+        if (!title) {
+          setFieldError(visitTaskTitle, 'Campo obrigatório');
+          valid = false;
+        }
+        if (valid) {
+          addAgenda({ title, when, clientId: refId });
+          renderAgendaHome(
+            parseInt(document.getElementById('agendaPeriod')?.value || '7')
+          );
+        }
+      }
       if (!valid) return;
       const client = getClients().find((c) => c.id === refId);
       visit.clientName = client?.name;

@@ -292,11 +292,29 @@
           <label for="visitAt">Data/Hora</label>
           <input id="visitAt" type="datetime-local" class="input" required readonly />
         </div>
-        <div class="field">
-          <label for="visitNotes">Descrição*</label>
-          <textarea id="visitNotes" class="input" required></textarea>
-        </div>
-        <div id="leadExtras" class="hidden">
+          <div class="field">
+            <label for="visitNotes">Descrição*</label>
+            <textarea id="visitNotes" class="input" required></textarea>
+          </div>
+          <div id="leadFollowUp" class="hidden">
+            <div class="field">
+              <label class="inline-flex items-center">
+                <input id="visitTaskEnable" type="checkbox" class="mr-2" />
+                Agendar tarefa?
+              </label>
+            </div>
+            <div id="visitTaskFields" class="grid gap-2 hidden">
+              <div class="field">
+                <label for="visitTaskWhen">Data/Hora</label>
+                <input id="visitTaskWhen" type="datetime-local" class="input" />
+              </div>
+              <div class="field">
+                <label for="visitTaskTitle">Ttulo da tarefa</label>
+                <input id="visitTaskTitle" class="input" placeholder="Ex.: Retornar contato" />
+              </div>
+            </div>
+          </div>
+          <div id="leadExtras" class="hidden">
           <div class="field">
             <label for="visitInterest">Interesse*</label>
             <select id="visitInterest" class="input">
@@ -312,24 +330,6 @@
               <option value="nao">Não</option>
               <option value="sim">Sim</option>
             </select>
-          </div>
-          <div id="leadFollowUp" class="hidden">
-            <div class="field">
-              <label class="inline-flex items-center">
-                <input id="visitTaskEnable" type="checkbox" class="mr-2" />
-                Agendar tarefa?
-              </label>
-            </div>
-            <div id="visitTaskFields" class="grid gap-2 hidden">
-              <div class="field">
-                <label for="visitTaskWhen">Data/Hora</label>
-                <input id="visitTaskWhen" type="datetime-local" class="input" />
-              </div>
-              <div class="field">
-                <label for="visitTaskTitle">Ttulo da tarefa</label>
-                <input id="visitTaskTitle" class="input" placeholder="Ex.: Retornar contato" />
-              </div>
-            </div>
           </div>
           <div id="leadReason" class="hidden">
             <div class="field">
