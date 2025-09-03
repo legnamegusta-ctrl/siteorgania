@@ -67,6 +67,10 @@ export async function syncClientsFromFirestore() {
     const localAll = readLocal();
     for (const c of localAll.filter((x) => x.agronomistId === userId && !x.synced)) {
       try {
+        if (!c.id) {
+          console.warn('syncClientsFromFirestore: cliente sem id ignorado', c);
+          continue;
+        }
         await setDoc(doc(db, 'clients', c.id), c, { merge: true });
         c.synced = true;
       } catch (err) {
@@ -79,7 +83,7 @@ export async function syncClientsFromFirestore() {
   // Baixa remotos do agrônomo
   try {
     const snap = await getDocs(query(collection(db, 'clients'), where('agronomistId', '==', userId)));
-    const remote = snap.docs.map((d) => d.data());
+    const remote = snap.docs.map((d) => ({ id: d.id, synced: true, ...d.data() }));
     // Mescla com locais
     const map = new Map(remote.map((c) => [c.id, c]));
     for (const c of readLocal()) {
