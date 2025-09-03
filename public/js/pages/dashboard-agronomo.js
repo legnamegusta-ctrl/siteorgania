@@ -1247,4 +1247,4 @@ try {
   });
   processOutbox();
   handleHashChange();
-}
+
