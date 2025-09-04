@@ -32,7 +32,7 @@ import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { addSale } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
-import { initHomeView } from './home-view.js';
+import { initHomeSummaryView } from './home-view.js';
 
 let currentModal;
 let lastFocusedElement;
@@ -441,20 +441,21 @@ export async function initAgronomoDashboard(userId, userRole) {
     toggleModal(quickCreateModal, true);
   }
 
-  let renderHomeKPIs = () => {};
-  let renderHomeCharts = () => {};
-  let renderAgendaHome = () => {};
+  let renderTodayAgenda = () => {};
+  let renderRecentActivity = () => {};
+  let bindQuickActions = () => {};
   let homeViewInitialized = false;
 
   function ensureHomeViewInit() {
     if (!homeViewInitialized) {
-      const fns = initHomeView({
+      const fns = initHomeSummaryView({
         openVisitModal,
         openQuickCreateModal,
         replotMap,
         renderHistory,
       });
-      ({ renderHomeKPIs, renderHomeCharts, renderAgendaHome } = fns);
+      ({ renderTodayAgenda, renderRecentActivity, bindQuickActions } = fns);
+      bindQuickActions();
       homeViewInitialized = true;
     }
   }
@@ -526,12 +527,9 @@ export async function initAgronomoDashboard(userId, userRole) {
       await renderHistory();
       renderLeadsList();
       renderContactsList();
-      renderHomeKPIs();
-      renderHomeCharts();
+      renderTodayAgenda();
+      renderRecentActivity();
       renderLeadsSummary();
-      renderAgendaHome(
-        parseInt(document.getElementById('agendaPeriod')?.value || '7')
-      );
       if (location.hash === '#mapa') {
         replotMap();
         adjustMapHeight();
@@ -976,11 +974,8 @@ export async function initAgronomoDashboard(userId, userRole) {
         replotMap();
         adjustMapHeight();
       }
-      renderHomeKPIs();
-      renderHomeCharts();
-      renderAgendaHome(
-        parseInt(document.getElementById('agendaPeriod')?.value || '7')
-      );
+      renderTodayAgenda();
+      renderRecentActivity();
       if (location.hash === '#historico') renderHistory();
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
@@ -1063,8 +1058,8 @@ export async function initAgronomoDashboard(userId, userRole) {
             tons: saleData.tons,
             note: saleData.note,
           });
-          renderHomeKPIs();
-          renderHomeCharts();
+          renderTodayAgenda();
+          renderRecentActivity();
           updateLead(refId, { stage: 'Convertido' });
           if (location.hash === '#mapa') {
             replotMap();
@@ -1086,9 +1081,7 @@ export async function initAgronomoDashboard(userId, userRole) {
             }
             if (valid) {
               addAgenda({ title, when, leadId: refId });
-              renderAgendaHome(
-                parseInt(document.getElementById('agendaPeriod')?.value || '7')
-              );
+              renderTodayAgenda();
             }
           }
         }
@@ -1113,9 +1106,7 @@ export async function initAgronomoDashboard(userId, userRole) {
         }
         if (valid) {
           addAgenda({ title, when, clientId: refId });
-          renderAgendaHome(
-            parseInt(document.getElementById('agendaPeriod')?.value || '7')
-          );
+          renderTodayAgenda();
         }
       }
       if (!valid) return;
@@ -1142,11 +1133,8 @@ export async function initAgronomoDashboard(userId, userRole) {
     if (location.hash === '#historico') await renderHistory();
     renderLeadsList();
     renderContactsList();
-    renderHomeKPIs();
-    renderHomeCharts();
-    renderAgendaHome(
-      parseInt(document.getElementById('agendaPeriod')?.value || '7')
-    );
+    renderTodayAgenda();
+    renderRecentActivity();
     if (type === 'lead') {
       updateLead(refId, { interest: visit.interest, lastVisitAt: visit.at });
       renderLeadsSummary();
@@ -1242,9 +1230,8 @@ export async function initAgronomoDashboard(userId, userRole) {
     await loadView(hash);
     if (hash === '#home') {
       ensureHomeViewInit();
-      renderHomeKPIs();
-      renderHomeCharts();
-      renderAgendaHome(7);
+      renderTodayAgenda();
+      renderRecentActivity();
     }
     if (hash === '#mapa') {
       bindMapEvents();
