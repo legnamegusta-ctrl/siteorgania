@@ -256,6 +256,55 @@ export async function initAgronomoDashboard(userId, userRole) {
     });
   }
 
+  async function renderHomeRecent() {
+    const container = document.getElementById('recentHistory');
+    if (!container) return;
+    const visitList = await listVisits();
+    const visits = visitList.map((v) => ({
+      type: 'visit',
+      at: v.at,
+      name: v.clientName || v.leadName || '',
+      text: v.notes || ''
+    }));
+    const leads = getLeads().map((l) => ({
+      type: 'add',
+      at: l.createdAt,
+      text: `Lead cadastrado: ${l.name}${l.notes ? ' - ' + l.notes : ''}`
+    }));
+    const clients = getClients().map((c) => ({
+      type: 'add',
+      at: c.createdAt,
+      text: `Cliente cadastrado: ${c.name}${c.notes ? ' - ' + c.notes : ''}`
+    }));
+    let events = [...visits, ...leads, ...clients].filter((e) => e.at);
+    events.sort((a, b) => new Date(b.at) - new Date(a.at));
+    events = events.slice(0, 5);
+    if (!events.length) {
+      container.innerHTML = '<p class="text-sm text-gray-500">Nenhuma atividade recente.</p>';
+      container.innerHTML += '<a href="#historico" class="block mt-2 text-sm text-green-700">Ver tudo</a>';
+      return;
+    }
+    container.className = 'card-soft divide-y';
+    container.innerHTML = '';
+    events.forEach((ev) => {
+      const card = document.createElement('div');
+      card.className = 'pl-4 py-2 border-l-2 border-green-600';
+      const dateStr = new Date(ev.at).toLocaleString('pt-BR');
+      if (ev.type === 'visit') {
+        const name = ev.name ? `<strong>${ev.name}</strong> - ` : '';
+        card.innerHTML = `\n          <div class="text-sm text-gray-500">${dateStr}</div>\n          <div class="mt-1">${name}${ev.text}</div>\n        `;
+      } else {
+        card.innerHTML = `\n          <div class="text-sm text-gray-500">${dateStr}</div>\n          <div class="mt-1">${ev.text}</div>\n        `;
+      }
+      container.appendChild(card);
+    });
+    const link = document.createElement('a');
+    link.href = '#historico';
+    link.textContent = 'Ver tudo';
+    link.className = 'block mt-2 text-sm text-green-700';
+    container.appendChild(link);
+  }
+
   function clearErrors(form) {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
   }
@@ -1280,6 +1329,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     if (hash === '#home') {
       await renderHomeStats();
       renderHomeAgenda();
+      renderHomeRecent();
     }
     if (hash === '#mapa') {
       bindMapEvents();
