@@ -155,6 +155,7 @@ export async function initAgronomoDashboard(userId, userRole) {
 
   const viewContainer = document.getElementById('agroMain');
   const routes = {
+    '#home': 'views/home.html',
     '#contatos': 'views/contatos.html',
     '#clientes': 'views/clientes.html',
     '#leads': 'views/leads.html',
@@ -163,7 +164,7 @@ export async function initAgronomoDashboard(userId, userRole) {
   };
 
   async function loadView(hash) {
-    const url = routes[hash] || routes['#contatos'];
+    const url = routes[hash] || routes['#home'];
     const res = await fetch(url);
     viewContainer.innerHTML = await res.text();
   }
@@ -1192,7 +1193,7 @@ export async function initAgronomoDashboard(userId, userRole) {
 
 
   async function handleHashChange() {
-    let hash = location.hash || '#contatos';
+    let hash = location.hash || '#home';
     if (hash === '#clientes' || hash === '#leads') {
       hash = '#contatos';
       location.hash = hash;
