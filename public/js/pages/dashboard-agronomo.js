@@ -32,7 +32,6 @@ import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { addSale } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
-import { initHomeSummaryView } from './home-view.js';
 
 let currentModal;
 let lastFocusedElement;
@@ -156,7 +155,6 @@ export async function initAgronomoDashboard(userId, userRole) {
 
   const viewContainer = document.getElementById('agroMain');
   const routes = {
-    '#home': 'views/home.html',
     '#contatos': 'views/contatos.html',
     '#clientes': 'views/clientes.html',
     '#leads': 'views/leads.html',
@@ -165,7 +163,7 @@ export async function initAgronomoDashboard(userId, userRole) {
   };
 
   async function loadView(hash) {
-    const url = routes[hash] || routes['#home'];
+    const url = routes[hash] || routes['#contatos'];
     const res = await fetch(url);
     viewContainer.innerHTML = await res.text();
   }
@@ -441,10 +439,6 @@ export async function initAgronomoDashboard(userId, userRole) {
     toggleModal(quickCreateModal, true);
   }
 
-  let renderTodayAgenda = () => {};
-  let renderRecentActivity = () => {};
-  let bindQuickActions = () => {};
-  let quickActionsBound = false;
 
   function openLeadVisitModal(leadId) {
     currentLeadId = leadId;
@@ -513,8 +507,6 @@ export async function initAgronomoDashboard(userId, userRole) {
       await renderHistory();
       renderLeadsList();
       renderContactsList();
-      renderTodayAgenda();
-      renderRecentActivity();
       renderLeadsSummary();
       if (location.hash === '#mapa') {
         replotMap();
@@ -960,8 +952,6 @@ export async function initAgronomoDashboard(userId, userRole) {
         replotMap();
         adjustMapHeight();
       }
-      renderTodayAgenda();
-      renderRecentActivity();
       if (location.hash === '#historico') renderHistory();
       const reopen = !visitModal.classList.contains('hidden');
       toggleModal(quickCreateModal, false);
@@ -1044,8 +1034,6 @@ export async function initAgronomoDashboard(userId, userRole) {
             tons: saleData.tons,
             note: saleData.note,
           });
-          renderTodayAgenda();
-          renderRecentActivity();
           updateLead(refId, { stage: 'Convertido' });
           if (location.hash === '#mapa') {
             replotMap();
@@ -1067,7 +1055,6 @@ export async function initAgronomoDashboard(userId, userRole) {
             }
             if (valid) {
               addAgenda({ title, when, leadId: refId });
-              renderTodayAgenda();
             }
           }
         }
@@ -1092,7 +1079,6 @@ export async function initAgronomoDashboard(userId, userRole) {
         }
         if (valid) {
           addAgenda({ title, when, clientId: refId });
-          renderTodayAgenda();
         }
       }
       if (!valid) return;
@@ -1119,8 +1105,6 @@ export async function initAgronomoDashboard(userId, userRole) {
     if (location.hash === '#historico') await renderHistory();
     renderLeadsList();
     renderContactsList();
-    renderTodayAgenda();
-    renderRecentActivity();
     if (type === 'lead') {
       updateLead(refId, { interest: visit.interest, lastVisitAt: visit.at });
       renderLeadsSummary();
@@ -1208,27 +1192,12 @@ export async function initAgronomoDashboard(userId, userRole) {
 
 
   async function handleHashChange() {
-    let hash = location.hash || '#home';
+    let hash = location.hash || '#contatos';
     if (hash === '#clientes' || hash === '#leads') {
       hash = '#contatos';
       location.hash = hash;
     }
     await loadView(hash);
-    if (hash === '#home') {
-      ({ renderTodayAgenda, renderRecentActivity, bindQuickActions } =
-        initHomeSummaryView({
-          openVisitModal,
-          openQuickCreateModal,
-          replotMap,
-          renderHistory,
-        }));
-      if (!quickActionsBound) {
-        bindQuickActions();
-        quickActionsBound = true;
-      }
-      renderTodayAgenda();
-      renderRecentActivity();
-    }
     if (hash === '#mapa') {
       bindMapEvents();
       initAgroMap();
