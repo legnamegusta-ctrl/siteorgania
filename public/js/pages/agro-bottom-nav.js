@@ -2,7 +2,7 @@ export function initBottomNav() {
   const buttons = document.querySelectorAll('#bottomBar button');
 
   function setActive(hash) {
-    const target = hash || '#contatos';
+    const target = hash || '#home';
     buttons.forEach((b) => {
       if (b.dataset.nav === target) {
         b.classList.add('active');
@@ -22,9 +22,9 @@ export function initBottomNav() {
     }
   });
 
-  window.addEventListener('hashchange', () => setActive(location.hash));
-  if (!location.hash) location.hash = '#contatos';
-  setActive(location.hash);
+  window.addEventListener('hashchange', () => setActive(location.hash || '#home'));
+  if (!location.hash) location.hash = '#home';
+  setActive(location.hash || '#home');
 }
 
 export function bindPlus(handler) {
