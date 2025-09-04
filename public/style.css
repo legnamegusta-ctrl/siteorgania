@@ -1092,6 +1092,7 @@ body.has-modal{overflow:hidden;}
 }
 .bottom-bar button{flex:1;height:100%;}
 .bottom-bar .plus-btn{
+  flex:0 0 56px;
   width:56px;
   height:56px;
   border-radius:50%;
