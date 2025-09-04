@@ -32,6 +32,7 @@ import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
 import { addSale, getSales } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
+import { renderWeather } from '../weather.js';
 
 let currentModal;
 let lastFocusedElement;
@@ -1330,6 +1331,7 @@ export async function initAgronomoDashboard(userId, userRole) {
       await renderHomeStats();
       renderHomeAgenda();
       renderHomeRecent();
+      renderWeather();
     }
     if (hash === '#mapa') {
       bindMapEvents();
