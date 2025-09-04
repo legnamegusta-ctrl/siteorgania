@@ -1,0 +1,16 @@
+    <section id="view-contatos">
+      <h2 class="sr-only">Contatos</h2>
+      <div class="page-container flex gap-2">
+        <input id="contactsSearch" type="text" class="input flex-1" placeholder="Buscar" />
+        <div class="flex gap-2">
+          <button id="contactsFilterAll" class="chip chip--filter filter-active">Todos</button>
+          <button id="contactsFilterClients" class="chip chip--filter">Clientes</button>
+          <button id="contactsFilterLeads" class="chip chip--filter">Leads</button>
+        </div>
+      </div>
+      <div id="contactsList" class="page-container grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="contactsEmpty" class="page-container empty-state hidden text-center">
+        <p class="mb-2">Nenhum contato encontrado.</p>
+        <button id="btnContactsQuickAdd" class="btn-primary">Adicionar contato</button>
+      </div>
+    </section>

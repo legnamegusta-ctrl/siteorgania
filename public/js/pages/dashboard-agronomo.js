@@ -154,6 +154,22 @@ export async function initAgronomoDashboard(userId, userRole) {
   let leadsSort = localStorage.getItem(LEADS_SORT_KEY) || 'az';
   let leadsFilter = localStorage.getItem(LEADS_FILTER_KEY) || 'all';
 
+  const viewContainer = document.getElementById('agroMain');
+  const routes = {
+    '#home': 'views/home.html',
+    '#contatos': 'views/contatos.html',
+    '#clientes': 'views/clientes.html',
+    '#leads': 'views/leads.html',
+    '#mapa': 'views/mapa.html',
+    '#historico': 'views/historico.html',
+  };
+
+  async function loadView(hash) {
+    const url = routes[hash] || routes['#home'];
+    const res = await fetch(url);
+    viewContainer.innerHTML = await res.text();
+  }
+
   function runStagger() {
     const items = document.querySelectorAll('.stagger-item');
     items.forEach((el, index) => {
@@ -345,20 +361,19 @@ export async function initAgronomoDashboard(userId, userRole) {
     replotMap();
     adjustMapHeight();
   }
-  document
-    .getElementById('mapFilterAll')
-    ?.addEventListener('click', () => handleMapFilterChange('all'));
-  document
-    .getElementById('mapFilterClients')
-    ?.addEventListener('click', () => handleMapFilterChange('clients'));
-  document
-    .getElementById('mapFilterLeads')
-    ?.addEventListener('click', () => handleMapFilterChange('leads'));
+  function bindMapEvents() {
+    document
+      .getElementById('mapFilterAll')
+      ?.addEventListener('click', () => handleMapFilterChange('all'));
+    document
+      .getElementById('mapFilterClients')
+      ?.addEventListener('click', () => handleMapFilterChange('clients'));
+    document
+      .getElementById('mapFilterLeads')
+      ?.addEventListener('click', () => handleMapFilterChange('leads'));
+  }
 
   initBottomNav();
-  initAgroMap();
-  renderMap();
-  runStagger();
 
   bindPlus(() => toggleModal(quickModal, true));
   document
@@ -426,12 +441,20 @@ export async function initAgronomoDashboard(userId, userRole) {
     toggleModal(quickCreateModal, true);
   }
 
-  const { renderHomeKPIs, renderHomeCharts, renderAgendaHome } = initHomeView({
-    openVisitModal,
-    openQuickCreateModal,
-    replotMap,
-    renderHistory,
-  });
+  let renderHomeKPIs = () => {};
+  let renderHomeCharts = () => {};
+  let renderAgendaHome = () => {};
+  function ensureHomeViewInit() {
+    if (!renderHomeKPIs) {
+      const fns = initHomeView({
+        openVisitModal,
+        openQuickCreateModal,
+        replotMap,
+        renderHistory,
+      });
+      ({ renderHomeKPIs, renderHomeCharts, renderAgendaHome } = fns);
+    }
+  }
 
   function openLeadVisitModal(leadId) {
     currentLeadId = leadId;
@@ -1204,18 +1227,24 @@ export async function initAgronomoDashboard(userId, userRole) {
   }
 
 
-  function handleHashChange() {
-    if (location.hash === '#clientes' || location.hash === '#leads') {
-      location.hash = '#contatos';
-      return;
+  async function handleHashChange() {
+    let hash = location.hash || '#home';
+    if (hash === '#clientes' || hash === '#leads') {
+      hash = '#contatos';
+      location.hash = hash;
     }
-    if (location.hash === '#home') {
+    await loadView(hash);
+    if (hash === '#home') {
+      ensureHomeViewInit();
       renderHomeKPIs();
       renderHomeCharts();
+      renderAgendaHome(7);
     }
-    if (location.hash === '#mapa') {
+    if (hash === '#mapa') {
+      bindMapEvents();
+      initAgroMap();
+      renderMap();
       adjustMapHeight();
-      replotMap();
       requestAnimationFrame(() => {
         const focusId = sessionStorage.getItem('focusClientId');
         if (focusId) {
@@ -1224,14 +1253,16 @@ export async function initAgronomoDashboard(userId, userRole) {
         }
       });
     }
-    if (location.hash === '#contatos') {
+    if (hash === '#contatos') {
+      bindContactsEvents();
       renderContactsList(highlightContactId);
       highlightContactId = null;
     }
-    if (location.hash === '#historico') {
+    if (hash === '#historico') {
+      bindHistoryEvents();
       renderHistory();
     }
-    if (location.hash === '#visita') {
+    if (hash === '#visita') {
       const target = sessionStorage.getItem('visitForClientId');
       openVisitModal();
       if (target) {
@@ -1239,24 +1270,18 @@ export async function initAgronomoDashboard(userId, userRole) {
         sessionStorage.removeItem('visitForClientId');
       }
     }
+    runStagger();
   }
 
-  bindContactsEvents();
-  bindHistoryEvents();
   if (navigator.onLine) {
     await syncVisitsFromFirestore();
   }
-  renderAgendaHome(7);
-  renderHomeKPIs();
-  renderHistory();
-  renderHomeCharts();
-  renderContactsList();
   window.addEventListener('hashchange', handleHashChange);
   window.addEventListener('resize', () => {
     if (location.hash === '#mapa') adjustMapHeight();
   });
   processOutbox();
-  handleHashChange();
+  await handleHashChange();
 
   // Marca inicialização concluída (para fallback não duplicar)
   window.__agroBootReady = true;

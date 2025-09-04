@@ -37,7 +37,12 @@ export function initHomeView({ openVisitModal, openQuickCreateModal, replotMap, 
       const salesTons = getSales()
         .filter((s) => new Date(s.createdAt) >= salesStart)
         .reduce((acc, s) => acc + (parseFloat(s.tons) || 0), 0);
-      document.getElementById('kpiSales').textContent = String(salesTons);
+      const salesEl = document.getElementById('kpiSales');
+      const visitsEl = document.getElementById('kpiVisits');
+      const leadsEl = document.getElementById('kpiLeads');
+      const agendaEl = document.getElementById('kpiAgenda');
+      if (!salesEl || !visitsEl || !leadsEl || !agendaEl) return;
+      salesEl.textContent = String(salesTons);
 
       const visitsCut = now.getTime() - 28 * 24 * 60 * 60 * 1000;
       const allVisits = await listVisits();
@@ -45,14 +50,14 @@ export function initHomeView({ openVisitModal, openQuickCreateModal, replotMap, 
         const t = new Date(v.at).getTime();
         return !isNaN(t) && t >= visitsCut;
       }).length;
-      document.getElementById('kpiVisits').textContent = String(visitsCount);
+      visitsEl.textContent = String(visitsCount);
 
       const leadsCut = now.getTime() - 30 * 24 * 60 * 60 * 1000;
       const leadsCount = getLeads().filter((l) => {
         const t = new Date(l.createdAt).getTime();
         return !isNaN(t) && t >= leadsCut;
       }).length;
-      document.getElementById('kpiLeads').textContent = String(leadsCount);
+      leadsEl.textContent = String(leadsCount);
 
       const agendaLimit = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const pend = getAgenda().filter((a) => {
@@ -60,9 +65,9 @@ export function initHomeView({ openVisitModal, openQuickCreateModal, replotMap, 
         const w = new Date(a.when);
         return !isNaN(w) && w >= now && w <= agendaLimit;
       }).length;
-      document.getElementById('kpiAgenda').textContent = String(pend);
+      agendaEl.textContent = String(pend);
     };
-    if (!document.getElementById('kpiSales')?.textContent) {
+    if (!document.getElementById('kpiSales')) {
       setTimeout(exec, 300);
     } else exec();
   }
