@@ -30,7 +30,7 @@ import {
 } from '../stores/visitsStore.js';
 import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
-import { addSale } from '../stores/salesStore.js';
+import { addSale, getSales } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
 
 let currentModal;
@@ -176,6 +176,26 @@ export async function initAgronomoDashboard(userId, userRole) {
         el.classList.remove('opacity-0', 'translate-y-4');
       }, index * 100);
     });
+  }
+
+  async function renderHomeStats() {
+    const container = document.getElementById('homeStats');
+    if (!container) return;
+    const clientCount = getClients().length;
+    const leadCount = getLeads().length;
+    const visitCount = (await listVisits()).length;
+    const saleCount = typeof getSales === 'function' ? getSales().length : 0;
+    const stats = [
+      { label: 'Clientes', value: clientCount },
+      { label: 'Leads', value: leadCount },
+      { label: 'Visitas', value: visitCount },
+      { label: 'Vendas', value: saleCount },
+    ];
+    container.innerHTML = stats
+      .map(
+        (s) => `\n      <div class="card-soft home-stat-card">\n        <span class="stat-value">${s.value}</span>\n        <span>${s.label}</span>\n      </div>`
+      )
+      .join('');
   }
 
   function clearErrors(form) {
@@ -1199,6 +1219,9 @@ export async function initAgronomoDashboard(userId, userRole) {
       location.hash = hash;
     }
     await loadView(hash);
+    if (hash === '#home') {
+      await renderHomeStats();
+    }
     if (hash === '#mapa') {
       bindMapEvents();
       initAgroMap();
