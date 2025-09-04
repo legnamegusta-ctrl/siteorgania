@@ -98,3 +98,51 @@ try {
     }
   }
 } catch {}
+
+// Exibe aviso simples de conexão online/offline
+(() => {
+  const banner = document.createElement('div');
+  Object.assign(banner.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    right: '0',
+    padding: '8px',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#fff',
+    display: 'none',
+    zIndex: 1000,
+  });
+
+  let hideTimeout;
+  function updateStatus(online) {
+    clearTimeout(hideTimeout);
+    if (online) {
+      banner.textContent = 'Conectado';
+      banner.style.background = '#16a34a';
+      banner.style.display = 'block';
+      hideTimeout = setTimeout(() => {
+        banner.style.display = 'none';
+      }, 3000);
+    } else {
+      banner.textContent = 'Sem conexão';
+      banner.style.background = '#dc2626';
+      banner.style.display = 'block';
+    }
+  }
+
+  function init() {
+    document.body.appendChild(banner);
+    updateStatus(navigator.onLine);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  window.addEventListener('online', () => updateStatus(true));
+  window.addEventListener('offline', () => updateStatus(false));
+})();
