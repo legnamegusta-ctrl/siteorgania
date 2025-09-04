@@ -30,7 +30,7 @@ import {
 } from '../stores/visitsStore.js';
 import { processOutbox } from '../sync/outbox.js';
 import { addAgenda, getAgenda, updateAgenda, syncAgendaFromFirestore } from '../stores/agendaStore.js';
-import { addSale } from '../stores/salesStore.js';
+import { addSale, getSales } from '../stores/salesStore.js';
 import { nowBrasiliaISO, nowBrasiliaLocal } from '../lib/date-utils.js';
 
 let currentModal;
@@ -176,6 +176,33 @@ export async function initAgronomoDashboard(userId, userRole) {
         el.classList.remove('opacity-0', 'translate-y-4');
       }, index * 100);
     });
+  }
+
+  async function renderHomeStats() {
+    const container = document.getElementById('homeStats');
+    if (!container) return;
+    const clientCount = getClients().length;
+    const leadCount = getLeads().length;
+    const visitCount = (await listVisits()).length;
+    const saleCount = typeof getSales === 'function' ? getSales().length : 0;
+    const stats = [
+      { label: 'Clientes', value: clientCount, icon: 'fa-user-group', color: 'text-emerald-700' },
+      { label: 'Leads', value: leadCount, icon: 'fa-seedling', color: 'text-sky-700' },
+      { label: 'Visitas', value: visitCount, icon: 'fa-map-marker-alt', color: 'text-amber-700' },
+      { label: 'Vendas', value: saleCount, icon: 'fa-handshake', color: 'text-violet-700' },
+    ];
+    container.innerHTML = stats
+      .map(
+        (s) => `
+        <div class="kpi-card">
+          <div class="kpi-icon"><i class="fas ${s.icon} ${s.color} text-[20px]"></i></div>
+          <div class="kpi-text">
+            <span class="kpi-title">${s.label}</span>
+            <span class="kpi-value ${s.color}">${s.value}</span>
+          </div>
+        </div>`
+      )
+      .join('');
   }
 
   function clearErrors(form) {
@@ -1199,6 +1226,9 @@ export async function initAgronomoDashboard(userId, userRole) {
       location.hash = hash;
     }
     await loadView(hash);
+    if (hash === '#home') {
+      await renderHomeStats();
+    }
     if (hash === '#mapa') {
       bindMapEvents();
       initAgroMap();
