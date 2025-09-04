@@ -720,9 +720,12 @@ export async function initAgronomoDashboard(userId, userRole) {
     leads.forEach((l) => {
       if (counts[l.interest] >= 0) counts[l.interest]++;
     });
-    document.getElementById('leadCountInteressado').textContent = counts['Interessado'];
-    document.getElementById('leadCountNaDuvida').textContent = counts['Na dúvida'];
-    document.getElementById('leadCountSemInteresse').textContent = counts['Sem interesse'];
+    const elInteressado = document.getElementById('leadCountInteressado');
+    if (elInteressado) elInteressado.textContent = String(counts['Interessado']);
+    const elNaDuvida = document.getElementById('leadCountNaDuvida');
+    if (elNaDuvida) elNaDuvida.textContent = String(counts['Na dúvida']);
+    const elSemInteresse = document.getElementById('leadCountSemInteresse');
+    if (elSemInteresse) elSemInteresse.textContent = String(counts['Sem interesse']);
   }
 
   async function renderLeadsList() {
