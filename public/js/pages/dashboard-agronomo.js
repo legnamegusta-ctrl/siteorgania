@@ -444,8 +444,10 @@ export async function initAgronomoDashboard(userId, userRole) {
   let renderHomeKPIs = () => {};
   let renderHomeCharts = () => {};
   let renderAgendaHome = () => {};
+  let homeViewInitialized = false;
+
   function ensureHomeViewInit() {
-    if (!renderHomeKPIs) {
+    if (!homeViewInitialized) {
       const fns = initHomeView({
         openVisitModal,
         openQuickCreateModal,
@@ -453,6 +455,7 @@ export async function initAgronomoDashboard(userId, userRole) {
         renderHistory,
       });
       ({ renderHomeKPIs, renderHomeCharts, renderAgendaHome } = fns);
+      homeViewInitialized = true;
     }
   }
 
