@@ -198,6 +198,64 @@ export async function initAgronomoDashboard(userId, userRole) {
       .join('');
   }
 
+  function renderHomeAgenda() {
+    const list = document.getElementById('agendaHoje');
+    if (!list) return;
+    list.textContent = '';
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    const leads = getLeads();
+    const clients = getClients();
+    const items = getAgenda()
+      .filter((it) => {
+        if (it.done) return false;
+        const when = new Date(it.when);
+        return when >= start && when < end;
+      })
+      .sort((a, b) => new Date(a.when) - new Date(b.when));
+    if (items.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'text-sm text-gray-500';
+      li.textContent = 'Nenhum compromisso para hoje.';
+      list.appendChild(li);
+      return;
+    }
+    items.forEach((it) => {
+      const when = new Date(it.when);
+      const li = document.createElement('li');
+      li.className =
+        'rounded-xl border border-gray-100 bg-white p-3 text-sm space-y-1';
+      const time = document.createElement('div');
+      time.className = 'text-gray-600';
+      time.textContent = when.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      const nameEl = document.createElement('div');
+      nameEl.className = 'font-semibold text-gray-800';
+      let name = '(sem nome)';
+      if (it.clientId) {
+        const c = clients.find((cl) => cl.id === it.clientId);
+        name = c?.name || '(sem nome)';
+      } else if (it.leadId) {
+        const l = leads.find((ld) => ld.id === it.leadId);
+        name = l?.name || '(sem nome)';
+      }
+      nameEl.textContent = name;
+      li.appendChild(time);
+      li.appendChild(nameEl);
+      if (it.note) {
+        const note = document.createElement('div');
+        note.className = 'text-xs text-gray-500';
+        note.textContent = it.note;
+        li.appendChild(note);
+      }
+      list.appendChild(li);
+    });
+  }
+
   function clearErrors(form) {
     form?.querySelectorAll('.error').forEach((e) => e.remove());
   }
@@ -1221,6 +1279,7 @@ export async function initAgronomoDashboard(userId, userRole) {
     await loadView(hash);
     if (hash === '#home') {
       await renderHomeStats();
+      renderHomeAgenda();
     }
     if (hash === '#mapa') {
       bindMapEvents();
