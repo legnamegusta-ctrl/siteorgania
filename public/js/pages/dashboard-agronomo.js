@@ -444,21 +444,7 @@ export async function initAgronomoDashboard(userId, userRole) {
   let renderTodayAgenda = () => {};
   let renderRecentActivity = () => {};
   let bindQuickActions = () => {};
-  let homeViewInitialized = false;
-
-  function ensureHomeViewInit() {
-    if (!homeViewInitialized) {
-      const fns = initHomeSummaryView({
-        openVisitModal,
-        openQuickCreateModal,
-        replotMap,
-        renderHistory,
-      });
-      ({ renderTodayAgenda, renderRecentActivity, bindQuickActions } = fns);
-      bindQuickActions();
-      homeViewInitialized = true;
-    }
-  }
+  let quickActionsBound = false;
 
   function openLeadVisitModal(leadId) {
     currentLeadId = leadId;
@@ -1229,7 +1215,17 @@ export async function initAgronomoDashboard(userId, userRole) {
     }
     await loadView(hash);
     if (hash === '#home') {
-      ensureHomeViewInit();
+      ({ renderTodayAgenda, renderRecentActivity, bindQuickActions } =
+        initHomeSummaryView({
+          openVisitModal,
+          openQuickCreateModal,
+          replotMap,
+          renderHistory,
+        }));
+      if (!quickActionsBound) {
+        bindQuickActions();
+        quickActionsBound = true;
+      }
       renderTodayAgenda();
       renderRecentActivity();
     }
