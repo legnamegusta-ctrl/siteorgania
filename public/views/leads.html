@@ -1,0 +1,27 @@
+    <section id="view-leads">
+      <h2 class="sr-only">Leads</h2>
+      <div id="leadsSummary" class="page-container text-sm text-gray-500 flex gap-4">
+        <div>Interessado: <span id="leadCountInteressado">0</span></div>
+        <div>Na dúvida: <span id="leadCountNaDuvida">0</span></div>
+        <div>Sem interesse: <span id="leadCountSemInteresse">0</span></div>
+      </div>
+      <div class="page-container flex gap-2">
+        <input id="leadsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
+        <select id="leadsSort" class="input w-40">
+          <option value="az">A-Z</option>
+          <option value="recent">Mais recentes</option>
+          <option value="visits">Mais visitas</option>
+        </select>
+      </div>
+      <div class="page-container flex gap-2" id="leadsFilterChips">
+        <button data-filter="all" class="chip chip--filter filter-active">Todos</button>
+        <button data-filter="Interessado" class="chip chip--filter">Interessado</button>
+        <button data-filter="Na dúvida" class="chip chip--filter">Na dúvida</button>
+        <button data-filter="Sem interesse" class="chip chip--filter">Sem interesse</button>
+      </div>
+      <div id="leadsList" class="page-container card-soft divide-y"></div>
+      <div id="leadsEmpty" class="page-container empty-state hidden text-center">
+        <p class="mb-2">Nenhum lead encontrado.</p>
+        <button id="btnLeadsQuickAdd" class="btn-primary">Cadastrar lead</button>
+      </div>
+    </section>

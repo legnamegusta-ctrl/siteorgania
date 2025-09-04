@@ -1,0 +1,21 @@
+    <section id="view-clientes">
+      <h2 class="sr-only">Clientes</h2>
+      <div id="clientsSummary" class="page-container text-sm text-gray-500">Ativos: <span id="clientsTotal">0</span></div>
+      <div class="page-container flex gap-2">
+        <input id="clientsSearch" type="text" class="input flex-1" placeholder="Buscar por nome" />
+        <select id="clientsSort" class="input w-40">
+          <option value="az">A-Z</option>
+          <option value="recent">Mais recentes</option>
+          <option value="visits">Mais visitas</option>
+        </select>
+      </div>
+      <div class="page-container flex gap-2" id="clientsFilterChips">
+        <button data-filter="active" class="chip chip--filter filter-active">Ativos</button>
+        <button data-filter="all" class="chip chip--filter">Todos</button>
+      </div>
+      <div id="clientsList" class="page-container card-soft divide-y"></div>
+      <div id="clientsEmpty" class="page-container empty-state hidden text-center">
+        <p class="mb-2">Nenhum cliente encontrado.</p>
+        <button id="btnClientsQuickAdd" class="btn-primary">Cadastrar cliente</button>
+      </div>
+    </section>

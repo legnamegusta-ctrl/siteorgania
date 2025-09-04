@@ -1,12 +1,8 @@
 export function initBottomNav() {
-  const views = document.querySelectorAll('#agroMain [data-view]');
   const buttons = document.querySelectorAll('#bottomBar button');
 
-  function show(hash) {
+  function setActive(hash) {
     const target = hash || '#home';
-    views.forEach((v) => v.classList.add('hidden'));
-    const id = `view-${target.replace('#','')}`;
-    document.getElementById(id)?.classList.remove('hidden');
     buttons.forEach((b) => {
       if (b.dataset.nav === target) {
         b.classList.add('active');
@@ -26,9 +22,9 @@ export function initBottomNav() {
     }
   });
 
-  window.addEventListener('hashchange', () => show(location.hash));
+  window.addEventListener('hashchange', () => setActive(location.hash));
   if (!location.hash) location.hash = '#home';
-  show(location.hash);
+  setActive(location.hash);
 }
 
 export function bindPlus(handler) {
