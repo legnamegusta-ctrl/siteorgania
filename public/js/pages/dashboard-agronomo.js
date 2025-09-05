@@ -373,23 +373,22 @@ export async function initAgronomoDashboard(userId, userRole) {
     }
     historyTimeline.innerHTML = '';
     events.forEach((ev) => {
-      const card = document.createElement('div');
-      card.className = 'mb-4 pl-4 border-l-2 border-green-600';
+      const item = document.createElement('li');
+      item.className = 'timeline-item';
+      const icon = ev.type === 'visit' ? 'fa-map-marker-alt' : 'fa-user-plus';
+      const name = ev.type === 'visit' && ev.name ? `<strong>${ev.name}</strong> - ` : '';
       const dateStr = new Date(ev.at).toLocaleString('pt-BR');
-      if (ev.type === 'visit') {
-        const name = ev.name ? `<strong>${ev.name}</strong> - ` : '';
-        card.innerHTML = `
-          <div class="text-sm text-gray-500">${dateStr}</div>
-          <div class="mt-1">${name}${ev.text}</div>
-          <button class="text-xs text-green-700 mt-1 edit-visit" data-id="${ev.id}">Editar</button>
-        `;
-      } else {
-        card.innerHTML = `
-          <div class="text-sm text-gray-500">${dateStr}</div>
-          <div class="mt-1">${ev.text}</div>
-        `;
-      }
-      historyTimeline.appendChild(card);
+      item.innerHTML = `
+        <span class="timeline-icon"><i class="fas ${icon}"></i></span>
+        <div class="timeline-date">${dateStr}</div>
+        <div class="mt-1">${name}${ev.text}</div>
+        ${
+          ev.type === 'visit'
+            ? `<button class="text-xs text-green-700 mt-1 edit-visit" data-id="${ev.id}">Editar</button>`
+            : ''
+        }
+      `;
+      historyTimeline.appendChild(item);
     });
   }
 
