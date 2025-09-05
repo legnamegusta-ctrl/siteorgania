@@ -669,6 +669,15 @@ export async function initAgronomoDashboard(userId, userRole) {
     if (el) el.textContent = String(totalActive);
   }
 
+  function interestBadgeClass(interest) {
+    const slug = (interest || '')
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+    if (slug === 'interessado') return 'lead-card--interessado';
+    if (slug === 'sem-interesse') return 'lead-card--sem-interesse';
+    return 'lead-card--default';
+  }
+
   async function renderContactsList(highlightId) {
     const listEl = document.getElementById('contactsList');
     const emptyEl = document.getElementById('contactsEmpty');
@@ -707,6 +716,7 @@ export async function initAgronomoDashboard(userId, userRole) {
           name: l.name,
           farmName: l.farmName,
           type: 'lead',
+          interest: l.interest,
           lastTime: last ? new Date(last.at).getTime() : 0,
         };
       })
@@ -728,14 +738,26 @@ export async function initAgronomoDashboard(userId, userRole) {
     listEl.innerHTML = '';
     items.forEach((it) => {
       const div = document.createElement('div');
-      div.className = 'p-4 bg-white rounded-2xl shadow-md';
+      div.className = 'contact-card';
       if (it.type === 'lead') {
         div.classList.add('lead-card');
         div.dataset.id = it.id;
       }
-      div.innerHTML = `<div class="font-semibold">${
-        it.name || '(sem nome)'
-      }</div><div class="text-sm text-gray-600">${it.farmName || ''}</div>`;
+      const icon = it.type === 'lead' ? 'fa-seedling' : 'fa-user';
+      const badge =
+        it.type === 'lead' && it.interest
+          ? `<span class="lead-badge ${interestBadgeClass(it.interest)}">${it.interest}</span>`
+          : '';
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fas ${icon}"></i>
+          <div class="flex-1">
+            <div class="font-semibold">${it.name || '(sem nome)'}</div>
+            <div class="text-sm text-gray-600">${it.farmName || ''}</div>
+          </div>
+          ${badge}
+        </div>
+      `;
       const actions = document.createElement('div');
       actions.className = 'mt-2 flex gap-2';
       const visitBtn = document.createElement('button');
@@ -867,15 +889,21 @@ export async function initAgronomoDashboard(userId, userRole) {
     listEl.innerHTML = '';
     items.forEach((it) => {
       const div = document.createElement('div');
-      div.className = 'py-2 cursor-pointer lead-card';
+      div.className = 'contact-card cursor-pointer lead-card';
       div.dataset.id = it.lead.id;
-      div.innerHTML = `<div class="font-semibold">${
-        it.lead.name || '(sem nome)'
-      }</div><div class="text-sm text-gray-600">${
-        it.lead.farmName || ''
-      }</div><div class="text-xs text-gray-500">${
-        it.lead.interest || ''
-      }</div>`;
+      const badge = it.lead.interest
+        ? `<span class="lead-badge ${interestBadgeClass(it.lead.interest)}">${it.lead.interest}</span>`
+        : '';
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fas fa-seedling"></i>
+          <div class="flex-1">
+            <div class="font-semibold">${it.lead.name || '(sem nome)'}</div>
+            <div class="text-sm text-gray-600">${it.lead.farmName || ''}</div>
+          </div>
+          ${badge}
+        </div>
+      `;
       const canVisit =
         userRole === 'admin' ||
         userRole === 'agronomo' ||
