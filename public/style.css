@@ -1123,7 +1123,35 @@ body.has-modal{overflow:hidden;}
   padding-bottom: env(safe-area-inset-bottom, 0px);
   z-index:50;
 }
-.bottom-bar button{flex:1;height:100%;}
+.bottom-bar button{
+  flex:1;
+  height:100%;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transition:background var(--transition-base),color var(--transition-base);
+}
+
+.bottom-bar button:hover,
+.bottom-bar button:focus{
+  background:var(--border);
+  color:var(--text-dark);
+}
+
+.bottom-bar button.active{
+  background:var(--success-bg);
+  color:var(--success);
+}
+
+.bottom-bar button.active:hover,
+.bottom-bar button.active:focus{
+  background:var(--success-br);
+  color:var(--success);
+}
 .bottom-bar .plus-btn{
   flex:0 0 56px;
   width:56px;
