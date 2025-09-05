@@ -22,9 +22,10 @@
   <div id="dashboard-agronomo-marker" hidden></div>
 
   <header class="bg-white shadow-md sticky top-0 z-20">
-    <div class="page-container px-4 py-3 flex justify-between items-center">
-      <h1 class="text-lg font-bold" style="color: var(--brand-green);">Painel do Agrônomo</h1>
-      <div class="flex items-center space-x-2">
+    <div class="page-container px-4 py-3 grid grid-cols-3 items-center">
+      <img src="/favicon.png" alt="Orgânia" class="h-8" />
+      <div id="homeWeather" class="justify-self-center text-sm"></div>
+      <div class="flex items-center space-x-2 justify-self-end">
         <button id="exportOfflineBtn" class="px-3 py-1.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 text-sm">Exportar</button>
         <button onclick="logout()" class="px-3 py-1.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 text-sm">Sair</button>
       </div>

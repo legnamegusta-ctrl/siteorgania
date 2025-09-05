@@ -1,7 +1,7 @@
 export async function renderWeather() {
   const container = document.getElementById('homeWeather');
   if (!container) return;
-  container.innerHTML = '<p class="text-sm text-gray-500">Carregando clima...</p>';
+  container.innerHTML = '<span class="text-xs text-gray-500">Carregando clima...</span>';
   try {
     let lat = -15.78;
     let lon = -47.93;
@@ -20,11 +20,12 @@ export async function renderWeather() {
     if (!data.current_weather) throw new Error('Sem dados');
     const w = data.current_weather;
     container.innerHTML = `
-      <h3 class="font-semibold mb-2">Clima atual</h3>
-      <div class="weather-temp">${Math.round(w.temperature)}°C</div>
-      <div class="text-sm text-gray-600">Vento: ${Math.round(w.windspeed)} km/h</div>
+      <div class="text-center">
+        <div class="text-lg font-semibold">${Math.round(w.temperature)}°C</div>
+        <div class="text-xs text-gray-600">Vento ${Math.round(w.windspeed)} km/h</div>
+      </div>
     `;
   } catch (e) {
-    container.innerHTML = '<p class="text-sm text-gray-500">Não foi possível carregar o clima.</p>';
+    container.innerHTML = '<span class="text-xs text-gray-500">Não foi possível carregar o clima.</span>';
   }
 }
