@@ -1218,3 +1218,34 @@ body.has-modal{overflow:hidden;}
   font-size: 2rem;
   font-weight: 700;
 }
+
+/* Contact and lead cards */
+.contact-card {
+  background: var(--card-background);
+  padding: var(--pad);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--gap);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.lead-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-base);
+}
+
+.lead-card--interessado {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.lead-card--sem-interesse {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.lead-card--default {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
