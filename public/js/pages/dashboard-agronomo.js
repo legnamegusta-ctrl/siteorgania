@@ -187,14 +187,14 @@ export async function initAgronomoDashboard(userId, userRole) {
     const visitCount = (await listVisits()).length;
     const saleCount = typeof getSales === 'function' ? getSales().length : 0;
     const stats = [
-      { label: 'Clientes', value: clientCount },
-      { label: 'Leads', value: leadCount },
-      { label: 'Visitas', value: visitCount },
-      { label: 'Vendas', value: saleCount },
+      { label: 'Clientes', value: clientCount, icon: 'fas fa-users', color: 'bg-success' },
+      { label: 'Leads', value: leadCount, icon: 'fas fa-user-plus', color: 'bg-info' },
+      { label: 'Visitas', value: visitCount, icon: 'fas fa-map-marker-alt', color: 'bg-warn' },
+      { label: 'Vendas', value: saleCount, icon: 'fas fa-shopping-cart', color: 'bg-danger' },
     ];
     container.innerHTML = stats
       .map(
-        (s) => `\n      <div class="card-soft home-stat-card">\n        <span class="stat-value">${s.value}</span>\n        <span>${s.label}</span>\n      </div>`
+        (s) => `\n      <div class="card-soft home-stat-card">\n        <div class="home-stat-icon ${s.color}"><i class="${s.icon}" aria-hidden="true"></i></div>\n        <span class="stat-value">${s.value}</span>\n        <span>${s.label}</span>\n      </div>`
       )
       .join('');
   }
