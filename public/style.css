@@ -1237,13 +1237,13 @@ body.has-modal{overflow:hidden;}
 }
 
 #networkStatus.online {
-    background-color: #d1fae5;
-    color: #065f46;
+    background-color: #16a34a;
+    color: #ffffff;
 }
 
 #networkStatus.offline {
-    background-color: #fee2e2;
-    color: #991b1b;
+    background-color: #dc2626;
+    color: #ffffff;
 }
 
 /* Weather widget styles */
