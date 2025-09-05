@@ -134,6 +134,8 @@ export async function initAgronomoDashboard(userId, userRole) {
   const leadVisitTaskWhen = document.getElementById('leadVisitTaskWhen');
   const leadVisitTaskTitle = document.getElementById('leadVisitTaskTitle');
 
+  renderWeather();
+
   const historyTimeline = document.getElementById('historyTimeline');
   const historyFilterAll = document.getElementById('historyFilterAll');
   const historyFilterVisits = document.getElementById('historyFilterVisits');
@@ -1359,7 +1361,6 @@ export async function initAgronomoDashboard(userId, userRole) {
       await renderHomeStats();
       renderHomeAgenda();
       renderHomeRecent();
-      renderWeather();
     }
     if (hash === '#mapa') {
       bindMapEvents();
