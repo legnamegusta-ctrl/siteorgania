@@ -79,19 +79,37 @@ function handleModalKeydown(e) {
 
 function toggleModal(el, open) {
   if (!el) return;
+  const overlay = el.classList.contains('modal-overlay') ? el : el.closest('.modal-overlay');
+  if (!overlay) return;
   if (open) {
     lastFocusedElement = document.activeElement;
-    currentModal = el;
-    el.classList.remove('hidden');
+    currentModal = overlay;
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => overlay.classList.add('show'));
     focusableElements = Array.from(
-      el.querySelectorAll('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])')
+      overlay.querySelectorAll('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])')
     );
-    const first = el.querySelector('[autofocus]') || focusableElements[0];
+    const first = overlay.querySelector('[autofocus]') || focusableElements[0];
     first?.focus();
     document.addEventListener('keydown', handleModalKeydown);
+    overlay.__closeHandler ??= (e) => {
+      if (e.target === overlay) toggleModal(overlay, false);
+    };
+    overlay.addEventListener('click', overlay.__closeHandler);
   } else {
-    el.classList.add('hidden');
+    overlay.classList.remove('show');
+    overlay.addEventListener(
+      'transitionend',
+      function handler(e) {
+        if (e.target === overlay) {
+          overlay.classList.add('hidden');
+          overlay.removeEventListener('transitionend', handler);
+        }
+      },
+      { once: true }
+    );
     document.removeEventListener('keydown', handleModalKeydown);
+    overlay.removeEventListener('click', overlay.__closeHandler);
     currentModal = null;
     focusableElements = [];
     lastFocusedElement?.focus();
