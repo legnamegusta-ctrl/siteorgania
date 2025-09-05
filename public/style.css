@@ -1214,6 +1214,10 @@ body.has-modal{overflow:hidden;}
 .kpi-icon { @apply w-9 h-9 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-700; }
 .kpi-value:empty { @apply skeleton h-8 w-16; }
 .card-soft { @apply bg-white border border-gray-100 rounded-2xl p-4 md:p-5 shadow-sm; }
+.card-soft h3 {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
 .skeleton { @apply animate-pulse bg-gray-200 rounded; }
 
 /* Reserve space so content never hides under the fixed bottom bar */
