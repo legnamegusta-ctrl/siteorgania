@@ -37,6 +37,7 @@ export function initLeadDetails(userId, userRole) {
   const leadEmail = document.getElementById('leadEmail');
   const leadProperty = document.getElementById('leadProperty');
   const leadOrigin = document.getElementById('leadOrigin');
+  const leadCoords = document.getElementById('leadCoords');
   const leadNotes = document.getElementById('leadNotes');
   const leadStage = document.getElementById('leadStage');
   const visitsTimeline = document.getElementById('visitsTimeline');
@@ -92,6 +93,21 @@ export function initLeadDetails(userId, userRole) {
     if (leadProperty)
       leadProperty.textContent = lead.propertyName || lead.property || '';
     if (leadOrigin) leadOrigin.textContent = lead.origin || lead.source || '';
+    if (leadCoords) {
+      if (lead.lat && lead.lng) {
+        const text = `${lead.lat}, ${lead.lng}`;
+        leadCoords.textContent = text;
+        leadCoords.onclick = () => {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => showToast('Coordenadas copiadas!', 'success'))
+            .catch(() => showToast('Erro ao copiar coordenadas.', 'error'));
+        };
+        leadCoords.classList.remove('hidden');
+      } else {
+        leadCoords.classList.add('hidden');
+      }
+    }
     if (leadNotes) leadNotes.textContent = lead.notes || '';
     if (leadStage && lead.stage) {
       const color = STAGE_COLORS[lead.stage] || 'bg-gray-100 text-gray-800';
@@ -140,6 +156,21 @@ export function initLeadDetails(userId, userRole) {
     if (leadProperty)
       leadProperty.textContent = data.propertyName || data.property || '';
     if (leadOrigin) leadOrigin.textContent = data.origin || data.source || '';
+    if (leadCoords) {
+      if (data.lat && data.lng) {
+        const text = `${data.lat}, ${data.lng}`;
+        leadCoords.textContent = text;
+        leadCoords.onclick = () => {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => showToast('Coordenadas copiadas!', 'success'))
+            .catch(() => showToast('Erro ao copiar coordenadas.', 'error'));
+        };
+        leadCoords.classList.remove('hidden');
+      } else {
+        leadCoords.classList.add('hidden');
+      }
+    }
     if (leadNotes) leadNotes.textContent = data.notes || '';
     if (leadStage && data.stage) {
       const color = STAGE_COLORS[data.stage] || 'bg-gray-100 text-gray-800';

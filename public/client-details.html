@@ -19,7 +19,10 @@
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center gap-4">
           <a id="backBtn" class="text-gray-500 hover:text-gray-800" title="Voltar"><i class="fas fa-arrow-left"></i></a>
-          <h1 id="clientNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
+          <div class="flex items-center gap-2">
+            <h1 id="clientNameHeader" class="text-2xl font-bold" style="color: var(--brand-green);">Carregando...</h1>
+            <a id="editClient" class="action-icon" title="Editar"><i class="fas fa-edit"></i></a>
+          </div>
         </div>
         <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm">Sair</button>
       </div>
@@ -96,6 +99,35 @@
         </div>
         <div class="flex gap-2 justify-end">
           <button type="button" id="btnSaleCancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de edição do cliente -->
+  <div id="editClientModal" class="modal hidden">
+    <div class="modal-card w-full max-w-md">
+      <h3 class="font-semibold mb-4">Editar Cliente</h3>
+      <form id="editClientForm" class="grid gap-4">
+        <div class="field">
+          <label for="editClientName">Nome</label>
+          <input id="editClientName" class="input" />
+        </div>
+        <div class="field">
+          <label for="editClientPhone">Telefone</label>
+          <input id="editClientPhone" class="input" />
+        </div>
+        <div class="field">
+          <label for="editClientEmail">E-mail</label>
+          <input id="editClientEmail" class="input" />
+        </div>
+        <div class="field">
+          <label for="editClientNotes">Notas</label>
+          <textarea id="editClientNotes" class="input"></textarea>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="btnEditClientCancel" class="btn-secondary">Cancelar</button>
           <button type="submit" class="btn-primary">Salvar</button>
         </div>
       </form>

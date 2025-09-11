@@ -802,12 +802,16 @@ export async function initAgronomoDashboard(userId, userRole) {
         });
       }
       actions.appendChild(visitBtn);
-      if (it.type === 'cliente') {
+      if (it.type === 'cliente' || it.type === 'lead') {
         const openBtn = document.createElement('button');
         openBtn.className = 'btn-secondary flex-1';
         openBtn.textContent = 'Abrir';
         openBtn.addEventListener('click', () => {
-          location.href = `client-details.html?clientId=${it.id}&from=agronomo`;
+          if (it.type === 'lead') {
+            location.href = `lead-details.html?id=${it.id}`;
+          } else {
+            location.href = `client-details.html?clientId=${it.id}&from=agronomo`;
+          }
         });
         actions.appendChild(openBtn);
       }
