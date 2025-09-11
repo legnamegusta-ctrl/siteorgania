@@ -7,7 +7,8 @@
 
 import { getLeads } from '../stores/leadsStore.js';
 import { getVisits, updateVisit } from '../stores/visitsStore.js';
-import { promptModal } from '../services/ui.js';
+import { promptModal, showToast } from '../services/ui.js';
+import { toggleModal } from './agro-bottom-nav.js';
 
 export function initClientDetails(userId, userRole) {
   const params = new URLSearchParams(window.location.search);
@@ -28,6 +29,16 @@ export function initClientDetails(userId, userRole) {
   const summaryNotes = document.getElementById('summaryNotes');
   const propertiesList = document.getElementById('propertiesList');
   const historyTimeline = document.getElementById('historyTimeline');
+  const editClientBtn = document.getElementById('editClient');
+  const editClientModal = document.getElementById('editClientModal');
+  const btnEditClientCancel = document.getElementById('btnEditClientCancel');
+  const editClientForm = document.getElementById('editClientForm');
+  const editClientName = document.getElementById('editClientName');
+  const editClientPhone = document.getElementById('editClientPhone');
+  const editClientEmail = document.getElementById('editClientEmail');
+  const editClientNotes = document.getElementById('editClientNotes');
+
+  let currentClientData = null;
 
   // --- Navegação ----------------------------------------------------------
   document.getElementById('backBtn')?.addEventListener('click', () => {
@@ -60,6 +71,7 @@ export function initClientDetails(userId, userRole) {
     try {
       const snap = await db.collection('clients').doc(clientId).get();
       const data = snap.data();
+      currentClientData = data || {};
       if (clientNameHeader) clientNameHeader.textContent = data?.name || 'Cliente';
       if (summaryName) summaryName.textContent = data?.name || '';
       if (summaryInterest) summaryInterest.classList.add('hidden');
@@ -158,9 +170,14 @@ export function initClientDetails(userId, userRole) {
 
         const card = document.createElement('div');
         card.className = 'card flex justify-between items-center';
+        const coordsBtn =
+          data.lat && data.lng
+            ? `<button class="btn-secondary text-xs copy-coords" data-lat="${data.lat}" data-lng="${data.lng}">Copiar coords</button>`
+            : '';
         card.innerHTML = `
           <span>${data.name || 'Sem nome'}</span>
           <div class="flex gap-2">
+            ${coordsBtn}
             <a class="btn-secondary text-xs" href="property-details.html?clientId=${clientId}&propertyId=${propertyId}&from=${from}">Abrir</a>
             <a class="btn-secondary text-xs" href="property-employees.html?clientId=${clientId}&propertyId=${propertyId}&from=${from}">Equipe</a>
           </div>
@@ -199,6 +216,47 @@ export function initClientDetails(userId, userRole) {
   document
     .getElementById('showAddPropertyBtn')
     ?.addEventListener('click', addProperty);
+
+  editClientBtn?.addEventListener('click', () => {
+    if (isLead) return;
+    if (editClientName) editClientName.value = currentClientData?.name || '';
+    if (editClientPhone) editClientPhone.value = currentClientData?.phone || '';
+    if (editClientEmail) editClientEmail.value = currentClientData?.email || '';
+    if (editClientNotes) editClientNotes.value = currentClientData?.notes || '';
+    toggleModal(editClientModal, true);
+  });
+
+  btnEditClientCancel?.addEventListener('click', () =>
+    toggleModal(editClientModal, false)
+  );
+
+  editClientForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await db.collection('clients').doc(clientId).update({
+        name: editClientName?.value.trim() || '',
+        phone: editClientPhone?.value.trim() || '',
+        email: editClientEmail?.value.trim() || '',
+        notes: editClientNotes?.value.trim() || '',
+      });
+      toggleModal(editClientModal, false);
+      showToast('Cliente atualizado com sucesso!', 'success');
+      await loadClient();
+    } catch (err) {
+      console.error('Erro ao atualizar cliente:', err);
+      showToast('Erro ao atualizar cliente.', 'error');
+    }
+  });
+
+  propertiesList?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-coords');
+    if (!btn) return;
+    const text = `${btn.dataset.lat}, ${btn.dataset.lng}`;
+    navigator.clipboard
+      .writeText(text)
+      .then(() => showToast('Coordenadas copiadas!', 'success'))
+      .catch(() => showToast('Erro ao copiar coordenadas.', 'error'));
+  });
 
   // --- Inicialização ------------------------------------------------------
   if (isLead) {
