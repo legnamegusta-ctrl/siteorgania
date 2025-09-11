@@ -278,8 +278,9 @@ export async function initAgronomoDashboard(userId, userRole) {
   }
 
   async function renderHomeRecent() {
-    const container = document.getElementById('recentHistory');
+    const container = document.getElementById('recentTimeline');
     if (!container) return;
+    container.nextElementSibling?.remove();
     const visitList = await listVisits();
     const visits = visitList.map((v) => ({
       type: 'visit',
@@ -301,29 +302,33 @@ export async function initAgronomoDashboard(userId, userRole) {
     events.sort((a, b) => new Date(b.at) - new Date(a.at));
     events = events.slice(0, 5);
     if (!events.length) {
-      container.innerHTML = '<p class="text-sm text-gray-500">Nenhuma atividade recente.</p>';
-      container.innerHTML += '<a href="#historico" class="block mt-2 text-sm text-green-700">Ver tudo</a>';
+      container.innerHTML = '<li class="text-sm text-gray-500">Nenhuma atividade recente.</li>';
+      const link = document.createElement('a');
+      link.href = '#historico';
+      link.textContent = 'Ver tudo';
+      link.className = 'block mt-2 text-sm text-green-700';
+      container.insertAdjacentElement('afterend', link);
       return;
     }
-    container.className = 'card-soft divide-y';
     container.innerHTML = '';
     events.forEach((ev) => {
-      const card = document.createElement('div');
-      card.className = 'pl-4 py-2 border-l-2 border-green-600';
+      const item = document.createElement('li');
+      item.className = 'timeline-item';
+      const icon = ev.type === 'visit' ? 'fa-map-marker-alt' : 'fa-user-plus';
+      const name = ev.type === 'visit' && ev.name ? `<strong>${ev.name}</strong> - ` : '';
       const dateStr = new Date(ev.at).toLocaleString('pt-BR');
-      if (ev.type === 'visit') {
-        const name = ev.name ? `<strong>${ev.name}</strong> - ` : '';
-        card.innerHTML = `\n          <div class="text-sm text-gray-500">${dateStr}</div>\n          <div class="mt-1">${name}${ev.text}</div>\n        `;
-      } else {
-        card.innerHTML = `\n          <div class="text-sm text-gray-500">${dateStr}</div>\n          <div class="mt-1">${ev.text}</div>\n        `;
-      }
-      container.appendChild(card);
+      item.innerHTML = `
+        <span class="timeline-icon"><i class="fas ${icon}"></i></span>
+        <div class="timeline-date">${dateStr}</div>
+        <div class="mt-1">${name}${ev.text}</div>
+      `;
+      container.appendChild(item);
     });
     const link = document.createElement('a');
     link.href = '#historico';
     link.textContent = 'Ver tudo';
     link.className = 'block mt-2 text-sm text-green-700';
-    container.appendChild(link);
+    container.insertAdjacentElement('afterend', link);
   }
 
   function clearErrors(form) {
