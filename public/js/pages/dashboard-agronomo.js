@@ -763,9 +763,10 @@ export async function initAgronomoDashboard(userId, userRole) {
     items.forEach((it) => {
       const div = document.createElement('div');
       div.className = 'contact-card';
+      div.dataset.id = it.id;
+      div.dataset.type = it.type;
       if (it.type === 'lead') {
         div.classList.add('lead-card');
-        div.dataset.id = it.id;
       }
       const icon = it.type === 'lead' ? 'fa-seedling' : 'fa-user';
       const badge =
@@ -829,9 +830,14 @@ export async function initAgronomoDashboard(userId, userRole) {
       openLeadVisitModal(btn.dataset.id);
       return;
     }
-    const card = e.target.closest('.lead-card');
+    if (e.target.closest('button')) return;
+    const card = e.target.closest('.contact-card');
     if (card) {
-      location.href = `lead-details.html?id=${card.dataset.id}`;
+      if (card.dataset.type === 'lead') {
+        location.href = `lead-details.html?id=${card.dataset.id}`;
+      } else if (card.dataset.type === 'cliente') {
+        location.href = `client-details.html?clientId=${card.dataset.id}&from=agronomo`;
+      }
     }
   });
 
