@@ -98,16 +98,15 @@ function toggleModal(el, open) {
     overlay.addEventListener('click', overlay.__closeHandler);
   } else {
     overlay.classList.remove('show');
+    const hide = () => overlay.classList.add('hidden');
     overlay.addEventListener(
       'transitionend',
-      function handler(e) {
-        if (e.target === overlay) {
-          overlay.classList.add('hidden');
-          overlay.removeEventListener('transitionend', handler);
-        }
+      (e) => {
+        if (e.target === overlay) hide();
       },
       { once: true }
     );
+    setTimeout(hide, 300);
     document.removeEventListener('keydown', handleModalKeydown);
     overlay.removeEventListener('click', overlay.__closeHandler);
     currentModal = null;
