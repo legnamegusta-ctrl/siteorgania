@@ -153,11 +153,6 @@ export async function initAgronomoDashboard(userId, userRole) {
   const leadVisitTaskTitle = document.getElementById('leadVisitTaskTitle');
 
   renderWeather();
-
-  const historyTimeline = document.getElementById('historyTimeline');
-  const historyFilterAll = document.getElementById('historyFilterAll');
-  const historyFilterVisits = document.getElementById('historyFilterVisits');
-  const historyFilterAdds = document.getElementById('historyFilterAdds');
   let historyFilter = 'all';
 
   let currentLeadId = null;
@@ -347,6 +342,7 @@ export async function initAgronomoDashboard(userId, userRole) {
   }
 
   async function renderHistory() {
+    const historyTimeline = document.getElementById('historyTimeline');
     if (!historyTimeline) return;
     const visitList = await listVisits();
     const visits = visitList.map((v) => ({
@@ -399,20 +395,27 @@ export async function initAgronomoDashboard(userId, userRole) {
 
   async function setHistoryFilter(f) {
     historyFilter = f;
-    historyFilterAll?.classList.toggle('filter-active', f === 'all');
-    historyFilterAll?.setAttribute('aria-pressed', f === 'all');
-    historyFilterVisits?.classList.toggle('filter-active', f === 'visits');
-    historyFilterVisits?.setAttribute('aria-pressed', f === 'visits');
-    historyFilterAdds?.classList.toggle('filter-active', f === 'adds');
-    historyFilterAdds?.setAttribute('aria-pressed', f === 'adds');
+    const filterAll = document.getElementById('historyFilterAll');
+    const filterVisits = document.getElementById('historyFilterVisits');
+    const filterAdds = document.getElementById('historyFilterAdds');
+    filterAll?.classList.toggle('filter-active', f === 'all');
+    filterAll?.setAttribute('aria-pressed', f === 'all');
+    filterVisits?.classList.toggle('filter-active', f === 'visits');
+    filterVisits?.setAttribute('aria-pressed', f === 'visits');
+    filterAdds?.classList.toggle('filter-active', f === 'adds');
+    filterAdds?.setAttribute('aria-pressed', f === 'adds');
     await renderHistory();
   }
 
   function bindHistoryEvents() {
-    historyFilterAll?.addEventListener('click', () => setHistoryFilter('all'));
-    historyFilterVisits?.addEventListener('click', () => setHistoryFilter('visits'));
-    historyFilterAdds?.addEventListener('click', () => setHistoryFilter('adds'));
-    historyTimeline?.addEventListener('click', async (e) => {
+    const filterAll = document.getElementById('historyFilterAll');
+    const filterVisits = document.getElementById('historyFilterVisits');
+    const filterAdds = document.getElementById('historyFilterAdds');
+    const timeline = document.getElementById('historyTimeline');
+    filterAll?.addEventListener('click', () => setHistoryFilter('all'));
+    filterVisits?.addEventListener('click', () => setHistoryFilter('visits'));
+    filterAdds?.addEventListener('click', () => setHistoryFilter('adds'));
+    timeline?.addEventListener('click', async (e) => {
       const btn = e.target.closest('.edit-visit');
       if (!btn) return;
       const visitId = btn.dataset.id;
