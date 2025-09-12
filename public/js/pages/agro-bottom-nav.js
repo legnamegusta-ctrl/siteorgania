@@ -67,16 +67,18 @@ export function toggleModal(el, open) {
     lastFocusedElement = document.activeElement;
     currentModal = el;
     el.classList.remove('hidden');
+    el.classList.add('show');
     focusableElements = el.querySelectorAll(
       'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
     );
-    focusableElements[0]?.focus();
+    focusableElements[0]?.focus({ preventScroll: true });
     document.addEventListener('keydown', handleKeydown);
   } else {
     el.classList.add('hidden');
+    el.classList.remove('show');
     document.removeEventListener('keydown', handleKeydown);
     currentModal = null;
     focusableElements = [];
-    lastFocusedElement?.focus();
+    lastFocusedElement?.focus({ preventScroll: true });
   }
 }

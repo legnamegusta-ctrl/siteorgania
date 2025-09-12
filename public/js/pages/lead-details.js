@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteDoc,
   collection,
   addDoc,
   onSnapshot,
@@ -32,6 +33,7 @@ export function initLeadDetails(userId, userRole) {
   });
 
   const leadNameHeader = document.getElementById('leadNameHeader');
+  const breadcrumbLeadName = document.getElementById('breadcrumbLeadName');
   const leadName = document.getElementById('leadName');
   const leadPhone = document.getElementById('leadPhone');
   const leadEmail = document.getElementById('leadEmail');
@@ -86,6 +88,7 @@ export function initLeadDetails(userId, userRole) {
     const name =
       lead.name || lead.nomeContato || lead.displayName || '(Sem nome)';
     if (leadNameHeader) leadNameHeader.textContent = name;
+    if (breadcrumbLeadName) breadcrumbLeadName.textContent = name;
     if (leadName) leadName.textContent = name;
     if (leadPhone)
       leadPhone.textContent = lead.phone || lead.phoneNumber || '';
@@ -149,6 +152,7 @@ export function initLeadDetails(userId, userRole) {
     const name =
       data.name || data.nomeContato || data.displayName || '(Sem nome)';
     if (leadNameHeader) leadNameHeader.textContent = name;
+    if (breadcrumbLeadName) breadcrumbLeadName.textContent = name;
     if (leadName) leadName.textContent = name;
     if (leadPhone)
       leadPhone.textContent = data.phone || data.phoneNumber || '';
@@ -496,6 +500,7 @@ export function initLeadDetails(userId, userRole) {
         propertyCount: 0,
         cultureCount: 0,
         enabledModules: {},
+        leadId,
       });
       // Ensure a property with coordinates exists so maps can display the client
       try {
@@ -520,7 +525,7 @@ export function initLeadDetails(userId, userRole) {
       } catch (geoErr) {
         console.warn('[lead->client] Failed to create property with coordinates', geoErr);
       }
-      await updateDoc(leadRef, { stage: 'Convertido', clientId: clientRef.id });
+      await deleteDoc(leadRef);
       showToast('Lead convertido em cliente!', 'success');
       setTimeout(() => {
         window.location.href = `client-details.html?clientId=${clientRef.id}`;
